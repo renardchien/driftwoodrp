@@ -1,0 +1,75 @@
+extends base
+
+block body
+  div#gameControls
+    form(id='addPlayerForm', action='/addPlayer/#{game.ownerUsername}/#{game.name}', method='post')
+      input(type='hidden', name='_csrf', value='#{session._csrf}')      
+      label(for='username') player username
+      input(id='addUsername',type='text',placeholder='', name='username')
+      input(id='addPlayerSubmit',type='submit',value='Add Player',name='addPlayerSubmit')
+    br
+    form(id='removePlayerForm', action='/removePlayer/#{game.ownerUsername}/#{game.name}', method='post')
+      input(type='hidden', name='_csrf', value='#{session._csrf}')      
+      label(for='username') player username
+      input(id='removeUsername',type='text',placeholder='', name='username')
+      input(id='removePlayerSubmit',type='submit',value='Remove Player',name='removePlayerSubmit')
+    form
+    br
+    label(for='messagEntry') message
+    input(id='messageEntry', type='text', placeholder='', name='messageEntry')
+    button(id='messageSubmit', name='messageSubmit', onclick='sendMessage()') Send Message
+  input(id='gameName', type='hidden', value='#{game.name}')
+  input(id='owner', type='hidden', value='#{game.ownerUsername}')
+  div#assetUpload
+    form(id='assetUploadForm', enctype='multipart/form-data', action='/uploadToken/#{game.ownerUsername}/#{game.name}', method='post') 
+      input(type='hidden', name='_csrf', value='#{session._csrf}')      
+      label(for='assetFile') Choose File
+      input(id='assetFile',type='file', accept='image/*', name='assetFile')
+      input(id='uploadAssetSubmit',type='submit',value='Upload',name='uploadAssetSubmit')
+  div#game
+    #{game}
+  div#images
+    form(id='assetRemoveForm', enctype='multipart/form-data', action='/removeToken/#{game.ownerUsername}/#{game.name}', method='post') 
+      input(type='hidden', name='_csrf', value='#{session._csrf}')      
+      label(for='assetFile') Asset Name
+      input(id='assetFile',type='text', accept='image/*', name='assetFile')
+      input(id='removeAssetSubmit',type='submit',value='Remove',name='removeAssetSubmit')    
+  div#chat
+
+  script(src='/socket.io/socket.io.js')
+  script
+    var socket = io.connect('#{url}'); 
+
+    socket.on('connect', function() {
+      console.log('joining');
+      socket.emit('join', { 'gameName': '#{game.name}', 'owner': '#{game.ownerUsername}' });
+    });
+
+    socket.on('joined', function() {
+      console.log('joined successfully');
+    });
+
+    socket.on('chat', function(data) {
+      var childText = document.createElement('div');
+      var text = document.createTextNode(data);
+      childText.appendChild(text);
+      document.getElementById('chat').appendChild(childText);
+    });
+
+    function sendMessage() {
+      var message = document.getElementById("messageEntry").value;
+
+      if(message) {
+        socket.emit('chat', message);
+      }
+    }
+
+    function removeToken(token) {
+      var tokenId = token.getAttribute("name");
+       
+      if(tokenId) {
+        socket.emit('removeToken', {'gameName': '#{game.name}', 'owner': '#{game.ownerUsername}', 'tokenId': tokenId});
+      }
+    }
+
+    

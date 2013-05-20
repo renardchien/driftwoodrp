@@ -1,0 +1,35 @@
+extends base
+
+block body
+  div#login
+    form(id='loginform', action='/login', method='post')
+      input(type='hidden', name='_csrf', value='#{session._csrf}')      
+      label(for='loginUsername') username
+        input(id='loginUsername',type='text',placeholder='',name='loginUsername')
+      label(for='loginPassword') password
+        input(id='loginPassword',type='password',placeholder='',name='loginPassword')
+        input(id='loginSubmit',type='submit',value='Login',name='loginSubmit')
+  div#register  
+    form(id='registerform', action='/createAccount', method='post')
+      input(type='hidden', name='_csrf', value='#{session._csrf}')
+      label(for='registerUsername') username
+        input(id='registerUsername', type='text',placeholder='',name='registerUsername')
+      label(for='registerPassword') password
+        input(id='registerPassword', type='password',placeholder='',name='registerPassword')
+      label(for='registerPassword2') retype password
+        input(id='registerPassword2', type='password',placeholder='',name='registerPassword2')
+      label(for='registerFirstname') first name
+        input(id='registerFirstname', type='text',placeholder='',name='registerFirstname')
+      label(for='registerLastname') last name
+        input(id='registerLastname', type='text',placeholder='',name='registerLastname')
+      label(for='registerEmailAddr') email
+        input(id='registerEmailAddr', type='text',placeholder='',name='registerEmailAddr')
+      label(for='registerEmailAddr2') retype email
+        input(id='registerEmailAddr2', type='text',placeholder='',name='registerEmailAddr2')
+      input(id='registerSubmit',type='submit',value='Register',name='RegisterSubmit')
+  div#forgotPassword
+    form(id='forgotpassform', action='/resetPassword', method='post')
+      input(type='hidden', name='_csrf', value='#{session._csrf}')
+      label(for='email') email
+        input(id='forgotPassEmail', type='text',placeholder='', name='email')
+      input(id='forgotPassSubmit', type='submit', value='Reset Password', name='forgotPassSubmit')
