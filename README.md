@@ -19,4 +19,3 @@ under the License.
 ## DriftwoodRP
 DriftwoodRP is a set of tools to aid players looking to play tabletop role playing games in an online collaborative space. These tools are intended to allow players to play traditionally offline tabletop role playing games online, while maintaining the immersive and personal experiences of being in person as closely as possible. The tools are written in HTML 5, Javascript, XML and CSS. All tools are still prototypes.
 
-
