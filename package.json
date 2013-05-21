@@ -42,6 +42,7 @@
     "underscore": "~1.4.4",
     "jade": "~0.28.2",
     "async": "~0.2.6",
+    "async-rollback": "~0.0.1",
     "mime": "~1.2.9",
     "socket.io": "~0.9.14",
     "connect": "~2.7.5",

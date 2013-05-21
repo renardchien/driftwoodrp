@@ -19,7 +19,6 @@ under the License.
 
 
 var models = require('../models');
-var async = require('async');
 var fs = require('fs');
 var moniker = require('moniker');
 var config = require('../config.js');

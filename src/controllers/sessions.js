@@ -20,9 +20,9 @@ under the License.
 
 var models = require('../models');
 var async = require('async');
+require('async-rollback');
 var fs = require('fs');
 var mongoose = require ("mongoose"); 
-var async = require('async');
 var Schema = mongoose.Schema;
 var config = require('../config.js');
 var xxhash = require('xxhash');
@@ -201,21 +201,31 @@ var uploadToken = function(req, res) {
             return res.err('Token failed to upload, please try again');
           }
 
-           async.parallel({
-             main: function(asyncCallback) {
-               utils.uploadModule.uploadAsset(req.files.assetFile, publicPath, asyncCallback);
+           async.parallelRollback({
+             main: {
+               do: function(asyncCallback) { 
+                 utils.uploadModule.uploadAsset(req.files.assetFile, publicPath, asyncCallback);
+               },
+               undo: function(result, asyncCallback) {
+                 utils.uploadModule.removeAsset(publicPath, asyncCallback);
+               }
 	    },/////
-             thumb: function(asyncCallback) {
-               var thumb = new utils.imageModule.Image(req.files.assetFile.path);
-               thumb.resize(config.getConfig().specialConfigs.imageSize.thumb, function(err){
-                 if(err) {
-                   return asyncCallback(err);
-                 }
+             thumb: {
+               do: function(asyncCallback) { 
+                 var thumb = new utils.imageModule.Image(req.files.assetFile.path);
+		 thumb.resize(config.getConfig().specialConfigs.imageSize.thumb, function(err){
+		   if(err) {
+		     return asyncCallback(err);
+		   }
 
-                 thumb.uploadStream(publicPath + config.getConfig().specialConfigs.imageSize.thumb.type, asyncCallback); 
-               });
+		   thumb.uploadStream(publicPath + config.getConfig().specialConfigs.imageSize.thumb.type, asyncCallback); 
+		 });
+               },
+               undo: function(result, asyncCallback) {
+                 utils.uploadModule.removeAsset(publicPath + config.getConfig().specialConfigs.imageSize.thumb.type, asyncCallback); 
+               }
              } 
-           }, function(err) { 
+           }, function(err, results) { 
               if(err) {
                 newToken.remove(function(err) {
                   if(err) {
