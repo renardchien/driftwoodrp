@@ -22,14 +22,16 @@ $(document).ready(function() {
     initialize: function() {        
 
       _.bindAll(this, 'render');
+
+      this.addEventListeners();
       
+    },
+
+    run: function() {
       this.ContextMenu = new ContextMenu();
       this.Chat = new Chat();
       this.CanvasManager = new CanvasManager();
       this.Commands = new Commands({CanvasManager:this.CanvasManager});
-
-      this.addEventListeners();
-      
     },
 
     addEventListeners: function() {
@@ -60,15 +62,6 @@ $(document).ready(function() {
         $target.val('');
       })
 
-      //Creates a context menu
-      $body.on('contextmenu','.canvas-wrapper', function(e) {
-        scope.ContextMenu.open( {
-          x:e.clientX,
-          y:e.clientY,
-          e: e
-        } );
-        e.preventDefault();
-      } );
       //Creates a color picker
       $editorPicker = $body.find('.editor-color')
       $editorPicker.ColorPicker({
@@ -135,6 +128,15 @@ $(document).ready(function() {
       this.addEventListeners();
     },
     addEventListeners: function() {
+      //Creates a context menu
+      $body.on('contextmenu','.canvas-wrapper', _.bind( function(e) {
+        this.open( {
+          x:e.clientX,
+          y:e.clientY,
+          e: e
+        } );
+        e.preventDefault();
+      }, this ) );
       //Makes sure the context menu gets closed
       $body.on('click', _.bind(this.close,this));
     },
@@ -321,10 +323,10 @@ $(document).ready(function() {
     doCommand: function(command) {
       switch(command) {
         case 'moveCanvas' :
-          this.CanvasManager.trigger('moveCanvas');
+          driftwood.engine.CanvasManager.trigger('moveCanvas');
           break;
         case 'selectCanvas' :
-          this.CanvasManager.trigger('selectCanvas');
+          driftwood.engine.CanvasManager.trigger('selectCanvas');
           break;
       }
     },
@@ -428,5 +430,8 @@ $(document).ready(function() {
 
   } );
 
-  var app = new Driftwood();
+  var driftwood = {
+    engine: new Driftwood()
+  }
+  driftwood.engine.run();
 });
