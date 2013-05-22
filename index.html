@@ -42,25 +42,25 @@
             <li data-cmd="moveCanvas"><a href="#"><b class="icon-move"></b> Move</a></li>
           </ul>
         </div>
-        <div class="btn-group">
-          <span class="btn dropdown-toggle" data-toggle="dropdown">
+        <div class="btn-group layer-commands">
+          <span class="btn dropdown-toggle" data-toggle="dropdown" data-cmd="switchLayer" data-cmd-value="map_layer">
             <b class="icon-picture"></b> 
           </span>
           <ul class="dropdown-menu">
-            <li><a href="#"><b class="icon-picture"></b> Map Layer</a></li>
-            <li><a href="#"><b class="icon-th"></b> Grid Layer</a></li>
-            <li><a href="#"><b class="icon-pushpin"></b> Object Layer</a></li>
-            <li><a href="#"><b class="icon-user"></b> GM Layer</a></li>
+            <li data-cmd="switchLayer" data-cmd-value="map_layer"><a href="#"><b class="icon-picture"></b> Map Layer</a></li>
+            <li data-cmd="switchLayer" data-cmd-value="grid_layer"><a href="#"><b class="icon-th"></b> Grid Layer</a></li>
+            <li data-cmd="switchLayer" data-cmd-value="object_layer"><a href="#"><b class="icon-pushpin"></b> Object Layer</a></li>
+            <li data-cmd="switchLayer" data-cmd-value="gm_layer"><a href="#"><b class="icon-user"></b> GM Layer</a></li>
           </ul>
         </div>
         <div class="btn-group">
-          <span class="btn dropdown-toggle" data-toggle="dropdown">
-            <b class="icon-sign-blank"></b> 
+          <span class="btn dropdown-toggle" data-toggle="dropdown" data-cmd="draw" data-cmd-value="free">
+            <b class="icon-pencil"></b> 
           </span>
           <ul class="dropdown-menu">
-            <li><a href="#"><b class="icon-pencil"></b> Free Draw</a></li>
-            <li><a href="#"><b class="icon-sign-blank"></b> Rectangle</a></li>
-            <li><a href="#"><b class="icon-circle"></b> Circle</a></li>
+            <li data-cmd="draw" data-cmd-value="free"><a href="#"><b class="icon-pencil"></b> Free Draw</a></li>
+            <li data-cmd="draw" data-cmd-value="rectangle"><a href="#"><b class="icon-sign-blank"></b> Rectangle</a></li>
+            <li data-cmd="draw" data-cmd-value="circle"><a href="#"><b class="icon-circle"></b> Circle</a></li>
           </ul>
         </div>
         <div class="btn-group">

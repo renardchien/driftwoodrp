@@ -267,10 +267,12 @@ $(document).ready(function() {
         var $this = $(this),
             icon = $this.find('b')[0].className,
             command = $this.closest('[data-cmd]').data('cmd'),
+            value = $this.closest('[data-cmd]').data('cmd-value'),
             $parentIcon = $this.closest('.btn-group').find('.dropdown-toggle b');
 
         $parentIcon[0].className = icon;
         $parentIcon.closest('[data-cmd]').attr('data-cmd',command);
+         $parentIcon.closest('[data-cmd]').attr('data-cmd-value',value);
         $body.find('.commands .btn.active').removeClass('active');
         $parentIcon.parent().addClass('active');
       } );
@@ -304,29 +306,42 @@ $(document).ready(function() {
         //Because of the timing of open, close we actually want to execute the command
         //if the btn-group is reporting it's open (because once this function finishes
         //and bubbles up, the bootstrap event listener will toggle it the other way)
-        if( $(this).closest('.btn-group').hasClass('open') && $(this).data('cmd') ) {
-          scope.doCommand($(this).data('cmd'));
+        if( $this.closest('.btn-group').hasClass('open') && $this.data('cmd') ) {
+          scope.commandClicked(this);
         }
       } );
       //Simple do command event listener
       $body.on('click','[data-cmd]', function(e) {
-        scope.doCommand($(this).data('cmd'));
+        scope.commandClicked(this);
       } );
     },
     //Checks the DOM to see what command is set as active and runs it
     runInitialCommand: function() {
-      var command = $body.find('.commands [data-cmd].active').data('cmd');
-      this.doCommand(command);
+      $body.find('.commands [data-cmd].active').trigger('click');
+    },
+    commandClicked: function(object) {
+      var $this = $(object);
+            command = $this.data('cmd'),
+            value = $this.data('cmd-value');
+
+      this.doCommand(command,value);
     },
     //Checks our command switch and fires off the command to whatever 
     //controller neds it
-    doCommand: function(command) {
+    doCommand: function(command,value) {
+      console.log('Command:',command,value);
       switch(command) {
         case 'moveCanvas' :
-          driftwood.engine.CanvasManager.trigger('moveCanvas');
+          driftwood.engine.CanvasManager.trigger('moveCanvas',value);
           break;
         case 'selectCanvas' :
-          driftwood.engine.CanvasManager.trigger('selectCanvas');
+          driftwood.engine.CanvasManager.trigger('selectCanvas',value);
+          break;
+        case 'draw' :
+          driftwood.engine.CanvasManager.trigger('draw',value);
+          break;
+        case 'switchLayer' :
+          driftwood.engine.CanvasManager.trigger('switchLayer',value);
           break;
       }
     },
@@ -339,16 +354,22 @@ $(document).ready(function() {
    * etc
    */
   CanvasManager = Backbone.View.extend( {
+    
     canvasMove: false,
+
+    initialLayer: 'map_layer',
 
     initialize: function() {
       _.bindAll(this,'render');
       
+      this.canvas = new fabric.Canvas('c');
+
       //Add event listeners
       this.addEventListeners();
       this.on_resize();
-      
-      this.canvas = new fabric.Canvas('c');
+
+      //Set initial layer
+      this.switchLayer(this.initialLayer);
 
       //Just some preset stuff for testing
       this.canvas.setWidth( 3000 );
@@ -358,12 +379,31 @@ $(document).ready(function() {
         radius: 20, fill: 'green', left: 200, top: 300
       });
       this.canvas.add(circle);
+
+      
     },
 
     addEventListeners: function() {
+      this.on('moveCanvas selectCanvas draw switchLayer', _.bind(this.disableAll,this));
       this.on('moveCanvas', _.bind(this.activateCanvasMove,this));
       this.on('selectCanvas',_.bind(this.activateCanvasSelect,this));
+      this.on('draw',_.bind(this.draw,this));
+      this.on('switchLayer',_.bind(this.switchLayer,this));
       $window.on('resize',this.on_resize);
+
+      //Canvas events
+      this.canvas.on('object:added', _.bind( function(e) {
+        var activeObject = e.target,
+            currentLayer = this.currentLayer;
+        activeObject.toObject = (function(toObject) {
+          return function() {
+            return fabric.util.object.extend(toObject.call(this), {
+              layer: currentLayer
+            });
+          };
+        })(activeObject.toObject);
+        console.log(activeObject.toJSON());
+      }, this ) );
     },
 
     on_resize: function() {
@@ -374,15 +414,42 @@ $(document).ready(function() {
     //Disables all our different canvas interactions
     disableAll: function() {
       this.disableCanvasMove();
+      this.canvas.isDrawingMode = false;
+      this.canvas.selection = true;
+    },
+
+    draw: function(what) {
+      switch(what) {
+        case 'free':
+          this.canvas.isDrawingMode = true;
+          break;
+      }
+      
+    },
+
+    switchLayer: function(layer) {
+      this.currentLayer = layer;
+
+      var objects = this.canvas.getObjects();
+      objects.forEach( _.bind( function(object) {
+
+        if( object.toJSON().layer !== this.currentLayer ) {
+          object.selectable = false;
+          object.set('opacity',0.5);
+        } else {
+          object.selectable = true;
+          object.set('opacity',1);
+        }
+      }, this ) );
+      this.canvas.deactivateAll().renderAll();
     },
 
     //TODO: fill me
     activateCanvasSelect: function() {
-      this.disableAll();
+      this.canvas.selection = true;
     },
     //Says we can move a canvas, declares event listeners
     activateCanvasMove: function() {
-      this.disableAll();
       $body.find('.editor .overlay').show();
       $body.on('mousedown.canvasPan','.canvas-wrapper', _.bind( this.startCanvasMove, this ) );
       $body.on('mouseup.canvasPan', _.bind( this.stopCanvasMove, this ) );
