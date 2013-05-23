@@ -52,11 +52,11 @@ var SessionSchema = new mongoose.Schema({
 			x: Number,
 			y: Number
 		},
-  tokens: 	[
+  layers: 	[
 			{
-				image: String,
-				x: Number,
-				y: Number
+				layerId: String,
+                                layerZ: Number,
+				data: String
 			}
 		]
 
@@ -122,11 +122,7 @@ var SessionLogSchema = new mongoose.Schema({
 						type: Date,
 						'default': Date.now
 				      	},
-				token: String,
-				originalX: Number,
-				originalY: Number,
-				x: Number,
-				y: Number
+				data: String
 			}
 		]
 

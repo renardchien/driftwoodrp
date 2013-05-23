@@ -34,6 +34,7 @@ var router = require('./router.js');
 var connect = require('connect');
 var cookie = require('cookie');
 var Session = connect.middleware.session.Session;
+var compass = require('node-compass');
 
 
 log.info("Initializing");
@@ -76,6 +77,7 @@ app.use(express.limit('3mb'));
 app.use(express.static(__dirname + '/assets'));
 app.use(express.compress());
 app.use(express.bodyParser());
+app.use(compass());
 app.set('view engine', 'jade');
 app.set('views', __dirname + '/../template');
 app.use(express.cookieParser());
@@ -85,6 +87,12 @@ app.use(express.session({
 	secret: config.getConfig().secretKey,
 	store: sessionStore
 }));
+
+compass({
+  project: __dirname + '/../template',
+  css: 'css',
+  sass: 'sass'
+});
 
 app.locals.pretty = config.getConfig().environment !== 'production';
 
