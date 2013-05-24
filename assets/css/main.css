@@ -7,17 +7,24 @@ html, body, #Main, .main {
 body {
   overflow: hidden; }
 
-/* line 30, ../scss/main.scss */
+/* line 24, ../scss/main.scss */
+.canvas-container + .canvas-container {
+  position: absolute;
+  top: -3000px;
+  left: 0;
+  pointer-events: none; }
+
+/* line 35, ../scss/main.scss */
 .main {
   display: table; }
 
-/* line 34, ../scss/main.scss */
+/* line 39, ../scss/main.scss */
 .main, .editor, .panel {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box; }
 
-/* line 42, ../scss/main.scss */
+/* line 47, ../scss/main.scss */
 .btn-group > .btn-group > .btn.dropdown-toggle {
   margin-left: 0;
   -webkit-border-radius: 0;
@@ -26,16 +33,16 @@ body {
   -o-border-radius: 0;
   border-radius: 0; }
 
-/* line 46, ../scss/main.scss */
+/* line 51, ../scss/main.scss */
 .btn-group > .btn-group + .btn-group {
   margin-left: 0;
   display: block; }
 
-/* line 50, ../scss/main.scss */
+/* line 55, ../scss/main.scss */
 .btn-group > .btn-group:not(:last-child) > .btn.dropdown-toggle {
   border-bottom: 0; }
 
-/* line 53, ../scss/main.scss */
+/* line 58, ../scss/main.scss */
 .btn-group > .btn-group:last-child > .btn.dropdown-toggle {
   -moz-border-radius-bottomright: 4px;
   -webkit-border-bottom-right-radius: 4px;
@@ -44,7 +51,7 @@ body {
   -webkit-border-bottom-left-radius: 4px;
   border-bottom-left-radius: 4px; }
 
-/* line 57, ../scss/main.scss */
+/* line 62, ../scss/main.scss */
 .btn-group > .btn-group:first-child > .btn.dropdown-toggle {
   -moz-border-radius-topright: 4px;
   -webkit-border-top-right-radius: 4px;
@@ -53,12 +60,12 @@ body {
   -webkit-border-top-left-radius: 4px;
   border-top-left-radius: 4px; }
 
-/* line 67, ../scss/main.scss */
+/* line 72, ../scss/main.scss */
 .form-horizontal .control-label {
   text-align: left;
   width: auto; }
 
-/* line 83, ../scss/main.scss */
+/* line 88, ../scss/main.scss */
 .editor {
   position: relative;
   display: table-cell;
@@ -68,13 +75,13 @@ body {
   width: 100%;
   overflow: hidden;
   background-color: #eaeaea; }
-  /* line 92, ../scss/main.scss */
+  /* line 97, ../scss/main.scss */
   .editor .canvas-wrapper {
     height: 100%;
     max-height: 100%;
     max-width: 100%;
     overflow: hidden; }
-    /* line 97, ../scss/main.scss */
+    /* line 102, ../scss/main.scss */
     .editor .canvas-wrapper .overlay {
       position: absolute;
       left: 0;
@@ -82,19 +89,19 @@ body {
       cursor: move;
       width: 100%;
       height: 100%; }
-  /* line 107, ../scss/main.scss */
+  /* line 112, ../scss/main.scss */
   .editor .commands {
     position: absolute;
     z-index: 1;
     top: 30px;
     left: 30px; }
-    /* line 112, ../scss/main.scss */
+    /* line 117, ../scss/main.scss */
     .editor .commands .btn-group {
       position: relative; }
-      /* line 113, ../scss/main.scss */
+      /* line 118, ../scss/main.scss */
       .editor .commands .btn-group > .btn {
         width: 15px; }
-      /* line 117, ../scss/main.scss */
+      /* line 122, ../scss/main.scss */
       .editor .commands .btn-group:after {
         content: "";
         position: absolute;
@@ -106,33 +113,33 @@ body {
         border-width: 0 0 7px 7px;
         border-color: transparent transparent #666666 transparent;
         z-index: 400; }
-    /* line 130, ../scss/main.scss */
+    /* line 135, ../scss/main.scss */
     .editor .commands .dropdown-menu {
       top: 0;
       left: 100%; }
 
-/* line 141, ../scss/main.scss */
+/* line 146, ../scss/main.scss */
 .nav, .chat, .message-wrapper, .input, .objects, .settings, .tr {
   display: table-row;
   border-collapse: collapse;
   width: 100%;
   height: 100%; }
 
-/* line 147, ../scss/main.scss */
+/* line 152, ../scss/main.scss */
 .panel, .content {
   display: table;
   width: 100%;
   height: 100%; }
 
-/* line 152, ../scss/main.scss */
+/* line 157, ../scss/main.scss */
 .content {
   max-height: 100%; }
 
-/* line 155, ../scss/main.scss */
+/* line 160, ../scss/main.scss */
 .tr-flow {
   height: auto; }
 
-/* line 158, ../scss/main.scss */
+/* line 163, ../scss/main.scss */
 .panel {
   position: relative;
   overflow: hidden;
@@ -142,10 +149,10 @@ body {
   -webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   -moz-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); }
-  /* line 165, ../scss/main.scss */
+  /* line 170, ../scss/main.scss */
   .panel .nav {
     height: auto; }
-    /* line 167, ../scss/main.scss */
+    /* line 172, ../scss/main.scss */
     .panel .nav ol {
       margin-bottom: 0;
       padding: 10px;
@@ -154,7 +161,7 @@ body {
       -webkit-box-sizing: border-box;
       -moz-box-sizing: border-box;
       box-sizing: border-box; }
-      /* line 173, ../scss/main.scss */
+      /* line 178, ../scss/main.scss */
       .panel .nav ol li {
         padding: 5px 10px;
         cursor: pointer;
@@ -163,18 +170,18 @@ body {
         box-sizing: border-box;
         text-align: center;
         width: 32%; }
-        /* line 179, ../scss/main.scss */
+        /* line 184, ../scss/main.scss */
         .panel .nav ol li b {
           margin-right: 4px; }
-  /* line 186, ../scss/main.scss */
+  /* line 191, ../scss/main.scss */
   .panel .chat {
     background-color: #eaeaea; }
-    /* line 188, ../scss/main.scss */
+    /* line 193, ../scss/main.scss */
     .panel .chat .messages {
       height: 100%;
       overflow-y: auto;
       overflow-x: hidden; }
-    /* line 193, ../scss/main.scss */
+    /* line 198, ../scss/main.scss */
     .panel .chat .message {
       position: relative;
       background-color: #FFF;
@@ -201,32 +208,32 @@ body {
       word-wrap: break-word;
       word-break: break-word;
       max-width: 100%; }
-      /* line 207, ../scss/main.scss */
+      /* line 212, ../scss/main.scss */
       .panel .chat .message.active {
         left: -120%; }
-      /* line 210, ../scss/main.scss */
+      /* line 215, ../scss/main.scss */
       .panel .chat .message .username, .panel .chat .message .text {
         display: inline-block; }
-      /* line 213, ../scss/main.scss */
+      /* line 218, ../scss/main.scss */
       .panel .chat .message .username {
         float: left;
         font-weight: bold;
         margin-right: 4px; }
-        /* line 217, ../scss/main.scss */
+        /* line 222, ../scss/main.scss */
         .panel .chat .message .username:after {
           content: ":"; }
-    /* line 222, ../scss/main.scss */
+    /* line 227, ../scss/main.scss */
     .panel .chat .input {
       background-color: #FFF;
       border-top: 1px solid #cccccc; }
-      /* line 225, ../scss/main.scss */
+      /* line 230, ../scss/main.scss */
       .panel .chat .input .textarea {
         -webkit-box-sizing: border-box;
         -moz-box-sizing: border-box;
         box-sizing: border-box;
         padding: 10px;
         width: 100%; }
-        /* line 229, ../scss/main.scss */
+        /* line 234, ../scss/main.scss */
         .panel .chat .input .textarea textarea {
           margin-bottom: 0;
           max-height: 85px;
@@ -235,10 +242,10 @@ body {
           -webkit-box-shadow: none;
           -moz-box-shadow: none;
           box-shadow: none; }
-  /* line 242, ../scss/main.scss */
+  /* line 247, ../scss/main.scss */
   .panel .objects {
     display: none; }
-    /* line 244, ../scss/main.scss */
+    /* line 249, ../scss/main.scss */
     .panel .objects .search {
       position: relative;
       padding: 5px 10px 5px 35px;
@@ -247,16 +254,16 @@ body {
       -moz-transition: padding 0.3s ease;
       -o-transition: padding 0.3s ease;
       transition: padding 0.3s ease; }
-      /* line 249, ../scss/main.scss */
+      /* line 254, ../scss/main.scss */
       .panel .objects .search.focus {
         padding-left: 10px; }
-        /* line 251, ../scss/main.scss */
+        /* line 256, ../scss/main.scss */
         .panel .objects .search.focus label {
           left: -18px; }
-        /* line 254, ../scss/main.scss */
+        /* line 259, ../scss/main.scss */
         .panel .objects .search.focus .target {
           right: -50%; }
-        /* line 257, ../scss/main.scss */
+        /* line 262, ../scss/main.scss */
         .panel .objects .search.focus .clear {
           filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=100);
           opacity: 1;
@@ -265,14 +272,14 @@ body {
           -moz-transition: opacity 0.3s ease 0.3s;
           -o-transition: opacity 0.3s ease 0.3s;
           transition: opacity 0.3s ease 0.3s; }
-      /* line 262, ../scss/main.scss */
+      /* line 267, ../scss/main.scss */
       .panel .objects .search .input {
         border: none;
         -webkit-box-shadow: none;
         -moz-box-shadow: none;
         box-shadow: none;
         margin-bottom: 0; }
-      /* line 267, ../scss/main.scss */
+      /* line 272, ../scss/main.scss */
       .panel .objects .search label {
         position: absolute;
         top: 9px;
@@ -282,7 +289,7 @@ body {
         -moz-transition: left 0.3s ease;
         -o-transition: left 0.3s ease;
         transition: left 0.3s ease; }
-      /* line 274, ../scss/main.scss */
+      /* line 279, ../scss/main.scss */
       .panel .objects .search .clear {
         position: absolute;
         right: 10px;
@@ -296,7 +303,7 @@ body {
         -moz-transition: opacity 0.2s ease 0s;
         -o-transition: opacity 0.2s ease 0s;
         transition: opacity 0.2s ease 0s; }
-      /* line 283, ../scss/main.scss */
+      /* line 288, ../scss/main.scss */
       .panel .objects .search .target {
         position: absolute;
         top: 0;
@@ -307,13 +314,13 @@ body {
         -moz-transition: right 0.3s ease;
         -o-transition: right 0.3s ease;
         transition: right 0.3s ease; }
-        /* line 290, ../scss/main.scss */
+        /* line 295, ../scss/main.scss */
         .panel .objects .search .target .dropdown-toggle {
           cursor: pointer; }
-    /* line 296, ../scss/main.scss */
+    /* line 301, ../scss/main.scss */
     .panel .objects .object-list ol {
       margin-bottom: 0; }
-      /* line 298, ../scss/main.scss */
+      /* line 303, ../scss/main.scss */
       .panel .objects .object-list ol > li {
         position: relative;
         padding: 10px;
@@ -326,37 +333,37 @@ body {
         -o-transition: background-color 0.3s ease;
         transition: background-color 0.3s ease;
         overflow: visible; }
-        /* line 306, ../scss/main.scss */
+        /* line 311, ../scss/main.scss */
         .panel .objects .object-list ol > li .preview {
           height: 50px;
           width: 50px;
           float: left;
           border: 1px solid #cccccc;
           margin-right: 10px; }
-        /* line 313, ../scss/main.scss */
+        /* line 318, ../scss/main.scss */
         .panel .objects .object-list ol > li p {
           margin-bottom: 5px; }
-        /* line 316, ../scss/main.scss */
+        /* line 321, ../scss/main.scss */
         .panel .objects .object-list ol > li:hover {
           background-color: #f7f7f7; }
-          /* line 318, ../scss/main.scss */
+          /* line 323, ../scss/main.scss */
           .panel .objects .object-list ol > li:hover .menu {
             display: block; }
-        /* line 322, ../scss/main.scss */
+        /* line 327, ../scss/main.scss */
         .panel .objects .object-list ol > li .menu {
           position: absolute;
           top: 10px;
           right: 10px;
           cursor: auto;
           display: none; }
-          /* line 328, ../scss/main.scss */
+          /* line 333, ../scss/main.scss */
           .panel .objects .object-list ol > li .menu .dropdown-toggle {
             cursor: pointer;
             color: #cccccc; }
-            /* line 331, ../scss/main.scss */
+            /* line 336, ../scss/main.scss */
             .panel .objects .object-list ol > li .menu .dropdown-toggle:hover {
               color: inherit; }
-    /* line 339, ../scss/main.scss */
+    /* line 344, ../scss/main.scss */
     .panel .objects .upload {
       padding: 10px;
       border-top: 1px solid #cccccc;
@@ -368,27 +375,27 @@ body {
       overflow: hidden;
       *zoom: 1;
       overflow: visible; }
-      /* line 347, ../scss/main.scss */
+      /* line 352, ../scss/main.scss */
       .panel .objects .upload .dropdown-toggle {
         cursor: pointer; }
-      /* line 350, ../scss/main.scss */
+      /* line 355, ../scss/main.scss */
       .panel .objects .upload .dropdown-menu {
         bottom: 100%;
         top: auto; }
-  /* line 356, ../scss/main.scss */
+  /* line 361, ../scss/main.scss */
   .panel .settings {
     display: none; }
-    /* line 358, ../scss/main.scss */
+    /* line 363, ../scss/main.scss */
     .panel .settings .control-pane {
       padding: 10px; }
-    /* line 361, ../scss/main.scss */
+    /* line 366, ../scss/main.scss */
     .panel .settings input[type="color"] {
       border: none;
       -webkit-box-shadow: none;
       -moz-box-shadow: none;
       box-shadow: none;
       height: 25px; }
-    /* line 366, ../scss/main.scss */
+    /* line 371, ../scss/main.scss */
     .panel .settings .actions {
       padding: 15px 10px;
       -webkit-box-sizing: border-box;
@@ -396,14 +403,14 @@ body {
       box-sizing: border-box;
       background-color: #eaeaea;
       border-top: 1px solid #cccccc; }
-      /* line 371, ../scss/main.scss */
+      /* line 376, ../scss/main.scss */
       .panel .settings .actions .btn {
         width: 49%; }
-        /* line 373, ../scss/main.scss */
+        /* line 378, ../scss/main.scss */
         .panel .settings .actions .btn.btn-primary {
           width: 50%; }
 
-/* line 385, ../scss/main.scss */
+/* line 390, ../scss/main.scss */
 .context-menu {
   display: block;
   position: absolute;
@@ -411,6 +418,6 @@ body {
   left: 0; }
 
 @media (max-width: 767px) {
-  /* line 397, ../scss/main.scss */
+  /* line 402, ../scss/main.scss */
   body {
     padding: 0; } }

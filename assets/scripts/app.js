@@ -306,7 +306,7 @@ $(document).ready(function() {
         //Because of the timing of open, close we actually want to execute the command
         //if the btn-group is reporting it's open (because once this function finishes
         //and bubbles up, the bootstrap event listener will toggle it the other way)
-        if( $this.closest('.btn-group').hasClass('open') && $this.data('cmd') ) {
+        if( $this.closest('.btn-group').hasClass('open') && $this.attr('data-cmd') ) {
           scope.commandClicked(this);
         }
       } );
@@ -321,8 +321,8 @@ $(document).ready(function() {
     },
     commandClicked: function(object) {
       var $this = $(object);
-            command = $this.data('cmd'),
-            value = $this.data('cmd-value');
+            command = $this.attr('data-cmd'),
+            value = $this.attr('data-cmd-value');
 
       this.doCommand(command,value);
     },
@@ -343,6 +343,12 @@ $(document).ready(function() {
         case 'switchLayer' :
           driftwood.engine.CanvasManager.trigger('switchLayer',value);
           break;
+        case 'zoomIn':
+          driftwood.engine.CanvasManager.trigger('zoomIn');
+          break;
+        case 'zoomOut':
+          driftwood.engine.CanvasManager.trigger('zoomOut');
+          break;
       }
     },
   } );
@@ -359,95 +365,175 @@ $(document).ready(function() {
 
     initialLayer: 'map_layer',
 
+    CANVAS_WIDTH: 3000,
+
+    CANVAS_HEIGHT: 3000,
+
     initialize: function() {
       _.bindAll(this,'render');
       
+      //Store reference to our canvas object
       this.canvas = new fabric.Canvas('c');
+      //Sset our intial canvas width
+      this.canvas.setWidth( this.CANVAS_WIDTH );
+      this.canvas.setHeight( this.CANVAS_HEIGHT );
+
+      //Just for now
+      //FIXME: The grid should actually be on its own layer
+      this.canvas.setOverlayImage('assets/images/grid.svg', this.canvas.renderAll.bind(this.canvas))
+
+      //Just for testing
+      //FIXME: Remove or clean up
+      /*this._tmp_canvas = new fabric.Canvas('over');
+      this._tmp_canvas.setWidth( this.CANVAS_WIDTH );
+      this._tmp_canvas.setHeight( this.CANVAS_HEIGHT );
+      this._tmp_canvas.calcOffset();
+      this._tmp_canvas.renderAll();
+      
+      this._saved = [];*/
+
+      //Create our drawing utility
+      this.drawing = this.drawingUtil.init(this);
+      //Zoom utility
+      this.zoom = this.zoomUtil.init(this);
 
       //Add event listeners
       this.addEventListeners();
+      
+      //Make sure we'll all sized up
       this.on_resize();
 
       //Set initial layer
       this.switchLayer(this.initialLayer);
-
-      //Just some preset stuff for testing
-      this.canvas.setWidth( 3000 );
-      this.canvas.setHeight( 3000 );
-      this.canvas.setOverlayImage('assets/images/grid.svg', this.canvas.renderAll.bind(this.canvas))
-      var circle = new fabric.Circle({
-        radius: 20, fill: 'green', left: 200, top: 300
-      });
-      this.canvas.add(circle);
-
-      
     },
 
     addEventListeners: function() {
+      //Backbone View event listeners
       this.on('moveCanvas selectCanvas draw switchLayer', _.bind(this.disableAll,this));
       this.on('moveCanvas', _.bind(this.activateCanvasMove,this));
       this.on('selectCanvas',_.bind(this.activateCanvasSelect,this));
       this.on('draw',_.bind(this.draw,this));
       this.on('switchLayer',_.bind(this.switchLayer,this));
+      this.on('zoomIn',this.zoom.In);
+      this.on('zoomOut',this.zoom.Out);
+
+      //Window listener
       $window.on('resize',this.on_resize);
 
       //Canvas events
       this.canvas.on('object:added', _.bind( function(e) {
         var activeObject = e.target,
             currentLayer = this.currentLayer;
-        activeObject.toObject = (function(toObject) {
-          return function() {
-            return fabric.util.object.extend(toObject.call(this), {
-              layer: currentLayer
-            });
-          };
-        })(activeObject.toObject);
-        console.log(activeObject.toJSON());
+        if( ! activeObject.toJSON().layer ) {
+          activeObject.toObject = (function(toObject) {
+            return function() {
+              return fabric.util.object.extend(toObject.call(this), {
+                layer: currentLayer,
+              });
+            };
+          })(activeObject.toObject);
+          console.log(activeObject.toJSON());
+          //this._saved.push(activeObject);
+        }
       }, this ) );
     },
 
+    //Make sure the canvas wrapper stays the width of the screen, minus our side panel
     on_resize: function() {
-      //Make sure the canvas wrapper stays the width of the screen, minus our side panel
       $body.find('.canvas-wrapper').width($window.width()-$('.panel').outerWidth()).height($window.height());
     },
 
     //Disables all our different canvas interactions
     disableAll: function() {
       this.disableCanvasMove();
+      this.drawing.circle.stopDrawing();
+      this.drawing.rectangle.stopDrawing();
       this.canvas.isDrawingMode = false;
       this.canvas.selection = true;
     },
 
+    //Draw something
     draw: function(what) {
       switch(what) {
         case 'free':
           this.canvas.isDrawingMode = true;
           break;
+        case 'circle':
+          this.drawing.circle.startDrawing();
+          break;
+        case 'rectangle':
+          this.drawing.rectangle.startDrawing();
       }
       
     },
 
-    switchLayer: function(layer) {
+    /**
+     * Clears canvas and puts non active layer objects on a different
+     * canvas all together
+     */
+    /*switchLayer: function(layer) {
       this.currentLayer = layer;
 
-      var objects = this.canvas.getObjects();
-      objects.forEach( _.bind( function(object) {
-
+      //Clear everything - we're going to load everything
+      //from our saved objects array onto the correct canvas
+      this._tmp_canvas.clear();
+      this.canvas.clear();
+      //Go through each object and add it to the correct canvas
+      this._saved.forEach( _.bind( function(object) {
+        //Not on this later, move to the tmp canvas
         if( object.toJSON().layer !== this.currentLayer ) {
           object.selectable = false;
           object.set('opacity',0.5);
+          this.canvas.remove(object);
+          this._tmp_canvas.add(object);
+        //Is the current layer, so let's interact with it
+        } else {
+          object.selectable = true;
+          object.set('opacity',1);
+          this.canvas.add(object);
+          this._tmp_canvas.remove(object);
+        }
+      }, this ) );
+      //Make sure everything is rendered
+      this._tmp_canvas.renderAll();
+      this.canvas.deactivateAll().renderAll();
+    },*/
+
+    switchLayer: function(layer) {
+      this.currentLayer = layer;
+      //Grab objects
+      var objects = this.canvas.getObjects();
+      //Go through each object and add it to the correct canvas
+      objects.forEach( _.bind( function(object) {
+        //Not on this later, move to the tmp canvas
+        if( object.toJSON().layer !== this.currentLayer ) {
+          object.selectable = false;
+          object.set('opacity',0.5);
+        //Is the current layer, so let's interact with it
         } else {
           object.selectable = true;
           object.set('opacity',1);
         }
       }, this ) );
+      //Make sure everything is rendered
       this.canvas.deactivateAll().renderAll();
     },
 
-    //TODO: fill me
+    //Allows items on the canvas to be selected
     activateCanvasSelect: function() {
       this.canvas.selection = true;
     },
+
+    /**
+     * Canvas Move
+     *
+     * These functions handle moving the canvas. One function to activate,
+     * one to deactivate, what to start the move, one to stop the move, and another
+     * to actually move
+     *
+     * The moving actually takes place on the editor overlay, and we just
+     * adjust the scroll height/width to make it look like we are panning
+     */
     //Says we can move a canvas, declares event listeners
     activateCanvasMove: function() {
       $body.find('.editor .overlay').show();
@@ -493,7 +579,273 @@ $(document).ready(function() {
         }
       }
       e.preventDefault();
-    }
+    },
+
+    zoomUtil: {
+      //Init function. Needs context to our global object
+      init: function(context) {
+        canvas = context.canvas;
+        SCALE_FACTOR = 1.2;
+        canvasScale = 1;
+        return {
+          In: function(event) {
+            // TODO limit the max canvas zoom in
+            canvasScale: canvasScale * SCALE_FACTOR,
+            
+            canvas.setHeight(canvas.getHeight() * SCALE_FACTOR);
+            canvas.setWidth(canvas.getWidth() * SCALE_FACTOR);
+            
+            var objects = canvas.getObjects();
+            for (var i in objects) {
+                var scaleX = objects[i].scaleX;
+                var scaleY = objects[i].scaleY;
+                var left = objects[i].left;
+                var top = objects[i].top;
+                
+                var tempScaleX = scaleX * SCALE_FACTOR;
+                var tempScaleY = scaleY * SCALE_FACTOR;
+                var tempLeft = left * SCALE_FACTOR;
+                var tempTop = top * SCALE_FACTOR;
+                
+                objects[i].scaleX = tempScaleX;
+                objects[i].scaleY = tempScaleY;
+                objects[i].left = tempLeft;
+                objects[i].top = tempTop;
+                
+                objects[i].setCoords();
+            }
+                
+            canvas.renderAll();
+          },
+          Out: function() {
+            console.log('zoom out');
+            // TODO limit max cavas zoom out
+            canvasScale = canvasScale / SCALE_FACTOR;
+            
+            canvas.setHeight(canvas.getHeight() * (1 / SCALE_FACTOR));
+            canvas.setWidth(canvas.getWidth() * (1 / SCALE_FACTOR));
+            
+            var objects = canvas.getObjects();
+            for (var i in objects) {
+                var scaleX = objects[i].scaleX;
+                var scaleY = objects[i].scaleY;
+                var left = objects[i].left;
+                var top = objects[i].top;
+            
+                var tempScaleX = scaleX * (1 / SCALE_FACTOR);
+                var tempScaleY = scaleY * (1 / SCALE_FACTOR);
+                var tempLeft = left * (1 / SCALE_FACTOR);
+                var tempTop = top * (1 / SCALE_FACTOR);
+
+                objects[i].scaleX = tempScaleX;
+                objects[i].scaleY = tempScaleY;
+                objects[i].left = tempLeft;
+                objects[i].top = tempTop;
+
+                objects[i].setCoords();
+            }
+            
+            canvas.renderAll();
+          }
+        };
+      },
+        
+    },
+    /**
+     * Allows us to draw different things. Has a utility for free drawing
+     * a circle and a rectangle.
+     */
+    drawingUtil: {
+      //Init function. Needs context to our global object
+      init: function(context) {
+        this.canvas = context.canvas;
+        this.circle = this.circleUtil(this.canvas);
+        this.rectangle = this.rectangleUtil(this.canvas);
+        return this;
+      },
+      /**
+       * Draw Circle
+       *
+       * These functions help draw a circle. Like always, one to activate/deactivate/
+       * start/stop/draw
+       */
+      circleUtil: function(canvas) {
+        return {
+          canvas: canvas,
+
+          color: 'green',
+
+          //Sets variables and adds events to the mouse
+          startDrawing: function(canvas) {
+            this.canvas.selection = false;
+            _.bindAll(this,'startCircleDraw','stopCircleDraw','drawCircle');   
+            this.canvas.on('mouse:down', this.startCircleDraw);
+            this.canvas.on('mouse:up', this.stopCircleDraw);
+            this.canvas.on('mouse:move', this.drawCircle);
+
+          },
+          //Disable drawing
+          stopDrawing: function() {
+            this.canvas.off('mouse:down', this.startCircleDraw);
+            this.canvas.off('mouse:up', this.stopCircleDraw);
+            this.canvas.off('mouse:move', this.drawCircle);
+          },
+          //Set our intial circle. We're actually creating an Ellipse
+          //with some intial qualities and then making it bigger
+          startCircleDraw: function(event) {
+            //Where did the mouse click start
+            this.startX = event.e.x;
+            this.startY = event.e.y;
+            //Don't start if this is already an object
+            if( ! event.target ){
+              //Create our "circle"
+              var object = new fabric.Ellipse({
+                left:   event.e.x,
+                top:    event.e.y,
+                originX: 'left',
+                originY: 'top',
+                rx: 0,
+                ry: 0,
+                selectable: false,
+                stroke: this.color,
+                strokeWidth: 2,
+                fill: ''
+              });
+
+              //Add it to the canvas
+              this.canvas.add(object);
+              //this.canvas.setActiveObject(object,event);
+              this.circle = object;
+            }
+          },
+          //Stops drawing the circle (they let up on the mouse)
+          stopCircleDraw: function(event) {
+            if( this.circle ){
+              // Remove object if mouse didn't move anywhere
+              if(event.e.x == this.startX && event.e.y == this.startY ){
+                this.canvas.remove(this.circle);
+              }
+              
+              this.circle.selectable = true;
+              this.circle.setCoords();
+              this.circle = null;
+            }
+          },
+          //Technically the circle is already drawn. Here we are just
+          //making it bigger
+          drawCircle: function(event) {
+            if( this.circle ){
+              // Resize object as mouse moves
+              var width = (event.e.x - this.startX),
+                  height = (event.e.y - this.startY),
+                  originX = width > 0 ? 'left' : 'right',
+                  originY = height > 0 ? 'top' : 'bottom';
+
+              this.circle.set({
+                rx: Math.abs(width)/2,
+                ry: height/2,
+                originX: originX,
+                originY: originY,
+                width: Math.abs(width), //Always positive
+                height: Math.abs(height) //Always positive
+              }).adjustPosition(originX); //Set our origin point
+              //Render everything
+              this.canvas.renderAll();
+            }
+          },
+        }//END return
+      },//END Circle UTIL
+      /**
+       * Draw Rectangle
+       *
+       * These functions help draw a rectangle. Like always, one to activate/deactivate/
+       * start/stop/draw
+       */
+      rectangleUtil: function(canvas) {
+        return {
+          canvas: canvas,
+
+          color: 'green',
+
+          //Sets variables and adds events to the mouse
+          startDrawing: function(canvas) {
+            this.canvas.selection = false;
+            _.bindAll(this,'startRectangleDraw','stopRectangleDraw','drawRectange');   
+            this.canvas.on('mouse:down', this.startRectangleDraw);
+            this.canvas.on('mouse:up', this.stopRectangleDraw);
+            this.canvas.on('mouse:move', this.drawRectange);
+
+          },
+          //Disable drawing
+          stopDrawing: function() {
+            this.canvas.off('mouse:down', this.startRectangleDraw);
+            this.canvas.off('mouse:up', this.stopRectangleDraw);
+            this.canvas.off('mouse:move', this.drawRectange);
+          },
+          //Set our intial circle. We're actually creating an Ellipse
+          //with some intial qualities and then making it bigger
+          startRectangleDraw: function(event) {
+            //Where did the mouse click start
+            this.startX = event.e.x;
+            this.startY = event.e.y;
+            //Don't start if this is already an object
+            if( ! event.target ){
+              //Create our "circle"
+              var object = new fabric.Rect({
+                left:   event.e.x,
+                top:    event.e.y,
+                originX: 'left',
+                originY: 'top',
+                width: 0,
+                height: 0,
+                selectable: false,
+                stroke: this.color,
+                strokeWidth: 2,
+                fill: ''
+              });
+
+              //Add it to the canvas
+              this.canvas.add(object);
+              //this.canvas.setActiveObject(object,event);
+              this.rectangle = object;
+            }
+          },
+          //Stops drawing the circle (they let up on the mouse)
+          stopRectangleDraw: function(event) {
+            if( this.rectangle ){
+              // Remove object if mouse didn't move anywhere
+              if(event.e.x == this.startX && event.e.y == this.startY ){
+                this.canvas.remove(this.rectangle);
+              }
+              
+              this.rectangle.selectable = true;
+              this.rectangle.setCoords();
+              this.rectangle = null;
+            }
+          },
+          //Technically the circle is already drawn. Here we are just
+          //making it bigger
+          drawRectange: function(event) {
+            if( this.rectangle ){
+              // Resize object as mouse moves
+              var width = (event.e.x - this.startX),
+                  height = (event.e.y - this.startY),
+                  originX = width > 0 ? 'left' : 'right',
+                  originY = height > 0 ? 'top' : 'bottom';
+
+              this.rectangle.set({
+                originX: originX,
+                originY: originY,
+                width: Math.abs(width), //Always positive
+                height: Math.abs(height) //Always positive
+              }).adjustPosition(originX); //Set our origin point
+              //Render everything
+              this.canvas.renderAll();
+            }
+          },
+        }//END return
+      }//END Circle UTIL
+    },//ND Drawing UTIL
 
   } );
 

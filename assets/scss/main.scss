@@ -21,7 +21,12 @@ html, body, #Main, .main {
 body {
   overflow: hidden;
 }
-
+.canvas-container + .canvas-container {
+  position: absolute;
+  top: -3000px;
+  left: 0;
+  pointer-events: none;
+}
 //
 //
 // Main Styling

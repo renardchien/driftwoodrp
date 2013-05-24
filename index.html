@@ -64,18 +64,19 @@
           </ul>
         </div>
         <div class="btn-group">
-          <span class="btn dropdown-toggle" data-toggle="dropdown">
+          <span class="btn dropdown-toggle" data-toggle="dropdown" data-cmd="zoomIn">
             <b class="icon-zoom-in"></b> 
           </span>
           <ul class="dropdown-menu">
-            <li><a href="#"><b class="icon-zoom-in"></b> Zoom In</a></li>
-            <li><a href="#"><b class="icon-zoom-out"></b> Zoom Out</a></li>
+            <li data-cmd="zoomIn"><a href="#"><b class="icon-zoom-in"></b> Zoom In</a></li>
+            <li data-cmd="zoomOut"><a href="#"><b class="icon-zoom-out"></b> Zoom Out</a></li>
           </ul>
         </div>
       </div>
       <!-- Canvas -->
       <div class="canvas-wrapper">
         <canvas id="c"></canvas>
+        <!-- <canvas id="over"></canvas> -->
         <!--<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <pattern id="grid" width="80" height="80" patternUnits="userSpaceOnUse">
