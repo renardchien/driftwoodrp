@@ -369,6 +369,21 @@ $(document).ready(function() {
 
     CANVAS_HEIGHT: 3000,
 
+    layers: [
+      {
+        layer_name: 'map_layer'
+      },
+      {
+        layer_name: 'grid_layer'
+      },
+      {
+        layer_name: 'object_layer'
+      },
+      {
+        layer_name: 'gm_layer'
+      },
+    ],
+
     initialize: function() {
       _.bindAll(this,'render');
       
@@ -432,10 +447,53 @@ $(document).ready(function() {
               });
             };
           })(activeObject.toObject);
-          console.log(activeObject.toJSON());
-          //this._saved.push(activeObject);
         }
+        //Move the object to the front of it's layer
+        this.sendToFront(activeObject);
       }, this ) );
+      
+    },
+
+    /**
+     * Since we work with different layers, we can't just sent to front of all objects.
+     * We have to send to front of that layer. This function operates under the assumption
+     * that the object has just been added and it's on the top.
+     *
+     * FIXME: This doesn't quite work
+     *
+     * TODO: Add conditional checks for if it's the second item in that layer and we want
+     * to move it to the front.
+     */
+    sendToFront: function(obj) {
+      var objects = this.canvas.getObjects(),
+          index = objects.indexOf(obj),
+          layer = obj.toJSON().layer,
+          layerIndex = this.getLayerIndex(layer);
+
+      //Object is at top of stack, is not the bottom layer or the top layer, so move it backwards
+      //until we hit another layer
+      if( index == objects.length - 1 && layerIndex > 0 && layerIndex !== _.size(this.layers) ) {
+        for(var i = objects.length-2; i >= 0; i--) {
+          //This object should be above our current object
+          if( this.getLayerIndex(objects[i].toJSON().layer) > layerIndex ) {
+            //this.canvas.sendBackwards(obj);
+          }
+        }
+      }
+    },
+
+    /**
+     * Given a layer string, figures out what index the layer is at.
+     */
+    getLayerIndex: function(layer) {
+      var layerIndex;
+      _.each( this.layers, function(layerObj,index) {
+        if( layerObj.layer_name == layer ) {
+          layerIndex = index;
+          return;
+        }
+      } );
+      return layerIndex;
     },
 
     //Make sure the canvas wrapper stays the width of the screen, minus our side panel
@@ -508,13 +566,14 @@ $(document).ready(function() {
         //Not on this later, move to the tmp canvas
         if( object.toJSON().layer !== this.currentLayer ) {
           object.selectable = false;
-          object.set('opacity',0.5);
+          object.set('opacity',0.5)
         //Is the current layer, so let's interact with it
         } else {
           object.selectable = true;
           object.set('opacity',1);
         }
       }, this ) );
+      
       //Make sure everything is rendered
       this.canvas.deactivateAll().renderAll();
     },
@@ -673,7 +732,7 @@ $(document).ready(function() {
         return {
           canvas: canvas,
 
-          color: 'green',
+          color: 'red',
 
           //Sets variables and adds events to the mouse
           startDrawing: function(canvas) {
@@ -709,12 +768,11 @@ $(document).ready(function() {
                 selectable: false,
                 stroke: this.color,
                 strokeWidth: 2,
-                fill: ''
+                fill: this.color
               });
 
               //Add it to the canvas
               this.canvas.add(object);
-              //this.canvas.setActiveObject(object,event);
               this.circle = object;
             }
           },
@@ -801,7 +859,7 @@ $(document).ready(function() {
                 selectable: false,
                 stroke: this.color,
                 strokeWidth: 2,
-                fill: ''
+                fill: 'green'
               });
 
               //Add it to the canvas

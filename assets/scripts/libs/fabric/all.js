@@ -8558,7 +8558,6 @@ fabric.PatternBrush = fabric.util.createClass(fabric.PencilBrush, /** @lends fab
      * @param {Boolean} skipGroup when true, group is skipped and only objects are traversed through
      */
     findTarget: function (e, skipGroup) {
-
       var target,
           pointer = this.getPointer(e);
 
@@ -8582,17 +8581,18 @@ fabric.PatternBrush = fabric.util.createClass(fabric.PencilBrush, /** @lends fab
       // Cache all targets where their bounding box contains point.
       var possibleTargets = [];
       for (var i = this._objects.length; i--; ) {
-        if (this._objects[i] && this._objects[i].visible && this.containsPoint(e, this._objects[i])) {
+        if (this._objects[i] && this._objects[i].visible && this.containsPoint(e, this._objects[i]) && this._objects[i].selectable) {
           if (this.perPixelTargetFind || this._objects[i].perPixelTargetFind) {
             possibleTargets[possibleTargets.length] = this._objects[i];
           }
-          else {
+          else{
             target = this._objects[i];
             this.relatedTarget = target;
             break;
           }
         }
       }
+
       for (var j = 0, len = possibleTargets.length; j < len; j++) {
         pointer = this.getPointer(e);
         var isTransparent = this.isTargetTransparent(possibleTargets[j], pointer.x, pointer.y);
@@ -9033,6 +9033,7 @@ fabric.PatternBrush = fabric.util.createClass(fabric.PencilBrush, /** @lends fab
       if (this._currentTransform) return;
 
       var target = this.findTarget(e), corner;
+      
       pointer = this.getPointer(e);
 
       if (this._shouldClearSelection(e, target)) {
