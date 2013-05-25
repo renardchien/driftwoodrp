@@ -11,7 +11,11 @@ $(document).ready(function() {
       $body = $('body');
 
 
-  // Define the View
+  /**
+   * Core engine. Creates instances of all our sub controllers
+   * and listens for major events to pass along to the correct
+   * controller. 
+   */
   Driftwood = Backbone.View.extend( {
     /**
      * Container of all our visibile
@@ -241,17 +245,25 @@ $(document).ready(function() {
   /**
    * Command
    *
-   * Executes commands, toggles menu items 
+   * Handles the command menu, activating the correct buttons, sub menus.
+   * Also listens for commands from the user and passes them along to
+   * the correct place.
+   *
+   * FIXME: Certain commands like switching the map layer should
+   * activate whatever command was previously being used. ie, if I
+   * was drawing a circle, I switch layers, it should go back to 
+   * drawing a circle.
    */
   Commands = Backbone.View.extend( {
     // Container element
     el: $('.editor .commands'),
 
-    subMenuDelay: 800,
+    subMenuDelay: 700,
+
+    _lastCmd: false,
 
     initialize: function(options) {
       _.bindAll(this,'render');
-
       //Set options
       this.options = options;
       this.CanvasManager = options.CanvasManager || new CanvasManager();
@@ -265,53 +277,46 @@ $(document).ready(function() {
       //Switches the active icon when a dropdown option is selected
       $body.on('click','.commands .dropdown-menu li', function() {
         var $this = $(this),
-            icon = $this.find('b')[0].className,
+            icon = $this.find('b').attr('class'),
             command = $this.closest('[data-cmd]').data('cmd'),
             value = $this.closest('[data-cmd]').data('cmd-value'),
-            $parentIcon = $this.closest('.btn-group').find('.dropdown-toggle b');
+            $parentIcon = $this.closest('.command').find('.menu-btn b');
 
-        $parentIcon[0].className = icon;
+        //Switches the main button icon/command/command value
+        $parentIcon.attr('class',icon);
         $parentIcon.closest('[data-cmd]').attr('data-cmd',command);
-         $parentIcon.closest('[data-cmd]').attr('data-cmd-value',value);
-        $body.find('.commands .btn.active').removeClass('active');
+        $parentIcon.closest('[data-cmd]').attr('data-cmd-value',value);
+        $body.find('.commands .menu-btn.active').removeClass('active');
         $parentIcon.parent().addClass('active');
+        $body.find('.command.open').removeClass('open');
       } );
 
-      //Stop the standard dropdown from happening, we only want the dropdown
-      //to open on longpress (but we do want the actual button to be toggled)
-      $body.on('click','.commands .dropdown-toggle', function() {
-        $(this).button('toggle');
-        return false;
-      } );
+
       //Hook into mousedown to fire off our long press test. Sets a timer to
       //show the dropdown menu in X seconds
-      $body.on('mousedown','.commands .dropdown-toggle', function(e) {
+      $body.on('mousedown','.commands .menu-btn', function(e) {
+        console.log($(this));
         var $this = $(this);
         $this.button('toggle');
+        //Close all the open submenus
+        $body.find('.command.open').removeClass('open');
+        //After XX seconds, open the menu
         scope.commandTimer = window.setTimeout(function () {
-          $this.dropdown('toggle');
+          $this.closest('.command').addClass('open');
         }, scope.subMenuDelay );
         e.preventDefault();
       } );
-      //Clears the longpress timer and toggles dropdown - if it's open it will stay open
-      //and if it's not open it won't open. The bootstrap event toggle happens after this
-      //function bubbles, so we toggle it once to the set the opposisite of what we want
-      $body.on('mouseup','.commands .dropdown-toggle', function(e) {
-        //Clear our longpress timeout 
-        clearTimeout(scope.commandTimer);
 
-        var $this = $(this);
-        //Makes sure our menu opens/closes properly
-        $this.dropdown('toggle');
-        //Because of the timing of open, close we actually want to execute the command
-        //if the btn-group is reporting it's open (because once this function finishes
-        //and bubbles up, the bootstrap event listener will toggle it the other way)
-        if( $this.closest('.btn-group').hasClass('open') && $this.attr('data-cmd') ) {
-          scope.commandClicked(this);
-        }
+      //Clears the longpress timer
+      $body.on('mouseup','.commands .menu-btn', function(e) {
+        clearTimeout(scope.commandTimer);
       } );
       //Simple do command event listener
       $body.on('click','[data-cmd]', function(e) {
+        //Don't execute the command if the sub menu is open
+        if( $(this).closest('.command').hasClass('open') ) {
+          return false;
+        }
         scope.commandClicked(this);
       } );
     },
@@ -326,10 +331,20 @@ $(document).ready(function() {
 
       this.doCommand(command,value);
     },
-    //Checks our command switch and fires off the command to whatever 
+    /**
+     * Checks our command switch and fires off the command to whatever
+     * controller needs it. 
+     *
+     * FIXME: instead of checking the commands here, this should fire
+     * off an event. The engine controller should be listening for
+     * command events and do the routing to the correct subcontroller
+     * (decouples this view from everything else. right now it's dependant
+     * on driftwood.engine.CanvasManager)
+     */
     //controller neds it
     doCommand: function(command,value) {
       console.log('Command:',command,value);
+
       switch(command) {
         case 'moveCanvas' :
           driftwood.engine.CanvasManager.trigger('moveCanvas',value);
@@ -350,14 +365,27 @@ $(document).ready(function() {
           driftwood.engine.CanvasManager.trigger('zoomOut');
           break;
       }
+      //Command is not switch layer, so save the last command
+      if( command !== 'switchLayer' ) {
+        this._lastCmd = {command:command,value:value};
+      //Command IS switch layer, and they were doing something
+      //previous so reactivate that command
+      } else if ( this._lastCmd && ['zoomIn','zoomOut'].indexOf(this._lastCmd.command) === -1 ) {
+        //FIXME: Make the button actove
+        $body.find('.menu-btn[data-cmd="'+this._lastCmd.command+'"]').trigger('click');
+      }
     },
   } );
 
   /**
    * CanvasManager
    *
-   * Handles major canvas interactions, such as dragging/panning,
-   * etc
+   * Handles interaction with the canvas. Creating objects, moving them,
+   * moving the canvas, etc.
+   *
+   * FIXME: Some of the utility objects are created in a really funky way
+   * (you have to pass context and other weird things)
+   * 
    */
   CanvasManager = Backbone.View.extend( {
     
@@ -397,16 +425,6 @@ $(document).ready(function() {
       //FIXME: The grid should actually be on its own layer
       this.canvas.setOverlayImage('assets/images/grid.svg', this.canvas.renderAll.bind(this.canvas))
 
-      //Just for testing
-      //FIXME: Remove or clean up
-      /*this._tmp_canvas = new fabric.Canvas('over');
-      this._tmp_canvas.setWidth( this.CANVAS_WIDTH );
-      this._tmp_canvas.setHeight( this.CANVAS_HEIGHT );
-      this._tmp_canvas.calcOffset();
-      this._tmp_canvas.renderAll();
-      
-      this._saved = [];*/
-
       //Create our drawing utility
       this.drawing = this.drawingUtil.init(this);
       //Zoom utility
@@ -436,6 +454,8 @@ $(document).ready(function() {
       $window.on('resize',this.on_resize);
 
       //Canvas events
+      //FIXME: Move this code out into it's own function? Create
+      //a Backbone Model for an object?
       this.canvas.on('object:added', _.bind( function(e) {
         var activeObject = e.target,
             currentLayer = this.currentLayer;
@@ -456,30 +476,52 @@ $(document).ready(function() {
 
     /**
      * Since we work with different layers, we can't just sent to front of all objects.
-     * We have to send to front of that layer. This function operates under the assumption
-     * that the object has just been added and it's on the top.
-     *
-     * FIXME: This doesn't quite work
-     *
-     * TODO: Add conditional checks for if it's the second item in that layer and we want
-     * to move it to the front.
+     * We have to send to front of that layer. 
      */
     sendToFront: function(obj) {
-      var objects = this.canvas.getObjects(),
-          index = objects.indexOf(obj),
-          layer = obj.toJSON().layer,
-          layerIndex = this.getLayerIndex(layer);
+      //Get the current layer name and index of this object
+      var _objects = this.canvas.getObjects(),
+          _index = _objects.indexOf(obj),
+          layer = obj.toJSON().layer;
 
-      //Object is at top of stack, is not the bottom layer or the top layer, so move it backwards
-      //until we hit another layer
-      if( index == objects.length - 1 && layerIndex > 0 && layerIndex !== _.size(this.layers) ) {
-        for(var i = objects.length-2; i >= 0; i--) {
-          //This object should be above our current object
-          if( this.getLayerIndex(objects[i].toJSON().layer) > layerIndex ) {
-            //this.canvas.sendBackwards(obj);
-          }
+      //Get the index of the front most object in the
+      //same layer. 
+      var index = this.getFrontLayerIndex(layer);
+      //If the indexes do not match, this object is not 
+      //at the front of its layer
+      if( _index !== index ) {
+        this.canvas.moveTo(obj,index);
+      }
+    },
+
+    /**
+     * Finds the highest index for a given layer. Starts at the bottom
+     * and works it's way forward until it finds an object that is suppose
+     * to be a layer above it. It will then be moved to that index.
+     *
+     * If no layer above it is found, then it should be the top most
+     * object.
+     * 
+     * @access public
+     * @param  string layer Name of layer
+     * @return integer
+     */
+    getFrontLayerIndex: function(layer) {
+      var _objects = this.canvas.getObjects(),
+          _layerIndex = this.getLayerIndex(layer)
+          _index = 0; //Starting index
+
+      for( var i = 0; i < _objects.length; i++ ) {
+        //Get this objects layer index
+        var layerIndex = this.getLayerIndex(_objects[i].toJSON().layer);
+        _index = i; //Our new index
+        //If layer index of this object is greater than the layer we're
+        //looking for, we have found our top most index. Break out of loop
+        if( layerIndex > _layerIndex ) {
+          break;
         }
       }
+      return _index;
     },
 
     /**
@@ -487,10 +529,11 @@ $(document).ready(function() {
      */
     getLayerIndex: function(layer) {
       var layerIndex;
+      //Go through the layers until we find a matching name.
+      //FIXME: Is there better way to do this? 
       _.each( this.layers, function(layerObj,index) {
         if( layerObj.layer_name == layer ) {
           layerIndex = index;
-          return;
         }
       } );
       return layerIndex;
@@ -526,43 +569,16 @@ $(document).ready(function() {
     },
 
     /**
-     * Clears canvas and puts non active layer objects on a different
-     * canvas all together
+     * Switches the currently active layer. Goes through all the
+     * objects on the canvas and disabled anything that isn't this
+     * layer and makes sure anything that IS on this layer is enabled
      */
-    /*switchLayer: function(layer) {
-      this.currentLayer = layer;
-
-      //Clear everything - we're going to load everything
-      //from our saved objects array onto the correct canvas
-      this._tmp_canvas.clear();
-      this.canvas.clear();
-      //Go through each object and add it to the correct canvas
-      this._saved.forEach( _.bind( function(object) {
-        //Not on this later, move to the tmp canvas
-        if( object.toJSON().layer !== this.currentLayer ) {
-          object.selectable = false;
-          object.set('opacity',0.5);
-          this.canvas.remove(object);
-          this._tmp_canvas.add(object);
-        //Is the current layer, so let's interact with it
-        } else {
-          object.selectable = true;
-          object.set('opacity',1);
-          this.canvas.add(object);
-          this._tmp_canvas.remove(object);
-        }
-      }, this ) );
-      //Make sure everything is rendered
-      this._tmp_canvas.renderAll();
-      this.canvas.deactivateAll().renderAll();
-    },*/
-
     switchLayer: function(layer) {
       this.currentLayer = layer;
       //Grab objects
-      var objects = this.canvas.getObjects();
+      var _objects = this.canvas.getObjects();
       //Go through each object and add it to the correct canvas
-      objects.forEach( _.bind( function(object) {
+      _objects.forEach( _.bind( function(object) {
         //Not on this later, move to the tmp canvas
         if( object.toJSON().layer !== this.currentLayer ) {
           object.selectable = false;
@@ -639,7 +655,18 @@ $(document).ready(function() {
       }
       e.preventDefault();
     },
-
+    
+    /**
+     * Utility for zooming the canvas. At the moment it provides a way to 
+     * zoom in and zoom out. 
+     *
+     * FIXME: Activate zoom in/out and when they click on the canvas it should
+     * zoom in and out based on the origin click (which means we need to both 
+     * zoom in/out and scroll to the correct location). At the moment they
+     * have to click on the menu icons to zoom in and out.
+     * 
+     * @type {Object}
+     */
     zoomUtil: {
       //Init function. Needs context to our global object
       init: function(context) {
