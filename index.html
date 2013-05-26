@@ -267,7 +267,9 @@
   </div>
   <script type="text/template" id="contextMenuTemplate">
   <ul class="context-menu dropdown-menu">
+    <% if( menu.copy ) { %>
     <li><a href="#">Copy</a></li>
+    <% } %>
     <li><a href="#">Paste</a></li>
     <li><a href="#">Delete</a></li>
     <li class="divider"></li>

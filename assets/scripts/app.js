@@ -32,7 +32,6 @@ $(document).ready(function() {
     },
 
     run: function() {
-      this.ContextMenu = new ContextMenu();
       this.Chat = new Chat();
       this.CanvasManager = new CanvasManager();
       this.Commands = new Commands({CanvasManager:this.CanvasManager});
@@ -123,44 +122,59 @@ $(document).ready(function() {
   ContextMenu = Backbone.View.extend( {
     // Container element
     el: $('body'),
+
     //Grab the template from the page
     template: _.template($('#contextMenuTemplate').html()),
 
-    initialize: function() {
+    menuOptions: {
+      copy: false,
+      paste: false,
+      edit: false,
+      delete: false,
+      move_back: false,
+      move_forward: false,
+      move_to_front: false,
+      move_to_back: false,
+      switch_layer: false,
+    },
+
+    hasMenuOptions: true,
+
+    initialize: function(options) {
       _.bindAll(this,'render');
+      //Set all our options
+      this.options = options;
+      this.objects = options.objects || false;
+      this.X = options.x;
+      this.Y = options.y;
       //Add event listeners
       this.addEventListeners();
+      //Open up the menu
+      console.log('Opening menu: ');
+      this.open();
     },
     addEventListeners: function() {
-      //Creates a context menu
-      $body.on('contextmenu','.canvas-wrapper', _.bind( function(e) {
-        this.open( {
-          x:e.clientX,
-          y:e.clientY,
-          e: e
-        } );
-        e.preventDefault();
-      }, this ) );
       //Makes sure the context menu gets closed
       $body.on('click', _.bind(this.close,this));
     },
-    open: function(options) {
-      //Set all our options
-      this.options = options;
-      this.object = options.object || false;
-      this.X = options.x;
-      this.Y = options.y;
-
+    open: function() {
       //Build the menu, close other menus, render a new one
       this.buildContextMenu();
       this.close();
-      this.render();
+      if( this.hasMenuOptions ) {
+        this.render();
+      }
     },
     buildContextMenu: function() {
+      if( this.objects.length ) {
+        this.menuOptions.copy = true;
+      } else {
+        this.hasMenuOptions = false;
+      }
       //TODO: Determine what options should be turned on or off
     },
     render: function() {
-      $(this.el).append(this.template({}));
+      $(this.el).append(this.template({menu:this.menuOptions}));
       $body.find('.context-menu').css( {
         top: this.Y,
         left: this.X
@@ -376,6 +390,113 @@ $(document).ready(function() {
       }
     },
   } );
+  
+  /**
+   * A wrapper backbone model for our objects on the canvas. This will allow us to perform
+   * simple functions on canvas objects by simply calling object.Method. Keeps track of 
+   * some information that doesn't necessarily go out to the canvas
+   */
+  var CanvasObj = Backbone.Model.extend({
+
+    initialize: function() {
+      //Set local references
+      this.canvas = this.get('canvas');
+      this.layers = this.get('layers');
+      //Set attributes for easier .get() calls
+      this.set({
+        layer: this.get('object').toJSON().layer,
+        layerIndex: this.getLayerIndex(this.get('object').toJSON().layer)
+      });
+    },
+
+    /**
+     * Since we work with different layers, we can't just sent to front of all objects.
+     * We have to send to front of that layer. 
+     */
+    sendToFront: function() {
+      //Get the current layer name and index of this object
+      var _objects = this.canvas.getObjects(),
+          _index = _objects.indexOf(this.get('object')), //This objects index
+          _layer = this.get('layer'), //This objects layer
+          _layerIndex = this.get('layerIndex')//This object's layer index
+          index = 0; //The layer index we're going to move this object to
+
+      //Get the index of the front most object in the
+      //same layer. 
+      for( var i = 0; i < _objects.length; i++ ) {
+        index = i; //Our new index
+        //If layer index of this object is greater than the layer we're
+        //looking for, we have found our top most index. Break out of loop
+        if( this.getLayerIndex(_objects[i].toJSON().layer) > _layerIndex ) {
+          break;
+        }
+      }
+      //If the indexes do not match, this object is not 
+      //at the front of its layer
+      if( _index !== index ) {
+        this.canvas.moveTo(this.get('object'),index);
+      }
+    },
+
+    sendToBack: function() {
+      //Get the current layer name and index of this object
+      var _objects = this.canvas.getObjects(),
+          _index = _objects.indexOf(this.get('object')), //This objects index
+          _layer = this.get('layer'), //This objects layer
+          _layerIndex = this.get('layerIndex') //This object's layer index
+          index = 0; //The layer index we're going to move this object to
+
+      //Get the index of the front most object in the
+      //same layer. 
+      for( var i = _objects.length-1; i = 0; i-- ) {
+        //If layer index of this object is greater than the layer we're
+        //looking for, we have found our top most index. Break out of loop
+        if( this.getLayerIndex(_objects[i].toJSON().layer) < _layerIndex ) {
+          break;
+        }
+        index = i; //Our new index
+      }
+      //If the indexes do not match, this object is not 
+      //at the front of its layer
+      if( _index !== index ) {
+        this.canvas.moveTo(this.get('object'),index);
+      }
+    },
+
+     /**
+     * Given a layer string, figures out what index the layer is at.
+     */
+    getLayerIndex: function(layer) {
+      var layerIndex;
+      //Go through the layers until we find a matching name.
+      //FIXME: Is there better way to do this? 
+      _.each( this.layers, function(layerObj,index) {
+        if( layerObj.layer_name == layer ) {
+          layerIndex = index;
+        }
+      } );
+      return layerIndex;
+    },
+    /**
+     * Makes this object unselectable (cannot click on it or move it),
+     * as well as change the opacity a bit to make it a bit transparent
+     */
+    disable: function() {
+      var object = this.get('object');
+      object.selectable = false;
+      object.opacity = 0.5;
+    },
+    /**
+     * Enables this object by making it selectable and setting its opacit
+     * to full.
+     */
+    enable: function() {
+      var object = this.get('object');
+      object.selectable = true;
+      object.opacity = 1;
+    }
+   
+  });
 
   /**
    * CanvasManager
@@ -396,6 +517,8 @@ $(document).ready(function() {
     CANVAS_WIDTH: 3000,
 
     CANVAS_HEIGHT: 3000,
+
+    objects: [],
 
     layers: [
       {
@@ -454,90 +577,103 @@ $(document).ready(function() {
       $window.on('resize',this.on_resize);
 
       //Canvas events
-      //FIXME: Move this code out into it's own function? Create
-      //a Backbone Model for an object?
       this.canvas.on('object:added', _.bind( function(e) {
-        var activeObject = e.target,
-            currentLayer = this.currentLayer;
-        if( ! activeObject.toJSON().layer ) {
-          activeObject.toObject = (function(toObject) {
-            return function() {
-              return fabric.util.object.extend(toObject.call(this), {
-                layer: currentLayer,
-              });
-            };
-          })(activeObject.toObject);
+        this.addObject(e.target);
+      }, this ) );
+      //Creates a context menu
+      $body.on('contextmenu','.canvas-wrapper', _.bind( function(e) {
+        var objects = this.getActiveGroup() || [];
+        //No active group, try to get a single active object
+        if( ! objects.length ) {
+          var object = this.getActiveObject();
+          if( object ) {
+            objects.push(object);
+          }
         }
-        //Move the object to the front of it's layer
-        this.sendToFront(activeObject);
+        //There is no active target, but let's try to grab one
+        if( ! objects.length ) {
+          var target = this.canvas.findTarget(e);
+          if( target ) {
+            this.canvas.setActiveObject(target);
+            objects.push(this.getActiveObject());
+          }
+        }
+        //Create our context menu
+        var contextMenu = new ContextMenu({
+          x: e.clientX,
+          y: e.clientY,
+          objects: objects
+        });
+
+        e.preventDefault();
       }, this ) );
       
     },
 
-    /**
-     * Since we work with different layers, we can't just sent to front of all objects.
-     * We have to send to front of that layer. 
-     */
-    sendToFront: function(obj) {
-      //Get the current layer name and index of this object
-      var _objects = this.canvas.getObjects(),
-          _index = _objects.indexOf(obj),
-          layer = obj.toJSON().layer;
-
-      //Get the index of the front most object in the
-      //same layer. 
-      var index = this.getFrontLayerIndex(layer);
-      //If the indexes do not match, this object is not 
-      //at the front of its layer
-      if( _index !== index ) {
-        this.canvas.moveTo(obj,index);
+    getActiveObject: function() {
+      var activeObject = this.canvas.getActiveObject();
+      if( activeObject ) {
+        var index = this.canvas.getObjects().indexOf(activeObject);
+        activeObject = this.objects[index];
       }
+      return activeObject;
     },
 
-    /**
-     * Finds the highest index for a given layer. Starts at the bottom
-     * and works it's way forward until it finds an object that is suppose
-     * to be a layer above it. It will then be moved to that index.
-     *
-     * If no layer above it is found, then it should be the top most
-     * object.
-     * 
-     * @access public
-     * @param  string layer Name of layer
-     * @return integer
-     */
-    getFrontLayerIndex: function(layer) {
-      var _objects = this.canvas.getObjects(),
-          _layerIndex = this.getLayerIndex(layer)
-          _index = 0; //Starting index
-
-      for( var i = 0; i < _objects.length; i++ ) {
-        //Get this objects layer index
-        var layerIndex = this.getLayerIndex(_objects[i].toJSON().layer);
-        _index = i; //Our new index
-        //If layer index of this object is greater than the layer we're
-        //looking for, we have found our top most index. Break out of loop
-        if( layerIndex > _layerIndex ) {
-          break;
-        }
+    getActiveGroup: function() {
+      var _objects = this.canvas.getActiveGroup(),
+          activeGroup;
+      if( _objects ) {
+        activeGroup = [],
+        canvasObjects = this.canvas.getObjects();
+        _objects.forEachObject( _.bind( function(object) {
+          var index = canvasObjects.indexOf(object);
+          activeGroup.push(this.objects[index]);
+        }, this ) );
       }
-      return _index;
+      return activeGroup
     },
 
     /**
-     * Given a layer string, figures out what index the layer is at.
+     * Adds an pbject to our local collection. Also extends the fabric canvas object
+     * and throws it into a backbone model.
      */
-    getLayerIndex: function(layer) {
-      var layerIndex;
-      //Go through the layers until we find a matching name.
-      //FIXME: Is there better way to do this? 
-      _.each( this.layers, function(layerObj,index) {
-        if( layerObj.layer_name == layer ) {
-          layerIndex = index;
-        }
-      } );
-      return layerIndex;
+    addObject: function(activeObject) {
+      if( ! activeObject.toJSON().layer ) {
+        var currentLayer = this.currentLayer;
+        activeObject.toObject = (function(toObject) {
+          return function() {
+            return fabric.util.object.extend(toObject.call(this), {
+              layer: currentLayer,
+            });
+          };
+        })(activeObject.toObject);
+      }
+      //Move the object to the front of it's layer
+      var object = new CanvasObj({
+        object: activeObject,
+        canvas: this.canvas,
+        layers: this.layers
+      });
+      //Add to our local reference
+      this.objects.push(object);
+      //Make sure the object is at the front of its layer
+      object.sendToFront();
     },
+
+    /**
+     * Refreshes the local objects array with the objects on the canvas.
+     * Goes through all the objects and recreates a backbone modal for each one
+     */
+    getObjects: function() {
+      var _objects = this.canvas.getObjects();
+      //Clear out our current objects array
+      this.objects = [];
+      _objects.forEach( _.bind( function(object) {
+        this.addObject(object);
+      }, this ) );
+      return this.objects;
+    },
+
 
     //Make sure the canvas wrapper stays the width of the screen, minus our side panel
     on_resize: function() {
@@ -575,18 +711,14 @@ $(document).ready(function() {
      */
     switchLayer: function(layer) {
       this.currentLayer = layer;
-      //Grab objects
-      var _objects = this.canvas.getObjects();
       //Go through each object and add it to the correct canvas
-      _objects.forEach( _.bind( function(object) {
+      this.objects.forEach( _.bind( function(object) {
         //Not on this later, move to the tmp canvas
-        if( object.toJSON().layer !== this.currentLayer ) {
-          object.selectable = false;
-          object.set('opacity',0.5)
+        if( object.get('layer') !== this.currentLayer ) {
+          object.disable();
         //Is the current layer, so let's interact with it
         } else {
-          object.selectable = true;
-          object.set('opacity',1);
+          object.enable();
         }
       }, this ) );
       
