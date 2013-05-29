@@ -1,0 +1,405 @@
+@import "compass/css3/box-sizing";
+@import "compass/css3/box-shadow";
+@import "compass/css3/border-radius";
+@import "compass/css3/opacity";
+@import "compass/css3/transition";
+@import "compass/utilities/general/clearfix";
+@import "compass/typography/text/force-wrap";
+
+//
+//
+// Variables
+//------------------------------
+$borderColor: #CCC;
+$bgColor: #EAEAEA;
+
+html, body, #Main, .main {
+  height: 100%;
+  color: #555;
+}
+
+body {
+  overflow: hidden;
+}
+.canvas-container + .canvas-container {
+  position: absolute;
+  top: -3000px;
+  left: 0;
+  pointer-events: none;
+}
+//
+//
+// Main Styling
+//------------------------------
+//Helps us get a fixed right column with dynamic left column size
+.main {
+  display: table;
+}
+//Make sure everything we want gets the correct box sizing
+.main, .editor, .panel {
+  @include box-sizing(border-box);
+}
+
+//
+//
+// Button Group
+//------------------------------
+.btn-group > .btn-group > .btn.menu-btn {
+  margin-left: 0;
+  @include border-radius(0);
+}
+.btn-group > .btn-group + .btn-group {
+  margin-left: 0;
+  display: block;
+}
+.btn-group > .btn-group:not(:last-child) > .btn.menu-btn{
+  border-bottom: 0;
+}
+.btn-group > .btn-group:last-child > .btn.menu-btn {
+  @include border-bottom-right-radius(4px);
+  @include border-bottom-left-radius(4px);
+}
+.btn-group > .btn-group:first-child > .btn.menu-btn {
+  @include border-top-right-radius(4px);
+  @include border-top-left-radius(4px);
+}
+
+//
+//
+// Form
+//------------------------------
+.form-horizontal {
+  .control-label {
+    text-align: left;
+    width: auto;
+  }
+
+}
+
+//
+//
+// Icons
+//------------------------------
+
+//
+//
+// Editor
+//------------------------------
+.editor {
+  position: relative;
+  display: table-cell;
+  border-spacing: 0; 
+  vertical-align: top;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background-color: $bgColor;
+  .canvas-wrapper {
+    height: 100%;
+    max-height: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    .overlay {
+
+      position: absolute;
+      left: 0;
+      top: 0;
+      cursor: move;
+      width: 100%;
+      height: 100%;
+    }
+  }
+  .commands {
+    position: absolute;
+    z-index: 1;
+    top: 30px;
+    left: 30px;
+    .btn-group {
+      > .btn {
+        width: 15px;
+      }
+      position: relative;
+      &:after {
+        content: "";
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        width: 0px;
+        height: 0px;
+        border-style: solid;
+        border-width: 0 0 7px 7px;
+        border-color: transparent transparent #666 transparent;
+        z-index: 400;
+      }
+    }
+    .dropdown-menu {
+      top: 0;
+      left: 100%;
+    }
+  }
+}
+
+//
+//
+// Side Panel
+//------------------------------
+.nav, .chat, .message-wrapper, .input, .objects, .settings, .tr {
+  display: table-row;
+  border-collapse: collapse;
+  width: 100%;
+  height: 100%;
+}
+.panel, .content {
+  display: table;
+  width: 100%;
+  height: 100%;
+}
+.content {
+  max-height: 100%;
+}
+.tr-flow {
+  height: auto;
+}
+.panel {
+  position: relative;
+  overflow: hidden;
+  width: 350px;
+  float: right;
+  z-index: 1;
+  @include box-shadow(0 2px 6px rgba(0,0,0,.2));
+  .nav {
+    height: auto;
+    ol {
+      margin-bottom: 0;
+      padding: 10px;
+      background-color: $bgColor;
+      border-bottom: 1px solid $borderColor;
+      @include box-sizing(border-box);
+      li {
+        padding: 5px 10px;
+        cursor: pointer;
+        @include box-sizing(border-box);
+        text-align: center;
+        width: 32%;
+        b {
+          margin-right: 4px;
+        }
+      }
+    }
+      
+  }//END .nav
+  .chat {
+    background-color: $bgColor;
+    .messages {
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    .message {
+      position: relative;
+      background-color: #FFF;
+      margin: 10px;
+      padding: 10px;
+      left: 0;
+      @include box-sizing(border-box);
+      @include border-radius(2px);
+      @include box-shadow(0 1px 2px rgba(0,0,0,.15));
+      @include clearfix();
+      @include transition(left 0.3s ease);
+      word-wrap: break-word;
+      word-break: break-word;
+      max-width: 100%;
+      &.active {
+        left: -120%;
+      }
+      .username, .text{
+        display: inline-block;
+      }
+      .username {
+        float: left;
+        font-weight: bold;
+        margin-right: 4px;
+        &:after {
+          content: ":";
+        }
+      }
+    }// END .message
+    .input {
+      background-color: #FFF;
+      border-top: 1px solid $borderColor;
+      .textarea {
+        @include box-sizing(border-box);
+        padding: 10px;
+        width: 100%;
+        textarea {
+          margin-bottom: 0;
+          max-height: 85px;
+          border: none;
+          resize: none; 
+          @include box-shadow(none);
+          &:focus {
+
+          }
+        }
+      }
+    }// END .input
+  }// END .chat
+  .objects {
+    display: none;
+    .search {
+      position: relative;
+      padding: 5px 10px 5px 35px;
+      border-bottom: 1px solid $borderColor;
+      @include transition(padding 0.3s ease);
+      &.focus {
+        padding-left: 10px;
+        label {
+          left: -18px;
+        }
+        .target {
+          right: -50%;
+        }
+        .clear {
+          @include opacity(1);
+          @include transition(opacity .3s ease .3s);
+        }
+      }
+      .input {
+        border: none;
+        @include box-shadow(none);
+        margin-bottom: 0;
+      }
+      label {
+        position: absolute;
+        top: 9px;
+        left: 12px;
+        font-size: 17px;
+         @include transition(left 0.3s ease);
+      }
+      .clear {
+        position: absolute;
+        right: 10px;
+        top: 0;
+        line-height: 40px;
+        cursor: pointer;
+        @include opacity(0);
+        @include transition(opacity .2s ease 0s);
+      }
+      .target {
+        position: absolute;
+        top: 0;
+        right: 0;
+        height: 100%;
+        padding: 10px;
+        @include transition(right 0.3s ease);
+        .dropdown-toggle {
+          cursor: pointer;
+        }
+      }
+    }
+    .object-list {
+      ol {
+        margin-bottom: 0;
+        > li {
+          position: relative;
+          padding: 10px;
+          cursor: move;
+          border-bottom: 1px solid $borderColor;
+          @include clearfix();
+          @include transition(background-color 0.3s ease);
+          overflow: visible;
+          .preview {
+            height: 50px;
+            width: 50px;
+            float: left;
+            border: 1px solid $borderColor;
+            margin-right: 10px;
+          }
+          p {
+            margin-bottom: 5px;
+          }
+          &:hover {
+            background-color: lighten($bgColor,5%);
+            .menu {
+              display: block;
+            }
+          }
+          .menu {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: auto;
+            display: none;
+            .dropdown-toggle {
+              cursor: pointer;
+              color: $borderColor;
+              &:hover {
+                color: inherit;
+              }
+            }
+          }
+        }
+      }
+    }// END object list
+    .upload {
+      padding: 10px;
+      border-top: 1px solid $borderColor;
+      width: 100%;
+      line-height: 28px;
+      @include box-sizing(border-box);
+      @include clearfix();
+      overflow: visible;
+      .dropdown-toggle {
+        cursor: pointer;
+      }
+      .dropdown-menu {
+        bottom: 100%;
+        top: auto;
+      }
+    }
+  }//END .objects
+  .settings {
+    display: none;
+    .control-pane {
+      padding: 10px;
+    }
+    input[type="color"] {
+      border: none;
+      @include box-shadow(none);
+      height: 25px;
+    }
+    .actions {
+      padding: 15px 10px;
+      @include box-sizing(border-box);
+      background-color: $bgColor;
+      border-top: 1px solid $borderColor;
+      .btn {
+        width: 49%;
+        &.btn-primary {
+          width: 50%;
+        }
+      }
+    }
+  }
+}
+
+//
+//
+// Editor
+//------------------------------
+.context-menu {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+//
+//
+// Media Queries
+//------------------------------
+//Table on down
+@media (max-width: 767px) {
+  body {
+    padding: 0;
+  }
+}
