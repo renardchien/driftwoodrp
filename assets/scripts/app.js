@@ -1097,7 +1097,7 @@ $(document).ready(function() {
             this.canvas.on('mouse:down', this.startCircleDraw);
             this.canvas.on('mouse:up', this.stopCircleDraw);
             this.canvas.on('mouse:move', this.drawCircle);
-
+            this.canvasWrapper = $body.find('.canvas-wrapper')[0];
           },
           //Disable drawing
           stopDrawing: function() {
@@ -1109,14 +1109,14 @@ $(document).ready(function() {
           //with some intial qualities and then making it bigger
           startCircleDraw: function(event) {
             //Where did the mouse click start
-            this.startX = event.e.x;
-            this.startY = event.e.y;
+            this.startX = this.canvasWrapper.scrollLeft + event.e.x;
+            this.startY = this.canvasWrapper.scrollTop + event.e.y;
             //Don't start if this is already an object
             if( ! event.target ){
               //Create our "circle"
               var object = new fabric.Ellipse({
-                left:   event.e.x,
-                top:    event.e.y,
+                left:   this.startX,
+                top:    this.startY,
                 originX: 'left',
                 originY: 'top',
                 rx: 0,
@@ -1136,7 +1136,7 @@ $(document).ready(function() {
           stopCircleDraw: function(event) {
             if( this.circle ){
               // Remove object if mouse didn't move anywhere
-              if(event.e.x == this.startX && event.e.y == this.startY ){
+              if(this.canvasWrapper.scrollLeft + event.e.x == this.startX && this.canvasWrapper.scrollTop + event.e.y == this.startY ){
                 this.canvas.remove(this.circle);
               }
               
@@ -1150,8 +1150,8 @@ $(document).ready(function() {
           drawCircle: function(event) {
             if( this.circle ){
               // Resize object as mouse moves
-              var width = (event.e.x - this.startX),
-                  height = (event.e.y - this.startY),
+              var width = (this.canvasWrapper.scrollLeft + event.e.x - this.startX),
+                  height = (this.canvasWrapper.scrollTop + event.e.y - this.startY),
                   originX = width > 0 ? 'left' : 'right',
                   originY = height > 0 ? 'top' : 'bottom';
 
@@ -1188,7 +1188,7 @@ $(document).ready(function() {
             this.canvas.on('mouse:down', this.startRectangleDraw);
             this.canvas.on('mouse:up', this.stopRectangleDraw);
             this.canvas.on('mouse:move', this.drawRectange);
-
+            this.canvasWrapper = $body.find('.canvas-wrapper')[0];
           },
           //Disable drawing
           stopDrawing: function() {
@@ -1206,8 +1206,8 @@ $(document).ready(function() {
             if( ! event.target ){
               //Create our "circle"
               var object = new fabric.Rect({
-                left:   event.e.x,
-                top:    event.e.y,
+                left:   this.canvasWrapper.scrollLeft + this.startX,
+                top:    this.canvasWrapper.scrollLeft + this.startY,
                 originX: 'left',
                 originY: 'top',
                 width: 0,
@@ -1228,7 +1228,7 @@ $(document).ready(function() {
           stopRectangleDraw: function(event) {
             if( this.rectangle ){
               // Remove object if mouse didn't move anywhere
-              if(event.e.x == this.startX && event.e.y == this.startY ){
+              if(this.canvasWrapper.scrollLeft + event.e.x == this.startX && this.canvasWrapper.scrollTop + event.e.y == this.startY ){
                 this.canvas.remove(this.rectangle);
               }
               
