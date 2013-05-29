@@ -555,6 +555,8 @@ $(document).ready(function() {
    *
    * FIXME: Some of the utility objects are created in a really funky way
    * (you have to pass context and other weird things)
+   *
+   * TODO: Sub menu options for width and stroke/fill color
    * 
    */
   CanvasManager = Backbone.View.extend( {
@@ -936,7 +938,9 @@ $(document).ready(function() {
      */
     //Says we can move a canvas, declares event listeners
     activateCanvasMove: function() {
+      //Show overlay so they're not clicking on the canvas
       $body.find('.editor .overlay').show();
+      //add events
       $body.on('mousedown.canvasPan','.canvas-wrapper', _.bind( this.startCanvasMove, this ) );
       $body.on('mouseup.canvasPan', _.bind( this.stopCanvasMove, this ) );
       $body.on('mousemove.canvasPan','.canvas-wrapper', _.bind( this.moveCanvas, this ) );
@@ -944,9 +948,10 @@ $(document).ready(function() {
     //Removes event listeners for the canvas move
     disableCanvasMove: function() {
       $body.off('.canvasPan');
+      //Hide overlay so they can interact with the canvas again
       $body.find('.editor .overlay').hide();
     },
-    
+    //Allows canvas to be moved (scrolled), sets original X/Y/scroll position
     startCanvasMove: function(e) {
       this.canvasMove = true;
       this.X = e.clientX;
@@ -954,23 +959,18 @@ $(document).ready(function() {
       this.scrollLeft = $body.find('.canvas-wrapper')[0].scrollLeft;
       this.scrollTop = $body.find('.canvas-wrapper')[0].scrollTop;
     },
-
+    //Stops the canvas from being moved on mouse move
     stopCanvasMove: function() {
-      $body.find('.overlay').css({
-        top: 0,
-        left: 0
-      } );
       this.canvasMove = false;
     },
+    //Moving the canvas actually means we're adjusting the scrollLeft/Top.
+    //We then adjust the scroll position to its original position + the 
+    //mouse distance
     moveCanvas: function(e) {
       if( this.canvasMove ) {
         var moveY = e.clientY - this.Y,
             moveX = e.clientX - this.X;
 
-        $body.find('.editor .overlay').css({
-          top: moveY,
-          left: moveX
-        } );
         if( this.scrollLeft - moveX > 0 ) {
           $body.find('.canvas-wrapper').scrollLeft( this.scrollLeft + (- moveX) );
         }
@@ -989,6 +989,11 @@ $(document).ready(function() {
      * zoom in and out based on the origin click (which means we need to both 
      * zoom in/out and scroll to the correct location). At the moment they
      * have to click on the menu icons to zoom in and out.
+     *
+     * FIXME: Only allow zoom in/out to a certain factor
+     *
+     * TODO: Add "fitToScreen" which will autozoom canvas to fit the screen
+     * width/height and centers
      * 
      * @type {Object}
      */
