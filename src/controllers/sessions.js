@@ -80,7 +80,8 @@ var createSession = function(req, res){
 
 			var newGamePlayer = new models.Session.sessionPlayerModel({
 				sessionId: gameId,
-				playerId: player.id
+				playerId: player.id,
+                                isGM: true
 			});
 
 			newGamePlayer.save(function(err) {

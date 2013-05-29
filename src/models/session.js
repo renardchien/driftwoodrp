@@ -74,7 +74,12 @@ var SessionPlayerSchema = new mongoose.Schema({
 			type: Schema.ObjectId,
 			required: true,
 			ref: 'Player'
-		}
+		},
+  isGM:          {
+                        type: Boolean,
+                        required: true,
+                        'default': false
+                }
  
 });
 SessionPlayerSchema.index({ sessionId: 1, playerId: 1 }, { unique: true });
