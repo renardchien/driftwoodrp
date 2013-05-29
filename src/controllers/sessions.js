@@ -170,6 +170,96 @@ var removePlayer = function(req, res) {
 	});
 };
 
+var addGM = function(req, res) {
+	var playerUsername = req.body.username;
+	var game = res.locals.game;
+	
+	if(!playerUsername) {
+		return res.badRequest("A player's username is required");
+	}
+
+	if(playerUsername.toLowerCase() === game.ownerUsername.toLowerCase()) {
+		return res.badRequest("You are already a GM");
+	}
+
+	models.Player.playerModel.findByUsername(playerUsername, function(err, newPlayer){
+
+		if(err || !newPlayer){
+			return res.notFound("player could not be found");
+		}
+
+		models.Session.sessionPlayerModel.findPlayerGamePermission(newPlayer.id, game.id, function(err, player) {
+
+			if(err) {
+				return res.err('an error occurred adding the GM to the game');
+			}
+
+			if(!player) {
+				return res.err('Player could not be found in this game. Please add them to the game first');
+			}
+
+			if(player.isGM === true) {
+				return res.err('Player is already a GM');
+			}
+
+			player.isGM = true;
+
+			player.save(function(err) {
+				if(err) {
+					return res.err('an error occurred adding the GM to the game');
+				}
+
+				res.created(newPlayer.username + " has been promoted to a GM");
+			});
+		});
+	});
+};
+
+var removeGM = function(req, res) {
+	var playerUsername = req.body.username;
+	var game = res.locals.game;
+	
+	if(!playerUsername) {
+		return res.badRequest("A player's username is required");
+	}
+
+	if(playerUsername.toLowerCase() === game.ownerUsername.toLowerCase()) {
+		return res.badRequest("You cannot remove yourself as a GM");
+	}
+
+	models.Player.playerModel.findByUsername(playerUsername, function(err, newPlayer){
+
+		if(err || !newPlayer){
+			return res.notFound("player could not be found");
+		}
+
+		models.Session.sessionPlayerModel.findPlayerGamePermission(newPlayer.id, game.id, function(err, player) {
+
+			if(err) {
+				return res.err('an error occurred adding the GM to the game');
+			}
+
+			if(!player) {
+				return res.err('Player could not be found in this game. Please add them to the game first');
+			}
+
+                        if(player.isGM === false) {
+			  	return res.err('Player is not currently a GM');
+                        }
+
+			player.isGM = false;
+
+			player.save(function(err) {
+				if(err) {
+					return res.err('an error occurred removing the GM from the game');
+				}
+
+				res.created(newPlayer.username + " has been made into a normal player");
+			});
+		});
+	});
+};
+
 var uploadBackground = function(req, res) {
 	res.json('request to upload a background image');
 };
@@ -281,6 +371,8 @@ module.exports.createSession = createSession;
 module.exports.loadSession = loadSession;
 module.exports.addPlayer = addPlayer;
 module.exports.removePlayer = removePlayer;
+module.exports.addGM = addGM;
+module.exports.removeGM = removeGM;
 module.exports.uploadBackground = uploadBackground;
 module.exports.removeBackground = removeBackground;
 module.exports.uploadToken = uploadToken;

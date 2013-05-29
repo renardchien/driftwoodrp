@@ -15,6 +15,20 @@ block body
       input(id='removePlayerSubmit',type='submit',value='Remove Player',name='removePlayerSubmit')
     form
     br
+    form(id='addGM', action='/addGM/#{game.ownerUsername}/#{game.name}', method='post')
+      input(type='hidden', name='_csrf', value='#{session._csrf}')      
+      label(for='username') player username
+      input(id='addGMUsername',type='text',placeholder='', name='username')
+      input(id='addGMSubmit',type='submit',value='Add GM',name='addGMSubmit')
+    form
+    br
+    form(id='removeGM', action='/removeGM/#{game.ownerUsername}/#{game.name}', method='post')
+      input(type='hidden', name='_csrf', value='#{session._csrf}')      
+      label(for='username') player username
+      input(id='removeGMUsername',type='text',placeholder='', name='username')
+      input(id='removeGMSubmit',type='submit',value='Remove GM',name='removeGMSubmit')
+    form
+    br
     label(for='messagEntry') message
     input(id='messageEntry', type='text', placeholder='', name='messageEntry')
     button(id='messageSubmit', name='messageSubmit', onclick='sendMessage()') Send Message
