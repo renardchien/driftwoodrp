@@ -82,8 +82,19 @@ $(document).ready(function() {
         }
       });
 
-      $body.find('.object-list .object').draggable({ containment: ".canvas-wrapper",revert:'invalid',scroll:false,appendTo:'body' });
-
+      $body.find('.object-list .object').draggable({helper:'clone',revert:'invalid',scroll:false,appendTo:'#Main' });
+      $body.find('.canvas-wrapper').droppable({
+        drop: _.bind( function( event, ui ) {
+          console.log(ui);
+          var url = ui.helper.find(':text').val();
+          console.log(url);
+          if( url !== '' ) {
+            ui.draggable.find(':text').val('');
+            this.CanvasManager.trigger('loadImage',url,event);
+          }
+          
+        }, this )
+      });
     },
 
     dataActivate: function( object ) {
@@ -632,6 +643,7 @@ $(document).ready(function() {
       this.on('delete',_.bind(this.deleteObject,this));
       this.on('moveObject',_.bind(this.moveObject,this));
       this.on('switchObjectLayer',_.bind(this.switchObjectLayer,this));
+      this.on('loadImage',_.bind(this.loadImage,this));
 
       //Window listener
       $window.on('resize',this.on_resize);
@@ -793,6 +805,18 @@ $(document).ready(function() {
         }, this ) );
         this.canvas.deactivateAll().renderAll();
       }
+    },
+
+    loadImage: function(url,event) {
+      fabric.Image.fromURL(url,  _.bind( function(oImg) {
+        var canvasWrapper = $body.find('.canvas-wrapper')[0];
+        console.log(event);
+        oImg.set({
+          top: canvasWrapper.scrollTop + event.clientY,
+          left: canvasWrapper.scrollLeft + event.clientX
+        });
+        this.canvas.add(oImg);
+      }, this ) );
     },
 
     /**
