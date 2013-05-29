@@ -82,6 +82,19 @@ $(document).ready(function() {
         }
       });
 
+      $body.find('.object-list .object').draggable({helper:'clone',revert:'invalid',scroll:false,appendTo:'#Main' });
+      $body.find('.canvas-wrapper').droppable({
+        drop: _.bind( function( event, ui ) {
+          console.log(ui);
+          var url = ui.helper.find(':text').val();
+          console.log(url);
+          if( url !== '' ) {
+            ui.draggable.find(':text').val('');
+            this.CanvasManager.trigger('loadImage',url,event);
+          }
+          
+        }, this )
+      });
     },
 
     dataActivate: function( object ) {
@@ -630,13 +643,14 @@ $(document).ready(function() {
       this.on('delete',_.bind(this.deleteObject,this));
       this.on('moveObject',_.bind(this.moveObject,this));
       this.on('switchObjectLayer',_.bind(this.switchObjectLayer,this));
+      this.on('loadImage',_.bind(this.loadImage,this));
 
       //Window listener
       $window.on('resize',this.on_resize);
 
       //Canvas events
       this.canvas.on('object:added', _.bind( function(e) {
-        console.log('Object added to canvas',e);
+        //console.log('Object added to canvas',e);
         this.addObject(e.target);
       }, this ) );
 
@@ -791,6 +805,18 @@ $(document).ready(function() {
         }, this ) );
         this.canvas.deactivateAll().renderAll();
       }
+    },
+
+    loadImage: function(url,event) {
+      fabric.Image.fromURL(url,  _.bind( function(oImg) {
+        var canvasWrapper = $body.find('.canvas-wrapper')[0];
+        console.log(event);
+        oImg.set({
+          top: canvasWrapper.scrollTop + event.clientY,
+          left: canvasWrapper.scrollLeft + event.clientX
+        });
+        this.canvas.add(oImg);
+      }, this ) );
     },
 
     /**
@@ -1109,8 +1135,8 @@ $(document).ready(function() {
           //with some intial qualities and then making it bigger
           startCircleDraw: function(event) {
             //Where did the mouse click start
-            this.startX = this.canvasWrapper.scrollLeft + event.e.x;
-            this.startY = this.canvasWrapper.scrollTop + event.e.y;
+            this.startX = this.canvasWrapper.scrollLeft + event.e.clientX;
+            this.startY = this.canvasWrapper.scrollTop + event.e.clientY;
             //Don't start if this is already an object
             if( ! event.target ){
               //Create our "circle"
@@ -1136,7 +1162,7 @@ $(document).ready(function() {
           stopCircleDraw: function(event) {
             if( this.circle ){
               // Remove object if mouse didn't move anywhere
-              if(this.canvasWrapper.scrollLeft + event.e.x == this.startX && this.canvasWrapper.scrollTop + event.e.y == this.startY ){
+              if(this.canvasWrapper.scrollLeft + event.e.clientX == this.startX && this.canvasWrapper.scrollTop + event.e.clientY == this.startY ){
                 this.canvas.remove(this.circle);
               }
               
@@ -1150,8 +1176,8 @@ $(document).ready(function() {
           drawCircle: function(event) {
             if( this.circle ){
               // Resize object as mouse moves
-              var width = (this.canvasWrapper.scrollLeft + event.e.x - this.startX),
-                  height = (this.canvasWrapper.scrollTop + event.e.y - this.startY),
+              var width = (this.canvasWrapper.scrollLeft + event.e.clientX - this.startX),
+                  height = (this.canvasWrapper.scrollTop + event.e.clientY - this.startY),
                   originX = width > 0 ? 'left' : 'right',
                   originY = height > 0 ? 'top' : 'bottom';
 
@@ -1200,8 +1226,8 @@ $(document).ready(function() {
           //with some intial qualities and then making it bigger
           startRectangleDraw: function(event) {
             //Where did the mouse click start
-            this.startX = event.e.x;
-            this.startY = event.e.y;
+            this.startX = event.e.clientX;
+            this.startY = event.e.clientY;
             //Don't start if this is already an object
             if( ! event.target ){
               //Create our "circle"
@@ -1210,8 +1236,8 @@ $(document).ready(function() {
                 top:    this.canvasWrapper.scrollLeft + this.startY,
                 originX: 'left',
                 originY: 'top',
-                width: 0,
-                height: 0,
+                width: 10,
+                height: 10,
                 selectable: false,
                 stroke: this.color,
                 strokeWidth: 2,
@@ -1228,7 +1254,7 @@ $(document).ready(function() {
           stopRectangleDraw: function(event) {
             if( this.rectangle ){
               // Remove object if mouse didn't move anywhere
-              if(this.canvasWrapper.scrollLeft + event.e.x == this.startX && this.canvasWrapper.scrollTop + event.e.y == this.startY ){
+              if(this.canvasWrapper.scrollLeft + event.e.clientX == this.startX && this.canvasWrapper.scrollTop + event.e.clientY == this.startY ){
                 this.canvas.remove(this.rectangle);
               }
               
@@ -1240,10 +1266,11 @@ $(document).ready(function() {
           //Technically the circle is already drawn. Here we are just
           //making it bigger
           drawRectange: function(event) {
+            
             if( this.rectangle ){
               // Resize object as mouse moves
-              var width = (event.e.x - this.startX),
-                  height = (event.e.y - this.startY),
+              var width = (event.e.clientX - this.startX),
+                  height = (event.e.clientY - this.startY),
                   originX = width > 0 ? 'left' : 'right',
                   originY = height > 0 ? 'top' : 'bottom';
 
