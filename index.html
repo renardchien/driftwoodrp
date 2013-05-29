@@ -268,24 +268,32 @@
   <script type="text/template" id="contextMenuTemplate">
   <ul class="context-menu dropdown-menu">
     <% if( menu.copy ) { %>
-    <li><a href="#">Copy</a></li>
+    <li data-cmd="copy"><a href="#">Copy</a></li>
     <% } %>
-    <li><a href="#">Paste</a></li>
-    <li><a href="#">Delete</a></li>
+    <% if( menu.paste ) { %>
+    <li data-cmd="paste"><a href="#">Paste</a></li>
+    <% } %>
+    <% if( menu.delete ) { %>
+    <li data-cmd="delete"><a href="#">Delete</a></li>
+    <% } %>
+    <% if( menu.move_backward || menu.move_forward || menu.move_to_back || menu.move_to_front ) { %>
     <li class="divider"></li>
-    <li><a href="#">Move Back</a></li>
-    <li><a href="#">Move Forward</a></li>
-    <li><a href="#">Move to Front</a></li>
-    <li><a href="#">Move to Back</a></li>
+    <li data-cmd="moveObject" data-cmd-value="backwards"><a href="#">Move Back</a></li>
+    <li data-cmd="moveObject" data-cmd-value="forwards"><a href="#">Move Forward</a></li>
+    <li data-cmd="moveObject" data-cmd-value="toFront"><a href="#">Move to Front</a></li>
+    <li data-cmd="moveObject" data-cmd-value="toBack"><a href="#">Move to Back</a></li>
+    <% } %>
+    <% if( menu.delete ) { %>
     <li class="divider"></li>
     <li class="dropdown-submenu"><a href="#">Switch Layer</a>
       <ul class="dropdown-menu">
-        <li><a href="#"><b class="icon-picture"></b> Map Layer</a></li>
-        <li><a href="#"><b class="icon-th"></b> Grid Layer</a></li>
-        <li><a href="#"><b class="icon-pushpin"></b> Object Layer</a></li>
-        <li><a href="#"><b class="icon-user"></b> GM Layer</a></li>
+        <li data-cmd="switchObjectLayer" data-cmd-value="map_layer"><a href="#"><b class="icon-picture"></b> Map Layer</a></li>
+        <li data-cmd="switchObjectLayer" data-cmd-value="grid_layer"><a href="#"><b class="icon-th"></b> Grid Layer</a></li>
+        <li data-cmd="switchObjectLayer" data-cmd-value="object_layer"><a href="#"><b class="icon-pushpin"></b> Object Layer</a></li>
+        <li data-cmd="switchObjectLayer" data-cmd-value="gm_layer"><a href="#"><b class="icon-user"></b> GM Layer</a></li>
       </ul>
     </li>
+    <% } %>
   </ul>
   </script>
   <script type="text/template" id="chatMessageTemplate">

@@ -126,37 +126,35 @@ $(document).ready(function() {
     //Grab the template from the page
     template: _.template($('#contextMenuTemplate').html()),
 
-    menuOptions: {
-      copy: false,
-      paste: false,
-      edit: false,
-      delete: false,
-      move_back: false,
-      move_forward: false,
-      move_to_front: false,
-      move_to_back: false,
-      switch_layer: false,
-    },
+    menuOptions: {},
 
     hasMenuOptions: true,
 
     initialize: function(options) {
       _.bindAll(this,'render');
+      console.log('Opening menu',options);
+      //Set menu options default
+      this.menuOptions = {
+        copy: false,
+        paste: false,
+        edit: false,
+        delete: false,
+        move_backward: false,
+        move_forward: false,
+        move_to_front: false,
+        move_to_back: false,
+        switch_layer: false,
+      };
       //Set all our options
       this.options = options;
       this.objects = options.objects || false;
+      this.copied = options.copied || false;
       this.X = options.x;
       this.Y = options.y;
-      //Add event listeners
-      this.addEventListeners();
       //Open up the menu
-      console.log('Opening menu: ');
       this.open();
     },
-    addEventListeners: function() {
-      //Makes sure the context menu gets closed
-      $body.on('click', _.bind(this.close,this));
-    },
+ 
     open: function() {
       //Build the menu, close other menus, render a new one
       this.buildContextMenu();
@@ -166,8 +164,16 @@ $(document).ready(function() {
       }
     },
     buildContextMenu: function() {
-      if( this.objects.length ) {
+      if( this.objects.length > 0 ) {
         this.menuOptions.copy = true;
+        this.menuOptions.delete = true;
+        this.menuOptions.move_backward = true;
+        this.menuOptions.move_forward = true;
+        this.menuOptions.move_to_front = true;
+        this.menuOptions.move_to_back = true;
+        this.menuOptions.switch_layer = true;
+      } else if( this.copied ) {
+        this.menuOptions.paste = true;
       } else {
         this.hasMenuOptions = false;
       }
@@ -309,7 +315,6 @@ $(document).ready(function() {
       //Hook into mousedown to fire off our long press test. Sets a timer to
       //show the dropdown menu in X seconds
       $body.on('mousedown','.commands .menu-btn', function(e) {
-        console.log($(this));
         var $this = $(this);
         $this.button('toggle');
         //Close all the open submenus
@@ -378,13 +383,28 @@ $(document).ready(function() {
         case 'zoomOut':
           driftwood.engine.CanvasManager.trigger('zoomOut');
           break;
+        case 'copy':
+          driftwood.engine.CanvasManager.trigger('copy');
+          break;
+        case 'paste':
+          driftwood.engine.CanvasManager.trigger('paste');
+          break;
+         case 'delete':
+          driftwood.engine.CanvasManager.trigger('delete');
+          break;
+        case 'moveObject':
+          driftwood.engine.CanvasManager.trigger('moveObject',value);
+          break;
+        case 'switchObjectLayer':
+          driftwood.engine.CanvasManager.trigger('switchObjectLayer',value);
+          break;
       }
       //Command is not switch layer, so save the last command
-      if( command !== 'switchLayer' ) {
+      if( ['moveCanvas', 'selectCanvas', 'draw'].indexOf(command) !== -1 ) {
         this._lastCmd = {command:command,value:value};
       //Command IS switch layer, and they were doing something
       //previous so reactivate that command
-      } else if ( this._lastCmd && ['zoomIn','zoomOut'].indexOf(this._lastCmd.command) === -1 ) {
+      } else if ( this._lastCmd && command === 'switchLayer' ) {
         //FIXME: Make the button actove
         $body.find('.menu-btn[data-cmd="'+this._lastCmd.command+'"]').trigger('click');
       }
@@ -404,8 +424,8 @@ $(document).ready(function() {
       this.layers = this.get('layers');
       //Set attributes for easier .get() calls
       this.set({
-        layer: this.get('object').toJSON().layer,
-        layerIndex: this.getLayerIndex(this.get('object').toJSON().layer)
+        layer: this.get('object').get('layer'),
+        layerIndex: this.getLayerIndex(this.get('object').get('layer'))
       });
     },
 
@@ -413,23 +433,27 @@ $(document).ready(function() {
      * Since we work with different layers, we can't just sent to front of all objects.
      * We have to send to front of that layer. 
      */
-    sendToFront: function() {
+    sendToFront: function(replace) {
       //Get the current layer name and index of this object
       var _objects = this.canvas.getObjects(),
           _index = _objects.indexOf(this.get('object')), //This objects index
-          _layer = this.get('layer'), //This objects layer
           _layerIndex = this.get('layerIndex')//This object's layer index
           index = 0; //The layer index we're going to move this object to
 
       //Get the index of the front most object in the
       //same layer. 
       for( var i = 0; i < _objects.length; i++ ) {
-        index = i; //Our new index
+        //Object is at top of stack, so we need to replace at the current
+        //index when we get to a breaking point
+        if( replace ) {
+          index = i;
+        }
         //If layer index of this object is greater than the layer we're
         //looking for, we have found our top most index. Break out of loop
-        if( this.getLayerIndex(_objects[i].toJSON().layer) > _layerIndex ) {
+        if( this.getLayerIndex(_objects[i].get('layer')) > _layerIndex ) {
           break;
         }
+        index = i; //Our new index
       }
       //If the indexes do not match, this object is not 
       //at the front of its layer
@@ -442,16 +466,14 @@ $(document).ready(function() {
       //Get the current layer name and index of this object
       var _objects = this.canvas.getObjects(),
           _index = _objects.indexOf(this.get('object')), //This objects index
-          _layer = this.get('layer'), //This objects layer
           _layerIndex = this.get('layerIndex') //This object's layer index
           index = 0; //The layer index we're going to move this object to
-
       //Get the index of the front most object in the
       //same layer. 
-      for( var i = _objects.length-1; i = 0; i-- ) {
+      for( var i = _objects.length-1; i >= 0; i-- ) {
         //If layer index of this object is greater than the layer we're
         //looking for, we have found our top most index. Break out of loop
-        if( this.getLayerIndex(_objects[i].toJSON().layer) < _layerIndex ) {
+        if( this.getLayerIndex(_objects[i].get('layer')) < _layerIndex ) {
           break;
         }
         index = i; //Our new index
@@ -461,6 +483,33 @@ $(document).ready(function() {
       if( _index !== index ) {
         this.canvas.moveTo(this.get('object'),index);
       }
+    },
+
+    sendBackward: function() {
+      //Get the current layer name and index of this object
+      var _objects = this.canvas.getObjects(),
+          _index = _objects.indexOf(this.get('object')), //This objects index
+          _layerIndex = this.get('layerIndex') //This object's layer index
+
+      if( _index > 0 && this.getLayerIndex(_objects[_index-1].get('layer')) === _layerIndex ) {
+        this.canvas.sendBackwards(this.get('object'));
+      }
+    },
+
+    sendForward: function() {
+      //Get the current layer name and index of this object
+      var _objects = this.canvas.getObjects(),
+          _index = _objects.indexOf(this.get('object')), //This objects index
+          _layerIndex = this.get('layerIndex') //This object's layer index
+
+      if( _index < (_objects.length - 1) && this.getLayerIndex(_objects[_index+1].get('layer')) === _layerIndex ) {
+        this.canvas.bringForward(this.get('object'));
+      }
+    },
+
+    switchLayer: function(layer) {
+      this.get('object').set('layer',layer);
+      this.initialize();
     },
 
      /**
@@ -565,6 +614,8 @@ $(document).ready(function() {
 
     addEventListeners: function() {
       //Backbone View event listeners
+      //FIXME: Move all of these listeners into a listen for "commandGiven" or similar
+      //event, and execute a runCommand method that rotues to the correct function
       this.on('moveCanvas selectCanvas draw switchLayer', _.bind(this.disableAll,this));
       this.on('moveCanvas', _.bind(this.activateCanvasMove,this));
       this.on('selectCanvas',_.bind(this.activateCanvasSelect,this));
@@ -572,65 +623,220 @@ $(document).ready(function() {
       this.on('switchLayer',_.bind(this.switchLayer,this));
       this.on('zoomIn',this.zoom.In);
       this.on('zoomOut',this.zoom.Out);
+      this.on('copy',_.bind(this.copy,this));
+      this.on('paste',_.bind(this.paste,this));
+      this.on('delete',_.bind(this.deleteObject,this));
+      this.on('moveObject',_.bind(this.moveObject,this));
+      this.on('switchObjectLayer',_.bind(this.switchObjectLayer,this));
 
       //Window listener
       $window.on('resize',this.on_resize);
 
       //Canvas events
       this.canvas.on('object:added', _.bind( function(e) {
+        console.log('Object added to canvas',e);
         this.addObject(e.target);
       }, this ) );
+      
       //Creates a context menu
-      $body.on('contextmenu','.canvas-wrapper', _.bind( function(e) {
-        var objects = this.getActiveGroup() || [];
-        //No active group, try to get a single active object
-        if( ! objects.length ) {
-          var object = this.getActiveObject();
-          if( object ) {
-            objects.push(object);
-          }
-        }
-        //There is no active target, but let's try to grab one
-        if( ! objects.length ) {
-          var target = this.canvas.findTarget(e);
-          if( target ) {
-            this.canvas.setActiveObject(target);
-            objects.push(this.getActiveObject());
-          }
-        }
-        //Create our context menu
-        var contextMenu = new ContextMenu({
-          x: e.clientX,
-          y: e.clientY,
-          objects: objects
-        });
+      $body.on('contextmenu','.canvas-wrapper', _.bind(this.openContextMenu, this));
 
-        e.preventDefault();
+      //Close context menu
+      $body.on('click', _.bind( function() {
+        if( this.contextMenu ) {
+          this.contextMenu.close();
+          this.contextMenu = false;
+        }
       }, this ) );
       
     },
 
+    /**
+     * Opens up a context menu based on the currently active object, or group
+     * of objects. If no object is active, it attempts to find a target. If
+     * an object is still not found, it's assumed that empty canvas has been
+     * clicked on.
+     */
+    openContextMenu: function(e) {
+      var objects = this.getActiveGroup() || [];
+      //No active group, try to get a single active object
+      if( ! objects.length ) {
+        var object = this.getActiveObject();
+        if( object ) {
+          objects.push(object);
+        }
+      }
+      //There is no active target, but let's try to grab one
+      if( ! objects.length ) {
+        var target = this.canvas.findTarget(e);
+        if( target ) {
+          this.canvas.setActiveObject(target);
+          objects.push(this.getActiveObject());
+        }
+      }
+
+      //Create our context menu
+      this.contextMenu = new ContextMenu({
+        x: e.clientX,
+        y: e.clientY,
+        objects: objects,
+        copied: this._cloned
+      });
+
+      e.preventDefault();
+    },
+
+    /**
+     * Clones objects saved into the context menu.
+     */
+    copy: function() {
+      var _objects = [];
+
+      if( this.contextMenu.objects.length ) {
+        _.each( this.contextMenu.objects, _.bind( function(object) {
+          _objects.push(object.get('object').clone());
+        }, this ) );
+      }
+
+      this._cloned = _objects;
+    },
+
+    /**
+     * Goes through cloned objects and adds them to the canvas as new objects.
+     * If there is more than one, it was part of a group copy, so we have to
+     * set their top/left positions + the mouse position. Also, for some reason
+     * cloned objects in a group have hasControls: false, so set that.
+     */
+    paste: function() {
+      if( this._cloned.length ) {
+        _.each( this._cloned, _.bind(function(object) {
+          object.set({
+            layer: this.currentLayer,
+            //Group objects take mouse position + object position since it's a number
+            //relative to the group
+            top: this.contextMenu.Y + (this._cloned.length > 1 ? object.toObject().top : 0),
+            left: this.contextMenu.X + (this._cloned.length > 1 ? object.toObject().left : 0),
+            hasControls: true
+          });
+          this.canvas.add(object);
+        }, this ) );
+        this._cloned = false;
+        this.canvas.renderAll();
+      }
+    },
+
+    /**
+     * Removes all objects saved to the context menu
+     */
+    deleteObject: function() {
+      if( this.contextMenu.objects.length ) {
+        this.canvas.deactivateAll()
+        _.each( this.contextMenu.objects, _.bind( function(object) {
+          this.canvas.remove(object.get('object'));
+        }, this ) );
+        this.canvas.renderAll();
+      }
+      //Remove cloned objects
+      this._cloned = false;
+    },
+
+    /**
+     * Goes through all the objects saved to the context menu and
+     * changes their index position.
+     */
+    moveObject: function(how) {
+      if( this.contextMenu.objects.length ) {
+        _.each( this.contextMenu.objects, _.bind( function(object) {
+          switch( how ) {
+            case 'forwards':
+              object.sendForward();
+              break;
+            case 'backwards':
+              object.sendBackward();
+              break;
+            case 'toFront':
+              object.sendToFront();
+              break;
+            case 'toBack':
+              object.sendToBack();
+              break;
+          }
+        }, this ) );
+      }
+    },
+
+    /**
+     * Goes through all the objects saed to the context menu
+     * and switches what layer they are on. Makes sure to move
+     * that object to the front of its layer.
+     *
+     * If the layer is not on the current layer (which it 
+     * shouldn't be), we disable that object
+     */
+    switchObjectLayer: function(layer) {
+      if( this.contextMenu.objects.length ) {
+        _.each( this.contextMenu.objects, _.bind( function(object) {
+          object.switchLayer(layer);
+          if( object.get('layer') !== this.currentLayer ) {
+            object.disable();
+          }
+          object.sendToFront(true);
+        }, this ) );
+        this.canvas.deactivateAll().renderAll();
+      }
+    },
+
+    /**
+     * Alias for the canvas getActiveObject that turns the active
+     * object into a local backbone model
+     */
     getActiveObject: function() {
       var activeObject = this.canvas.getActiveObject();
       if( activeObject ) {
-        var index = this.canvas.getObjects().indexOf(activeObject);
-        activeObject = this.objects[index];
+        activeObject = this.toObject(activeObject);
       }
       return activeObject;
     },
-
+    /**
+     * Alias for the canvas getActiveGroup that turns the active
+     * group objects into a local backbone model
+     */
     getActiveGroup: function() {
       var _objects = this.canvas.getActiveGroup(),
           activeGroup;
       if( _objects ) {
-        activeGroup = [],
-        canvasObjects = this.canvas.getObjects();
+        activeGroup = [];
         _objects.forEachObject( _.bind( function(object) {
-          var index = canvasObjects.indexOf(object);
-          activeGroup.push(this.objects[index]);
+          activeGroup.push(this.toObject(object));
         }, this ) );
       }
       return activeGroup
+    },
+
+     /**
+     * Local alias for canvas.getObjects(). Uses this fabric method
+     * to grab all the objects on the canvas and convert them to local
+     * backbone objects.
+     */
+    getObjects: function() {
+      var _objects = this.canvas.getObjects();
+      //Clear out our current objects array
+      var objects = [];
+      _objects.forEach( _.bind( function(object) {
+        objects.push(this.toObject(object));
+      }, this ) );
+      return objects;
+    },
+
+    /**
+     * Turn canvas object into a local backbone model object
+     */
+    toObject: function(object) {
+      return new CanvasObj({
+        object: object,
+        canvas: this.canvas,
+        layers: this.layers
+      });
     },
 
     /**
@@ -638,42 +844,23 @@ $(document).ready(function() {
      * and throws it into a backbone model.
      */
     addObject: function(activeObject) {
-      if( ! activeObject.toJSON().layer ) {
+      if( ! activeObject.get('layer') ) {
         var currentLayer = this.currentLayer;
         activeObject.toObject = (function(toObject) {
           return function() {
             return fabric.util.object.extend(toObject.call(this), {
-              layer: currentLayer,
+              layer: this.layer,
             });
           };
         })(activeObject.toObject);
+        activeObject.set('layer',currentLayer);
       }
       //Move the object to the front of it's layer
-      var object = new CanvasObj({
-        object: activeObject,
-        canvas: this.canvas,
-        layers: this.layers
-      });
-      //Add to our local reference
-      this.objects.push(object);
+      var object = this.toObject(activeObject);
+
       //Make sure the object is at the front of its layer
-      object.sendToFront();
+      object.sendToFront(true);
     },
-
-    /**
-     * Refreshes the local objects array with the objects on the canvas.
-     * Goes through all the objects and recreates a backbone modal for each one
-     */
-    getObjects: function() {
-      var _objects = this.canvas.getObjects();
-      //Clear out our current objects array
-      this.objects = [];
-      _objects.forEach( _.bind( function(object) {
-        this.addObject(object);
-      }, this ) );
-      return this.objects;
-    },
-
 
     //Make sure the canvas wrapper stays the width of the screen, minus our side panel
     on_resize: function() {
@@ -711,8 +898,9 @@ $(document).ready(function() {
      */
     switchLayer: function(layer) {
       this.currentLayer = layer;
+      var _objects = this.getObjects();
       //Go through each object and add it to the correct canvas
-      this.objects.forEach( _.bind( function(object) {
+      _objects.forEach( _.bind( function(object) {
         //Not on this later, move to the tmp canvas
         if( object.get('layer') !== this.currentLayer ) {
           object.disable();
@@ -836,7 +1024,6 @@ $(document).ready(function() {
             canvas.renderAll();
           },
           Out: function() {
-            console.log('zoom out');
             // TODO limit max cavas zoom out
             canvasScale = canvasScale / SCALE_FACTOR;
             
