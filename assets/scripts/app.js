@@ -637,7 +637,7 @@ $(document).ready(function() {
         console.log('Object added to canvas',e);
         this.addObject(e.target);
       }, this ) );
-      
+
       //Creates a context menu
       $body.on('contextmenu','.canvas-wrapper', _.bind(this.openContextMenu, this));
 
@@ -706,16 +706,21 @@ $(document).ready(function() {
      * If there is more than one, it was part of a group copy, so we have to
      * set their top/left positions + the mouse position. Also, for some reason
      * cloned objects in a group have hasControls: false, so set that.
+     *
+     * FIXME: Move canvasWrapper.scrollTop into a function so we can do something like
+     * this.top() and this.left()
+     *
      */
     paste: function() {
       if( this._cloned.length ) {
+        var canvasWrapper = $body.find('.canvas-wrapper')[0];
         _.each( this._cloned, _.bind(function(object) {
           object.set({
             layer: this.currentLayer,
             //Group objects take mouse position + object position since it's a number
             //relative to the group
-            top: this.contextMenu.Y + (this._cloned.length > 1 ? object.toObject().top : 0),
-            left: this.contextMenu.X + (this._cloned.length > 1 ? object.toObject().left : 0),
+            top: canvasWrapper.scrollTop + this.contextMenu.Y + (this._cloned.length > 1 ? object.toObject().top : 0),
+            left: canvasWrapper.scrollLeft + this.contextMenu.X + (this._cloned.length > 1 ? object.toObject().left : 0),
             hasControls: true
           });
           this.canvas.add(object);
