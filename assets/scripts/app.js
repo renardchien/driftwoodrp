@@ -614,7 +614,7 @@ $(document).ready(function() {
 
       //Just for now
       //FIXME: The grid should actually be on its own layer
-      this.canvas.setOverlayImage('assets/images/grid.svg', this.canvas.renderAll.bind(this.canvas))
+      this.canvas.setOverlayImage('/images/grid.svg', this.canvas.renderAll.bind(this.canvas))
 
       //Create our drawing utility
       this.drawing = this.drawingUtil.init(this);

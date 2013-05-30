@@ -8,11 +8,11 @@ html(lang='en')
     meta(name='msvalidate.01', content='TODO: Fill me in!')
     meta(name='google-site-verification', content='TODO: Fill me in!')
     title Driftwood 0.0.1
-    // Application styles
-    link(rel='stylesheet', href='assets/css/libs/bootstrap/bootstrap.css')
-    link(rel='stylesheet', href='assets/css/libs/font-awesome/font-awesome.css')
-    link(rel='stylesheet', href='assets/scripts/libs/colorpicker/css/colorpicker.css')
-    link(rel='stylesheet', href='assets/css/main.css')
+    // Application styles #{}/img/card.png
+    link(rel='stylesheet', href='/css/libs/bootstrap/bootstrap.css')
+    link(rel='stylesheet', href='/css/libs/font-awesome/font-awesome.css')
+    link(rel='stylesheet', href='/scripts/libs/colorpicker/css/colorpicker.css')
+    link(rel='stylesheet', href='/css/main.css')
     // Site Web Fonts
   body
     // BEGIN: Main wrapper
@@ -198,9 +198,9 @@ html(lang='en')
                   li.object
                     p.tmp
                       input.input-block-level(type='text', placeholder='http://')
-                  li.object(data-url='assets/images/tmp/goblin.png')
+                  li.object(data-url='/images/tmp/goblin.png')
                     .preview
-                      img(src='assets/images/tmp/goblin.png')
+                      img(src='/images/tmp/goblin.png')
                     p.name Goblin
                     p.muted Token
                     .dropdown.menu
@@ -210,9 +210,9 @@ html(lang='en')
                       ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
                         li
                           a(tabindex='-1', href='#') Delete
-                  li.object(data-url='assets/images/tmp/paladin.png')
+                  li.object(data-url='/images/tmp/paladin.png')
                     .preview
-                      img(src='assets/images/tmp/paladin.png')
+                      img(src='/images/tmp/paladin.png')
                     p.name Paladin
                     p.muted Token
                     .dropdown.menu
@@ -222,9 +222,9 @@ html(lang='en')
                       ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
                         li
                           a(tabindex='-1', href='#') Delete
-                  li.object(data-url='assets/images/tmp/fighter.png')
+                  li.object(data-url='/images/tmp/fighter.png')
                     .preview
-                      img(src='assets/images/tmp/fighter.png')
+                      img(src='/images/tmp/fighter.png')
                     p.name Warrior
                     p.muted Token
                     .dropdown.menu
@@ -234,9 +234,9 @@ html(lang='en')
                       ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
                         li
                           a(tabindex='-1', href='#') Delete
-                  li.object(data-url='assets/images/tmp/map.jpg')
+                  li.object(data-url='/images/tmp/map.jpg')
                     .preview
-                      img(src='assets/images/tmp/map.jpg')
+                      img(src='/images/tmp/map.jpg')
                     p.name Map of Taul
                     p.muted Map
                     .dropdown.menu
@@ -246,9 +246,9 @@ html(lang='en')
                       ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
                         li
                           a(tabindex='-1', href='#') Delete
-                  li.object(data-url='assets/images/tmp/mage.png')
+                  li.object(data-url='/images/tmp/mage.png')
                     .preview
-                      img(src='assets/images/tmp/mage.png')
+                      img(src='/images/tmp/mage.png')
                     p.name Mage
                     p.muted Token
                     .dropdown.menu
@@ -258,9 +258,9 @@ html(lang='en')
                       ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
                         li
                           a(tabindex='-1', href='#') Delete
-                  li.object(data-url='assets/images/tmp/treasureChest.png')
+                  li.object(data-url='/images/tmp/treasureChest.png')
                     .preview
-                      img(src='assets/images/tmp/treasureChest.png')
+                      img(src='/images/tmp/treasureChest.png')
                     p.name Treasure Chest
                     p.muted Item
                     .dropdown.menu
@@ -308,17 +308,17 @@ html(lang='en')
       footer.footer
       // END: footer
       #scripts
-        script(src='assets/scripts/libs/jquery/jquery.js')
-        script(src='assets/scripts/libs/jquery/jquery-ui-1.10.3.custom.js')
-        script(src='assets/scripts/libs/jquery/scrollTo.js')
-        script(src='assets/scripts/libs/bootstrap/bootstrap.js')
-        script(src='assets/scripts/libs/underscore/underscore.js')
-        script(src='assets/scripts/libs/backbone/backbone.js')
-        script(src='assets/scripts/libs/fabric/all.js')
-        script(src='assets/scripts/libs/colorpicker/js/colorpicker.js')
-        script(src='assets/scripts/libs/colorpicker/js/eye.js')
-        script(src='assets/scripts/libs/colorpicker/js/utils.js')
-        script(src='assets/scripts/app.js')
+        script(src='/scripts/libs/jquery/jquery.js')
+        script(src='/scripts/libs/jquery/jquery-ui-1.10.3.custom.js')
+        script(src='/scripts/libs/jquery/scrollTo.js')
+        script(src='/scripts/libs/bootstrap/bootstrap.js')
+        script(src='/scripts/libs/underscore/underscore.js')
+        script(src='/scripts/libs/backbone/backbone.js')
+        script(src='/scripts/libs/fabric/all.js')
+        script(src='/scripts/libs/colorpicker/js/colorpicker.js')
+        script(src='/scripts/libs/colorpicker/js/eye.js')
+        script(src='/scripts/libs/colorpicker/js/utils.js')
+        script(src='/scripts/app.js')
       script#contextMenuTemplate(type='text/template')
         <ul class="context-menu dropdown-menu">
         <% if( menu.copy ) { %>

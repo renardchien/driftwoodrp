@@ -74,7 +74,7 @@ process.on('exit', function() {
 
 var app = express();
 app.use(express.limit('3mb'));
-app.use(express.static(__dirname + '/assets'));
+app.use(express.static(__dirname + '/../assets'));
 app.use(express.compress());
 app.use(express.bodyParser());
 app.use(compass());
