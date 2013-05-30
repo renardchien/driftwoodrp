@@ -366,6 +366,11 @@ var loadEvents = function(req, res) {
 	res.json('request to load an event');
 };
 
+var test = function(req, res) {
+	res.render('game2');
+};
+
+module.exports.test = test;
 module.exports.joinSessionPage = joinSessionPage;
 module.exports.createSession = createSession;
 module.exports.loadSession = loadSession;
