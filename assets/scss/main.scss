@@ -361,6 +361,10 @@ $sidePanelWidth: 340px;
     float: left;
     border: 1px solid $borderColor;
     margin-right: 10px;
+    text-align: center;
+    img{ 
+      max-height: 100%
+    }
   }
   p {
     margin-bottom: 5px;

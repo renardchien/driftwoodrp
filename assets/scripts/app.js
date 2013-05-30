@@ -85,9 +85,13 @@ $(document).ready(function() {
       $body.find('.object-list .object').draggable({helper:'clone',revert:'invalid',scroll:false,appendTo:'#Main' });
       $body.find('.canvas-wrapper').droppable({
         drop: _.bind( function( event, ui ) {
-          console.log(ui);
-          var url = ui.helper.find(':text').val();
-          console.log(url);
+          //FIXME: This is just temporary until we have uploads
+          if( ui.helper.find(':text').size() ) {
+            var url = ui.helper.find(':text').val();
+          } else {
+            var url = ui.helper.data('url');
+          }
+          
           if( url !== '' ) {
             ui.draggable.find(':text').val('');
             this.CanvasManager.trigger('loadImage',url,event);
@@ -690,7 +694,6 @@ $(document).ready(function() {
           objects.push(this.getActiveObject());
         }
       }
-
       //Create our context menu
       this.contextMenu = new ContextMenu({
         x: e.clientX,
@@ -710,7 +713,7 @@ $(document).ready(function() {
 
       if( this.contextMenu.objects.length ) {
         _.each( this.contextMenu.objects, _.bind( function(object) {
-          _objects.push(object.get('object').clone());
+          _objects.push(fabric.util.object.clone(object.get('object')));
         }, this ) );
       }
 
@@ -807,16 +810,26 @@ $(document).ready(function() {
       }
     },
 
+    /**
+     * Loads an image given a url.
+     *
+     * TODO: Constrain width/height?
+     */
     loadImage: function(url,event) {
-      fabric.Image.fromURL(url,  _.bind( function(oImg) {
-        var canvasWrapper = $body.find('.canvas-wrapper')[0];
-        console.log(event);
-        oImg.set({
-          top: canvasWrapper.scrollTop + event.clientY,
-          left: canvasWrapper.scrollLeft + event.clientX
-        });
-        this.canvas.add(oImg);
-      }, this ) );
+      try {
+        fabric.Image.fromURL(url,  _.bind( function(oImg) {
+          var canvasWrapper = $body.find('.canvas-wrapper')[0];
+          oImg.set({
+            top: canvasWrapper.scrollTop + event.clientY,
+            left: canvasWrapper.scrollLeft + event.clientX
+          });
+          this.canvas.add(oImg);
+          this.canvas.setActiveObject(oImg);
+        }, this ) );
+      } catch( err ) {
+        //TODO: Indicate something on the UI alerting user that we failed
+        //to fetch the image
+      }
     },
 
     /**

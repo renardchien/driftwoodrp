@@ -388,44 +388,48 @@ body {
     width: 50px;
     float: left;
     border: 1px solid #cccccc;
-    margin-right: 10px; }
-  /* line 365, ../scss/main.scss */
+    margin-right: 10px;
+    text-align: center; }
+    /* line 365, ../scss/main.scss */
+    .object .preview img {
+      max-height: 100%; }
+  /* line 369, ../scss/main.scss */
   .object p {
     margin-bottom: 5px; }
-  /* line 368, ../scss/main.scss */
+  /* line 372, ../scss/main.scss */
   .object:hover {
     background-color: #f7f7f7; }
-    /* line 370, ../scss/main.scss */
+    /* line 374, ../scss/main.scss */
     .object:hover .menu {
       display: block; }
-  /* line 374, ../scss/main.scss */
+  /* line 378, ../scss/main.scss */
   .object .menu {
     position: absolute;
     top: 10px;
     right: 10px;
     cursor: auto;
     display: none; }
-    /* line 380, ../scss/main.scss */
+    /* line 384, ../scss/main.scss */
     .object .menu .dropdown-toggle {
       cursor: pointer;
       color: #cccccc; }
-      /* line 383, ../scss/main.scss */
+      /* line 387, ../scss/main.scss */
       .object .menu .dropdown-toggle:hover {
         color: inherit; }
-  /* line 388, ../scss/main.scss */
+  /* line 392, ../scss/main.scss */
   .object .tmp {
     clear: both;
     margin: 15px 0 0 0; }
-  /* line 392, ../scss/main.scss */
+  /* line 396, ../scss/main.scss */
   .object.ui-draggable-dragging {
     width: 340px;
     border: 1px solid #cccccc;
     z-index: 10; }
-    /* line 396, ../scss/main.scss */
+    /* line 400, ../scss/main.scss */
     .object.ui-draggable-dragging .menu {
       display: none; }
 
-/* line 406, ../scss/main.scss */
+/* line 410, ../scss/main.scss */
 .context-menu {
   display: block;
   position: absolute;
@@ -433,6 +437,6 @@ body {
   left: 0; }
 
 @media (max-width: 767px) {
-  /* line 418, ../scss/main.scss */
+  /* line 422, ../scss/main.scss */
   body {
     padding: 0; } }
