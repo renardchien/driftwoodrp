@@ -23,6 +23,8 @@ $(document).ready(function() {
      */
     el: $('.main'),
 
+    initialLayer: 'object_layer',
+
     initialize: function() {        
 
       _.bindAll(this, 'render');
@@ -33,8 +35,14 @@ $(document).ready(function() {
 
     run: function() {
       this.Chat = new Chat();
+      this.Commands = new Commands();
+
       this.CanvasManager = new CanvasManager();
-      this.Commands = new Commands({CanvasManager:this.CanvasManager});
+
+      //Run intial layer
+      this.Commands.runInitialCommand();
+      //Set initial layer
+      $body.find('.commands .layer-menu [data-cmd-value="'+this.initialLayer+'"]').trigger('click');
     },
 
     addEventListeners: function() {
@@ -66,7 +74,7 @@ $(document).ready(function() {
       })
 
       //Creates a color picker
-      $editorPicker = $body.find('.editor-color')
+      $editorPicker = $body.find('.editor-color');
       $editorPicker.ColorPicker({
         onSubmit: function(hsb, hex, rgb, el) {
           $editorPicker.val('#' + hex);
@@ -79,6 +87,22 @@ $(document).ready(function() {
           $editorPicker.val('#' + hex);
           $editorPicker.trigger('change');
           $body.find('.editor').css('background-color', '#' + hex);
+        }
+      });
+
+      $editorPicker = $body.find('.grid-color')
+      $editorPicker.ColorPicker({
+        onSubmit: function(hsb, hex, rgb, el) {
+          console.log('submit');
+          $editorPicker.val('#' + hex);
+        },
+        onBeforeShow: function () {
+          $(this).ColorPickerSetColor(this.value);
+        },
+        onChange: function (hsb, hex, rgb) {
+          $editorPicker.val('#' + hex);
+          scope.CanvasManager.setGridColor('#'+hex);
+          $editorPicker.trigger('change','#'+hex);
         }
       });
 
@@ -301,13 +325,8 @@ $(document).ready(function() {
 
     initialize: function(options) {
       _.bindAll(this,'render');
-      //Set options
-      this.options = options;
-      this.CanvasManager = options.CanvasManager || new CanvasManager();
       //Add event listeners
       this.addEventListeners();
-      //Execute intiial loading command
-      this.runInitialCommand();
     },
     addEventListeners: function() {
       var scope = this;
@@ -507,9 +526,10 @@ $(document).ready(function() {
       var _objects = this.canvas.getObjects(),
           _index = _objects.indexOf(this.get('object')), //This objects index
           _layerIndex = this.get('layerIndex') //This object's layer index
-
+      console.log(_index,this.getLayerIndex(_objects[_index-1].get('layer')),_layerIndex);
       if( _index > 0 && this.getLayerIndex(_objects[_index-1].get('layer')) === _layerIndex ) {
-        this.canvas.sendBackwards(this.get('object'));
+        console.log('Actually moving backwards');
+        this.canvas.moveTo(this.get('object'),(_index-1));
       }
     },
 
@@ -518,9 +538,10 @@ $(document).ready(function() {
       var _objects = this.canvas.getObjects(),
           _index = _objects.indexOf(this.get('object')), //This objects index
           _layerIndex = this.get('layerIndex') //This object's layer index
-
+      console.log(_index,this.getLayerIndex(_objects[_index+1].get('layer')),_layerIndex);
       if( _index < (_objects.length - 1) && this.getLayerIndex(_objects[_index+1].get('layer')) === _layerIndex ) {
-        this.canvas.bringForward(this.get('object'));
+        console.log('Actually moving forward');
+        this.canvas.moveTo(this.get('object'),(_index+1));
       }
     },
 
@@ -550,7 +571,7 @@ $(document).ready(function() {
     disable: function() {
       var object = this.get('object');
       object.selectable = false;
-      object.opacity = 0.5;
+      object.opacity = 0.7;
     },
     /**
      * Enables this object by making it selectable and setting its opacit
@@ -577,29 +598,29 @@ $(document).ready(function() {
    * 
    */
   CanvasManager = Backbone.View.extend( {
-    
-    canvasMove: false,
-
-    initialLayer: 'map_layer',
 
     CANVAS_WIDTH: 3000,
 
     CANVAS_HEIGHT: 3000,
 
-    objects: [],
+    gridSize: 80,
+
+    gridColor: 'gray',
+
+    canvasMove: false,
 
     layers: [
       {
         layer_name: 'map_layer'
       },
       {
-        layer_name: 'grid_layer'
-      },
-      {
         layer_name: 'object_layer'
       },
       {
         layer_name: 'gm_layer'
+      },
+      {
+        layer_name: 'grid_layer'
       },
     ],
 
@@ -612,10 +633,6 @@ $(document).ready(function() {
       this.canvas.setWidth( this.CANVAS_WIDTH );
       this.canvas.setHeight( this.CANVAS_HEIGHT );
 
-      //Just for now
-      //FIXME: The grid should actually be on its own layer
-      this.canvas.setOverlayImage('assets/images/grid.svg', this.canvas.renderAll.bind(this.canvas))
-
       //Create our drawing utility
       this.drawing = this.drawingUtil.init(this);
       //Zoom utility
@@ -623,12 +640,12 @@ $(document).ready(function() {
 
       //Add event listeners
       this.addEventListeners();
+
+      //Set the grid
+      this.setGrid();
       
       //Make sure we'll all sized up
       this.on_resize();
-
-      //Set initial layer
-      this.switchLayer(this.initialLayer);
     },
 
     addEventListeners: function() {
@@ -668,7 +685,81 @@ $(document).ready(function() {
           this.contextMenu = false;
         }
       }, this ) );
+
+      $body.on('change', '.editor-color', _.bind( function(e) {
+        console.log(e);
+      }, this ) );
       
+    },
+
+    setGrid: function(size,color) {
+      this.gridSize = (size ? size : this.gridSize)/2;
+      this.gridColor = color ? color : this.gridColor;
+      
+      var lines = [],
+          layer = this.currentLayer;
+
+      this.switchLayer('grid_layer');
+
+      this.clearCurrentLayer();
+      
+      for( var i=this.gridSize; i<this.CANVAS_WIDTH; i+=this.gridSize) {
+        var line = new fabric.Line([0,0,0,this.CANVAS_HEIGHT],{
+          top: 0,
+          //For whatever reason adding this line to a group starts everything
+          //at the center, so always subtract half the canvas width
+          left:  i-(this.CANVAS_WIDTH/2),
+          stroke: this.gridColor,
+          strokeWidth: 1,
+          opacity: 0.7,
+        });
+        lines.push(line);
+        //this.canvas.add(line);
+      }
+      for( var i=this.gridSize; i<this.CANVAS_HEIGHT; i+=this.gridSize) {
+        var line = new fabric.Line([0,0,this.CANVAS_WIDTH,0],{
+          //For whatever reason adding this line to a group starts everything
+          //at the center, so always subtract half the canvas width
+          top: i-(this.CANVAS_HEIGHT/2),
+          left: 0,
+          stroke: this.gridColor,
+          strokeWidth: 1,
+          opacity: 0.7,
+        });
+        lines.push(line);
+      }
+      //Add all the lines to a group so its's easier to maintain
+      this.canvas.add(new fabric.Group(lines,{
+        left: 0,
+        top: 0,
+        width: this.CANVAS_WIDTH,
+        height: this.CANVAS_HEIGHT,
+        originX: 'left',
+        originY: 'top'
+      }));
+      this.canvas.renderAll();
+    },
+
+    setGridColor: function(color) {
+      var _objects = this.canvas.getObjects(),
+          //Grid is always the object on top
+          grid = _objects[_objects.length-1];
+      //Just make sure we have a grid full of objects (lines)
+      if( grid._objects.length ) {
+        _.each( grid._objects, function(object) {
+          object.set('stroke',color);
+        });
+        this.canvas.renderAll();
+      }
+    },
+
+    clearCurrentLayer: function() {
+      var _objects = this.getObjects();
+      _.each( _objects, _.bind( function(object) {
+        if( object.get('layer') === this.currentLayer ) {
+          this.canvas.remove(object.get('object'));
+        }
+      }, this ) );
     },
 
     /**
@@ -824,7 +915,7 @@ $(document).ready(function() {
             left: canvasWrapper.scrollLeft + event.clientX
           });
           this.canvas.add(oImg);
-          this.canvas.setActiveObject(oImg);
+          this.canvas.deactivateAll().setActiveObject(oImg);
         }, this ) );
       } catch( err ) {
         //TODO: Indicate something on the UI alerting user that we failed
