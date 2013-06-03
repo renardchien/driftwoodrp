@@ -72,6 +72,10 @@ body {
   .control-label {
     text-align: left;
     width: auto;
+    margin-right: 10px;
+  }
+  .controls {
+    margin-left: 0;
   }
 
 }
@@ -85,6 +89,10 @@ body {
 //
 // Editor
 //------------------------------
+.canvas-container {
+  margin: 100px;
+  padding-right: 100px; //Damned if we can't get a margin right up in here
+}
 .editor {
   position: relative;
   display: table-cell;
@@ -93,25 +101,31 @@ body {
   height: 100%;
   width: 100%;
   overflow: hidden;
-  background-color: $bgColor;
+  background: transparent url('../images/mooning.png');
   .canvas-wrapper {
+    position: relative;
+    z-index: 1;
     height: 100%;
     max-height: 100%;
     max-width: 100%;
-    overflow: hidden;
+    overflow: auto;
     .overlay {
-
       position: absolute;
       left: 0;
       top: 0;
-      cursor: move;
       width: 100%;
       height: 100%;
+      &.zoom-in {
+        cursor: url('../images/zoomIn.png'), auto;
+      }
+      &.zoom-out {
+        cursor: url('../images/zoomOut.png'), auto;
+      }
     }
   }
   .commands {
     position: absolute;
-    z-index: 1;
+    z-index: 2;
     top: 30px;
     left: 30px;
     .btn-group {
@@ -119,7 +133,7 @@ body {
         width: 15px;
       }
       position: relative;
-      &:after {
+      &.has-sub-menu:after {
         content: "";
         position: absolute;
         right: 0;
@@ -135,6 +149,21 @@ body {
     .dropdown-menu {
       top: 0;
       left: 100%;
+    }
+  }
+  .grid-label {
+    @include box-shadow(0 1px 2px rgba(0,0,0,.15));
+    @include opacity(0.6);
+    @include transition(opacity 0.3s ease);
+    position: absolute;
+    z-index: 2;
+    right: 35px;
+    bottom: 35px;
+    padding: 10px;
+    background-color: white;
+    cursor: default;
+    &:hover {
+      @include opacity(1);
     }
   }
 }
@@ -162,24 +191,24 @@ $sidePanelWidth: 340px;
   height: auto;
 }
 .panel {
+  @include box-shadow(0 2px 6px rgba(0,0,0,.2));
   position: relative;
   overflow: hidden;
   width: $sidePanelWidth;
   float: right;
   z-index: 1;
-  @include box-shadow(0 2px 6px rgba(0,0,0,.2));
   .nav {
     height: auto;
     ol {
+      @include box-sizing(border-box);
       margin-bottom: 0;
       padding: 10px;
       background-color: $bgColor;
       border-bottom: 1px solid $borderColor;
-      @include box-sizing(border-box);
       li {
+        @include box-sizing(border-box);
         padding: 5px 10px;
         cursor: pointer;
-        @include box-sizing(border-box);
         text-align: center;
         width: 32%;
         b {
@@ -197,16 +226,16 @@ $sidePanelWidth: 340px;
       overflow-x: hidden;
     }
     .message {
-      position: relative;
-      background-color: #FFF;
-      margin: 10px;
-      padding: 10px;
-      left: 0;
       @include box-sizing(border-box);
       @include border-radius(2px);
       @include box-shadow(0 1px 2px rgba(0,0,0,.15));
       @include clearfix();
       @include transition(left 0.3s ease);
+      position: relative;
+      background-color: #FFF;
+      margin: 10px;
+      padding: 10px;
+      left: 0;
       word-wrap: break-word;
       word-break: break-word;
       max-width: 100%;
@@ -233,11 +262,11 @@ $sidePanelWidth: 340px;
         padding: 10px;
         width: 100%;
         textarea {
+          @include box-shadow(none);
           margin-bottom: 0;
           max-height: 85px;
           border: none;
           resize: none; 
-          @include box-shadow(none);
           &:focus {
 
           }
@@ -248,10 +277,10 @@ $sidePanelWidth: 340px;
   .objects {
     display: none;
     .search {
+      @include transition(padding 0.3s ease);
       position: relative;
       padding: 5px 10px 5px 35px;
       border-bottom: 1px solid $borderColor;
-      @include transition(padding 0.3s ease);
       &.focus {
         padding-left: 10px;
         label {
@@ -271,28 +300,28 @@ $sidePanelWidth: 340px;
         margin-bottom: 0;
       }
       label {
+        @include transition(left 0.3s ease);
         position: absolute;
         top: 9px;
         left: 12px;
         font-size: 17px;
-         @include transition(left 0.3s ease);
       }
       .clear {
+        @include opacity(0);
+        @include transition(opacity .2s ease 0s);
         position: absolute;
         right: 10px;
         top: 0;
         line-height: 40px;
         cursor: pointer;
-        @include opacity(0);
-        @include transition(opacity .2s ease 0s);
       }
       .target {
+        @include transition(right 0.3s ease);
         position: absolute;
         top: 0;
         right: 0;
         height: 100%;
         padding: 10px;
-        @include transition(right 0.3s ease);
         .dropdown-toggle {
           cursor: pointer;
         }
@@ -305,12 +334,12 @@ $sidePanelWidth: 340px;
       }
     }// END object list
     .upload {
+      @include box-sizing(border-box);
+      @include clearfix();
       padding: 10px;
       border-top: 1px solid $borderColor;
       width: 100%;
       line-height: 28px;
-      @include box-sizing(border-box);
-      @include clearfix();
       overflow: visible;
       .dropdown-toggle {
         cursor: pointer;
@@ -327,13 +356,13 @@ $sidePanelWidth: 340px;
       padding: 10px;
     }
     input[type="color"] {
-      border: none;
       @include box-shadow(none);
+      border: none;
       height: 25px;
     }
     .actions {
-      padding: 15px 10px;
       @include box-sizing(border-box);
+      padding: 15px 10px;
       background-color: $bgColor;
       border-top: 1px solid $borderColor;
       .btn {
@@ -346,14 +375,14 @@ $sidePanelWidth: 340px;
   }
 }
 .object {
+  @include clearfix();
+  @include transition(background-color 0.3s ease);
   list-style: none;
   position: relative;
   padding: 10px;
   cursor: move;
   background-color: #FFF;
   border-bottom: 1px solid $borderColor;
-  @include clearfix();
-  @include transition(background-color 0.3s ease);
   overflow: visible;
   .preview {
     height: 50px;

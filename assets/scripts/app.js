@@ -23,29 +23,62 @@ $(document).ready(function() {
      */
     el: $('.main'),
 
-    initialLayer: 'object_layer',
+    default: {
+      canvasHeight: 3000,
+      canvasWidth: 3000,
+      initialLayer: 'object_layer',
+      editorColor: '#EAEAEA',
+      grid:true,
+      gridSize: 100,
+      gridUnit: '5 ft',
+      gridColor: '#777777',
+    },
 
-    initialize: function() {        
-
+    initialize: function(options) {
+      //Set options
+      this.options = options || {};
+      this.settings = $.extend(this.default,this.options);
+      //Bind everything
       _.bindAll(this, 'render');
-
+      //Add our event listeners
       this.addEventListeners();
-      
     },
 
     run: function() {
       this.Chat = new Chat();
       this.Commands = new Commands();
 
-      this.CanvasManager = new CanvasManager();
+      this.CanvasManager = new CanvasManager({
+        canvasHeight: this.settings.canvasHeight,
+        canvasWidth: this.settings.canvasWidth
+      });
 
       //Run intial layer
       this.Commands.runInitialCommand();
       //Set initial layer
-      $body.find('.commands .layer-menu [data-cmd-value="'+this.initialLayer+'"]').trigger('click');
+      $body.find('.commands .layer-menu [data-cmd-value="'+this.settings.initialLayer+'"]').trigger('click');
+      //Update our intial settings
+      this.updateSettings(this.settings);
+      //Update UI
+      this.$editorColor.val(this.settings.editorColor);
+      this.$gridColor.val(this.settings.gridColor);
+      this.$gridSize.val(this.settings.gridSize);
+      //Move canvas to center
+      this.$canvasWrapper[0].scrollLeft = this.$canvasWrapper.offset().top + (this.$canvasWrapper.find('.canvas-container').height()/2);
+      this.$canvasWrapper[0].scrollTop = this.$canvasWrapper.offset().left + (this.$canvasWrapper.find('.canvas-container').width()/2);
     },
 
     addEventListeners: function() {
+      //Store inputs into local variables
+      this.$gridSize = $body.find('.grid-size');
+      this.$gridUnit = $body.find('.grid-unit');
+      this.$gridLabel = $body.find('.grid-label');
+      this.$gridColor = $body.find('.grid-color');
+      this.$gridSettings = $body.find('.grid-settings');
+      this.$canvasWrapper = $body.find('.canvas-wrapper');
+      this.$editorColor = $body.find('.editor-color');
+      this.$editor = $body.find('.editor');
+
       //Tabs
       $body.on('click','[data-toggle="tab"]', function() {
         var $this = $(this);
@@ -73,56 +106,117 @@ $(document).ready(function() {
         $target.val('');
       })
 
-      //Creates a color picker
-      $editorPicker = $body.find('.editor-color');
-      $editorPicker.ColorPicker({
+      //Updates the color of the background
+      this.$editorColor = $body.find('.editor-color');
+      this.$editorColor.ColorPicker({
         onSubmit: function(hsb, hex, rgb, el) {
-          $editorPicker.val('#' + hex);
-          $body.find('.editor').css('background-color', '#' + hex);
+          this.$editorColor.val('#' + hex);
         },
         onBeforeShow: function () {
           $(this).ColorPickerSetColor(this.value);
         },
-        onChange: function (hsb, hex, rgb) {
-          $editorPicker.val('#' + hex);
-          $editorPicker.trigger('change');
-          $body.find('.editor').css('background-color', '#' + hex);
-        }
+        onChange: _.bind( function (hsb, hex, rgb) {
+          var color = '#' + hex;
+          this.$editorColor.val(color);
+          this.updateSettings({backgroundColor:color});
+        }, this )
       });
 
-      $editorPicker = $body.find('.grid-color')
-      $editorPicker.ColorPicker({
-        onSubmit: function(hsb, hex, rgb, el) {
-          console.log('submit');
-          $editorPicker.val('#' + hex);
-        },
-        onBeforeShow: function () {
-          $(this).ColorPickerSetColor(this.value);
-        },
-        onChange: function (hsb, hex, rgb) {
-          $editorPicker.val('#' + hex);
-          scope.CanvasManager.setGridColor('#'+hex);
-          $editorPicker.trigger('change','#'+hex);
-        }
-      });
-
+      
+      //Allows objects to be draggable onto the canvas
       $body.find('.object-list .object').draggable({helper:'clone',revert:'invalid',scroll:false,appendTo:'#Main' });
-      $body.find('.canvas-wrapper').droppable({
+      //Allows the obhects to be droppable on the canvas
+      this.$canvasWrapper.droppable({
         drop: _.bind( function( event, ui ) {
           //FIXME: This is just temporary until we have uploads
           if( ui.helper.find(':text').size() ) {
-            var url = ui.helper.find(':text').val();
+            var url = ui.helper.find(':text').val(),
+                type = 'item';
           } else {
             var url = ui.helper.data('url');
+                type = ui.helper.data('type');
           }
-          
+          //If there us a url, clear the text field (if there is one)
+          //and trigger a load image on the canvas
           if( url !== '' ) {
             ui.draggable.find(':text').val('');
-            this.CanvasManager.trigger('loadImage',url,event);
+            this.CanvasManager.trigger('loadImage',{url:url,type:type},event);
           }
           
         }, this )
       });
+
+      // --- GRID SETTINGS ---- //
+      //Turn grid on
+      $body.on('click','.grid-on:not(.active)', _.bind( function() {
+        this.updateSettings({grid:true});
+        this.$gridSettings.slideDown();
+      }, scope ) );
+      //Turn grid off
+      $body.on('click','.grid-off:not(.active)', _.bind( function() {
+        this.updateSettings({grid:false});
+        this.$gridSettings.slideUp();
+      }, scope ) );
+      //Change grid color
+      this.$gridColor.ColorPicker({
+        onSubmit: function(hsb, hex, rgb, el) {
+          this.$gridColor.val('#' + hex);
+        },
+        onBeforeShow: function () {
+          $(this).ColorPickerSetColor(this.value);
+        },
+        onChange: _.bind( function (hsb, hex, rgb) {
+          var color = '#' + hex;
+          this.$gridColor.val(color);
+          this.updateSettings({gridColor:color});
+        }, this)
+      });
+      
+      //Save all our settings
+      $body.on('click','.save-settings', _.bind( function() {
+        this.updateSettings( {
+          gridSize: this.$gridSize.val(),
+          editorColor: this.$editorColor.val(),
+          gridUnit: this.$gridUnit.val()
+        } );
+      }, this ) );
+    },
+
+    updateSettings: function( settings ) {
+      //Turn grid on
+      if( settings.hasOwnProperty('grid') && settings.grid ) {
+        this.CanvasManager.setGrid(this.settings.gridSize,this.settings.gridColor);
+      }
+      //Turn grid off
+      if( settings.hasOwnProperty('grid') && ! settings.grid ) {
+        this.CanvasManager.clearLayer('grid_layer');
+      }
+      //Change grid color
+      if( settings.hasOwnProperty('gridColor') ) {
+        this.CanvasManager.setGridColor(settings.gridColor);
+      }
+      //Change grid size
+      if( settings.hasOwnProperty('gridSize') ) {
+        this.CanvasManager.setGrid(settings.gridSize,this.settings.gridColor);
+      }
+      
+      //Change background color
+      if( settings.hasOwnProperty('editorColor') ) {
+        this.CanvasManager.canvas.backgroundColor = settings.editorColor;
+        this.CanvasManager.canvas.renderAll();
+      }
+      //Update our settings object
+      this.settings = $.extend(this.settings,settings);
+
+      //Change grid size
+      if( settings.hasOwnProperty('gridSize') || settings.hasOwnProperty('gridUnit')) {
+        this.updateGridLabel(this.settings.gridSize,this.settings.gridUnit)
+      }
+    },
+
+    updateGridLabel: function(size,unit) {
+      this.$gridLabel.find('.size-label').html(size + 'px');
+      this.$gridLabel.find('.unit-label').html(unit);
     },
 
     dataActivate: function( object ) {
@@ -173,13 +267,15 @@ $(document).ready(function() {
 
     initialize: function(options) {
       _.bindAll(this,'render');
-      console.log('Opening menu',options);
       //Set menu options default
       this.menuOptions = {
         copy: false,
+        cut: false,
         paste: false,
         edit: false,
         delete: false,
+        lock: false,
+        unlock: false,
         move_backward: false,
         move_forward: false,
         move_to_front: false,
@@ -206,7 +302,13 @@ $(document).ready(function() {
     },
     buildContextMenu: function() {
       if( this.objects.length > 0 ) {
+        if( ! this.objects[0].isLocked() ) {
+          this.menuOptions.lock = true;
+        } else {
+          this.menuOptions.unlock = true;
+        }
         this.menuOptions.copy = true;
+        this.menuOptions.cut = true;
         this.menuOptions.delete = true;
         this.menuOptions.move_backward = true;
         this.menuOptions.move_forward = true;
@@ -319,7 +421,7 @@ $(document).ready(function() {
     // Container element
     el: $('.editor .commands'),
 
-    subMenuDelay: 700,
+    subMenuDelay: 500,
 
     _lastCmd: false,
 
@@ -422,11 +524,20 @@ $(document).ready(function() {
         case 'copy':
           driftwood.engine.CanvasManager.trigger('copy');
           break;
+        case 'cut':
+          driftwood.engine.CanvasManager.trigger('cut');
+          break;
         case 'paste':
           driftwood.engine.CanvasManager.trigger('paste');
           break;
-         case 'delete':
+        case 'delete':
           driftwood.engine.CanvasManager.trigger('delete');
+          break;
+        case 'lock':
+          driftwood.engine.CanvasManager.trigger('lockObject');
+          break;
+        case 'unlock':
+          driftwood.engine.CanvasManager.trigger('unlockObject');
           break;
         case 'moveObject':
           driftwood.engine.CanvasManager.trigger('moveObject',value);
@@ -461,7 +572,8 @@ $(document).ready(function() {
       //Set attributes for easier .get() calls
       this.set({
         layer: this.get('object').get('layer'),
-        layerIndex: this.getLayerIndex(this.get('object').get('layer'))
+        layerIndex: this.getLayerIndex(this.get('object').get('layer')),
+        objectType: this.get('object').get('objectType')
       });
     },
 
@@ -494,6 +606,7 @@ $(document).ready(function() {
       //If the indexes do not match, this object is not 
       //at the front of its layer
       if( _index !== index ) {
+        console.log('Moving object to index: '+index);
         this.canvas.moveTo(this.get('object'),index);
       }
     },
@@ -514,9 +627,11 @@ $(document).ready(function() {
         }
         index = i; //Our new index
       }
+
       //If the indexes do not match, this object is not 
       //at the front of its layer
       if( _index !== index ) {
+        console.log('Moving object to index: '+index);
         this.canvas.moveTo(this.get('object'),index);
       }
     },
@@ -565,6 +680,52 @@ $(document).ready(function() {
       return layerIndex;
     },
     /**
+     * Fits the object to a given size. If canvas is passed in,
+     * it will scale the object to the size of the canvas and center
+     * it. Anything else will scale it to the size of a grid block
+     */
+    fitTo: function(what) {
+      var width = (what == 'canvas') ? driftwood.engine.settings.canvasWidth : driftwood.engine.settings.gridSize,
+          height = (what == 'canvas') ? driftwood.engine.settings.canvasWidth : driftwood.engine.settings.gridSize;
+
+      this.get('object').scaleToWidth(width);
+      this.get('object').scaleToHeight(height);
+
+      if( what === 'canvas' ) {
+        this.get('object').center();
+      }
+    },
+    /**
+     * Locks an object. Does not allow it to move, have controls, and sets
+     * a local attribute to true
+     */
+    lock: function() {
+      this.get('object').set({
+        lockMovementX: true,
+        lockMovementY: true,
+        hasControls: false,
+        locked: true,
+      });
+    },
+    /**
+     * Unlocks the object. Allows the object to be moved or
+     * manipulated again
+     */
+    unlock: function() {
+      this.get('object').set({
+        lockMovementX: false,
+        lockMovementY: false,
+        hasControls: true,
+        locked: false,
+      });
+    },
+    /**
+     * Checks to see whether or not this object is locked
+     */
+    isLocked: function() {
+      return this.get('object').get('locked');
+    },
+    /**
      * Makes this object unselectable (cannot click on it or move it),
      * as well as change the opacity a bit to make it a bit transparent
      */
@@ -598,14 +759,10 @@ $(document).ready(function() {
    * 
    */
   CanvasManager = Backbone.View.extend( {
-
+    //Default width
     CANVAS_WIDTH: 3000,
-
+    //Default HEIGHT
     CANVAS_HEIGHT: 3000,
-
-    gridSize: 80,
-
-    gridColor: 'gray',
 
     canvasMove: false,
 
@@ -624,50 +781,60 @@ $(document).ready(function() {
       },
     ],
 
-    initialize: function() {
+    initialize: function(options) {
       _.bindAll(this,'render');
+
+      this.CANVAS_WIDTH = options.canvasWidth || this.CANVAS_WIDTH;
+      this.CANVAS_HEIGHT = options.canvasHeight || this.CANVAS_HEIGHT;
       
       //Store reference to our canvas object
-      this.canvas = new fabric.Canvas('c');
+      this.canvas = new fabric.Canvas('c',{margin: '100px'});
       //Sset our intial canvas width
       this.canvas.setWidth( this.CANVAS_WIDTH );
       this.canvas.setHeight( this.CANVAS_HEIGHT );
 
       //Create our drawing utility
       this.drawing = this.drawingUtil.init(this);
+
+      //Local references to UI elements
+      this.$canvasWrapper = $body.find('.canvas-wrapper');
+      this.$canvasContainer = $body.find('.canvas-container');
+      this.$editorOverlay = $body.find('.editor .overlay');
+
       //Zoom utility
       this.zoom = this.zoomUtil.init(this);
 
       //Add event listeners
       this.addEventListeners();
-
-      //Set the grid
-      this.setGrid();
       
       //Make sure we'll all sized up
-      this.on_resize();
+      this.onResize();
+
     },
 
     addEventListeners: function() {
       //Backbone View event listeners
       //FIXME: Move all of these listeners into a listen for "commandGiven" or similar
       //event, and execute a runCommand method that rotues to the correct function
-      this.on('moveCanvas selectCanvas draw switchLayer', _.bind(this.disableAll,this));
+      this.on('moveCanvas selectCanvas draw switchLayer zoomIn zoomOut', _.bind(this.disableAll,this));
       this.on('moveCanvas', _.bind(this.activateCanvasMove,this));
       this.on('selectCanvas',_.bind(this.activateCanvasSelect,this));
       this.on('draw',_.bind(this.draw,this));
       this.on('switchLayer',_.bind(this.switchLayer,this));
-      this.on('zoomIn',this.zoom.In);
-      this.on('zoomOut',this.zoom.Out);
+      this.on('zoomIn',this.zoom.activateZoomIn,this);
+      this.on('zoomOut',this.zoom.activateZoomOut,this);
       this.on('copy',_.bind(this.copy,this));
+      this.on('cut',_.bind(this.cut,this));
       this.on('paste',_.bind(this.paste,this));
       this.on('delete',_.bind(this.deleteObject,this));
+      this.on('lockObject',_.bind(this.lockObject,this));
+      this.on('unlockObject',_.bind(this.unlockObject,this));
       this.on('moveObject',_.bind(this.moveObject,this));
       this.on('switchObjectLayer',_.bind(this.switchObjectLayer,this));
       this.on('loadImage',_.bind(this.loadImage,this));
 
       //Window listener
-      $window.on('resize',this.on_resize);
+      $window.on('resize',this.onResize);
 
       //Canvas events
       this.canvas.on('object:added', _.bind( function(e) {
@@ -692,60 +859,87 @@ $(document).ready(function() {
       
     },
 
-    setGrid: function(size,color) {
-      this.gridSize = (size ? size : this.gridSize)/2;
-      this.gridColor = color ? color : this.gridColor;
-      
+    /**
+     * Creates the grid lines for the canvas. Goes through all the vertical
+     * lines, then all the horizontal lines. This function clears the entire
+     * grid layer (as the grid should be the only thing on this layer)
+     */
+    setGrid: function(gridSize,gridColor) {
       var lines = [],
           layer = this.currentLayer;
-
-      this.switchLayer('grid_layer');
-
+      //Make sure grid size is a number
+      if( ! parseInt(gridSize) ) {
+        return;
+      }
+      //Take half of the size they want
+      gridSize = (gridSize ? gridSize : gridSize)/2,
+      //Switch to the grid layer so we can add all the lines
+      this.switchLayer('grid_layer'); 
+      //Make sure the grid layer is clear
       this.clearCurrentLayer();
-      
-      for( var i=this.gridSize; i<this.CANVAS_WIDTH; i+=this.gridSize) {
+      //Create all the vertical lines
+      for( var i=gridSize; i<this.CANVAS_WIDTH; i+=gridSize) {
         var line = new fabric.Line([0,0,0,this.CANVAS_HEIGHT],{
           top: 0,
           //For whatever reason adding this line to a group starts everything
           //at the center, so always subtract half the canvas width
           left:  i-(this.CANVAS_WIDTH/2),
-          stroke: this.gridColor,
+          stroke: gridColor,
           strokeWidth: 1,
           opacity: 0.7,
         });
         lines.push(line);
-        //this.canvas.add(line);
       }
-      for( var i=this.gridSize; i<this.CANVAS_HEIGHT; i+=this.gridSize) {
+      //Create all the horizontal lines
+      for( var i=gridSize; i<this.CANVAS_HEIGHT; i+=gridSize) {
         var line = new fabric.Line([0,0,this.CANVAS_WIDTH,0],{
           //For whatever reason adding this line to a group starts everything
           //at the center, so always subtract half the canvas width
           top: i-(this.CANVAS_HEIGHT/2),
           left: 0,
-          stroke: this.gridColor,
+          stroke: gridColor,
           strokeWidth: 1,
           opacity: 0.7,
         });
         lines.push(line);
       }
       //Add all the lines to a group so its's easier to maintain
-      this.canvas.add(new fabric.Group(lines,{
+      var lineGroup = new fabric.Group(lines,{
         left: 0,
         top: 0,
         width: this.CANVAS_WIDTH,
         height: this.CANVAS_HEIGHT,
         originX: 'left',
         originY: 'top'
-      }));
+      });
+
+      //The canvas has been scaled, so we need to scale our lines down/up
+      if( this.canvasScale ) {
+        lineGroup.scale(this.canvasScale);
+      }
+      this.canvas.add(lineGroup);
+
+      //Switch back to the actual current layer
+      if( this.currentLayer !== layer ) {
+        this.switchLayer(layer);
+      }
       this.canvas.renderAll();
     },
 
+    /**
+     * Sets the grid color. 
+     * 
+     * FIXME: This assumes that the grid is the 
+     * top most object (grid is the top most layer ). It double
+     * checks so it doesn't throw errors, but there's a dependency
+     * here that might need some alteration
+     */
     setGridColor: function(color) {
       var _objects = this.canvas.getObjects(),
           //Grid is always the object on top
           grid = _objects[_objects.length-1];
       //Just make sure we have a grid full of objects (lines)
-      if( grid._objects.length ) {
+      if( grid.toJSON().layer === 'grid_layer' && grid._objects.length ) {
         _.each( grid._objects, function(object) {
           object.set('stroke',color);
         });
@@ -753,10 +947,23 @@ $(document).ready(function() {
       }
     },
 
+    /**
+     * Alias for "clearLayer", clears whatever the current set
+     * layer is.
+     */
     clearCurrentLayer: function() {
-      var _objects = this.getObjects();
+      this.clearLayer(this.currentLayer);
+    },
+
+    /**
+     * Clears all the objects from a given layer. Loops through
+     * all the objects and checks their layer vs the layer
+     * passed in, if it matches, it gets removed.
+     */
+    clearLayer: function(layer) {
+       var _objects = this.getObjects();
       _.each( _objects, _.bind( function(object) {
-        if( object.get('layer') === this.currentLayer ) {
+        if( object.get('layer') === layer ) {
           this.canvas.remove(object.get('object'));
         }
       }, this ) );
@@ -812,6 +1019,14 @@ $(document).ready(function() {
     },
 
     /**
+     * Cuts an object: copies the objects then removes them
+     */
+    cut: function() {
+      this.copy();
+      this.deleteObject();
+    },
+
+    /**
      * Goes through cloned objects and adds them to the canvas as new objects.
      * If there is more than one, it was part of a group copy, so we have to
      * set their top/left positions + the mouse position. Also, for some reason
@@ -825,18 +1040,19 @@ $(document).ready(function() {
       if( this._cloned.length ) {
         var canvasWrapper = $body.find('.canvas-wrapper')[0];
         _.each( this._cloned, _.bind(function(object) {
+          object = fabric.util.object.clone(object);
           object.set({
             layer: this.currentLayer,
             //Group objects take mouse position + object position since it's a number
             //relative to the group
-            top: canvasWrapper.scrollTop + this.contextMenu.Y + (this._cloned.length > 1 ? object.toObject().top : 0),
-            left: canvasWrapper.scrollLeft + this.contextMenu.X + (this._cloned.length > 1 ? object.toObject().left : 0),
+            top: this.offsetTop() + this.contextMenu.Y + (this._cloned.length > 1 ? object.toObject().top : 0),
+            left: this.offsetLeft() + this.contextMenu.X + (this._cloned.length > 1 ? object.toObject().left : 0),
             hasControls: true
           });
           this.canvas.add(object);
+          //this.canvas.setActiveObject(object);
         }, this ) );
-        this._cloned = false;
-        this.canvas.renderAll();
+        this.canvas.deactivateAll().renderAll();
       }
     },
 
@@ -851,8 +1067,37 @@ $(document).ready(function() {
         }, this ) );
         this.canvas.renderAll();
       }
-      //Remove cloned objects
-      this._cloned = false;
+    },
+    /**
+     * Locks all the objects
+     */
+    lockObject: function() {
+      if( this.contextMenu.objects.length ) {
+        //Need to make sure they're deactivated so the controls change
+        this.canvas.deactivateAll();
+        //Go through each object and lock it
+        var selected = [];
+        _.each( this.contextMenu.objects, _.bind( function(object) {
+          object.lock();
+        }, this ) );
+        this.canvas.renderAll();
+      }
+    },
+    /**
+     * Locks all the objects
+     */
+    unlockObject: function() {
+      if( this.contextMenu.objects.length ) {
+        this.canvas.deactivateAll();
+        var selected = [];
+        _.each( this.contextMenu.objects, _.bind( function(object) {
+          object.unlock();
+          //We're going to reselect these objects
+          object.get('object').set('active',true);
+          selected.push(object.get('object'));
+        }, this ) );
+        this.canvas.setActiveGroup(new fabric.Group(selected)).renderAll();
+      }
     },
 
     /**
@@ -881,7 +1126,7 @@ $(document).ready(function() {
     },
 
     /**
-     * Goes through all the objects saed to the context menu
+     * Goes through all the objects sent to the context menu
      * and switches what layer they are on. Makes sure to move
      * that object to the front of its layer.
      *
@@ -895,7 +1140,7 @@ $(document).ready(function() {
           if( object.get('layer') !== this.currentLayer ) {
             object.disable();
           }
-          object.sendToFront(true);
+          object.sendToFront();
         }, this ) );
         this.canvas.deactivateAll().renderAll();
       }
@@ -906,15 +1151,20 @@ $(document).ready(function() {
      *
      * TODO: Constrain width/height?
      */
-    loadImage: function(url,event) {
+    loadImage: function(data,event) {
       try {
-        fabric.Image.fromURL(url,  _.bind( function(oImg) {
+        fabric.Image.fromURL(data.url,  _.bind( function(oImg) {
           var canvasWrapper = $body.find('.canvas-wrapper')[0];
           oImg.set({
-            top: canvasWrapper.scrollTop + event.clientY,
-            left: canvasWrapper.scrollLeft + event.clientX
+            top: this.offsetTop() + event.clientY,
+            left: this.offsetLeft() + event.clientX
           });
+          //Set the type of object this is
+          this.addedObjectType = data.type;
+          //Add the object the canvas
           this.canvas.add(oImg);
+          //Unset
+          this.addedObjectType = null;
           this.canvas.deactivateAll().setActiveObject(oImg);
         }, this ) );
       } catch( err ) {
@@ -987,30 +1237,46 @@ $(document).ready(function() {
           return function() {
             return fabric.util.object.extend(toObject.call(this), {
               layer: this.layer,
+              objectType: this.objectType,
+              locked: this.locked,
             });
           };
         })(activeObject.toObject);
-        activeObject.set('layer',currentLayer);
+        activeObject.set({
+          layer: this.currentLayer,
+          objectType: this.addedObjectType,
+          locked: false,
+        });
+
       }
       //Move the object to the front of it's layer
       var object = this.toObject(activeObject);
+      //If this is a token or item, fit it the grid size
+      if( ['token','item'].indexOf(object.get('objectType')) !== -1 ) {
+        object.fitTo('grid');
+      //Its a map, fit it to the canvas
+      } else if( ['map'].indexOf(object.get('objectType')) !== -1) {
+        object.fitTo('canvas');
+      }
 
       //Make sure the object is at the front of its layer
       object.sendToFront(true);
     },
 
     //Make sure the canvas wrapper stays the width of the screen, minus our side panel
-    on_resize: function() {
-      $body.find('.canvas-wrapper').width($window.width()-$('.panel').outerWidth()).height($window.height());
+    onResize: function() {
+      $body.find('.canvas-wrapper').width($window.width()-$('.panel').outerWidth());
     },
 
     //Disables all our different canvas interactions
     disableAll: function() {
+      this.canvas.deactivateAll();
       this.disableCanvasMove();
       this.drawing.circle.stopDrawing();
       this.drawing.rectangle.stopDrawing();
       this.canvas.isDrawingMode = false;
-      this.canvas.selection = true;
+      this.canvas.selection = false;
+      this.zoom.deactivateZoom();
     },
 
     //Draw something
@@ -1086,8 +1352,6 @@ $(document).ready(function() {
       this.canvasMove = true;
       this.X = e.clientX;
       this.Y = e.clientY;
-      this.scrollLeft = $body.find('.canvas-wrapper')[0].scrollLeft;
-      this.scrollTop = $body.find('.canvas-wrapper')[0].scrollTop;
     },
     //Stops the canvas from being moved on mouse move
     stopCanvasMove: function() {
@@ -1101,14 +1365,31 @@ $(document).ready(function() {
         var moveY = e.clientY - this.Y,
             moveX = e.clientX - this.X;
 
-        if( this.scrollLeft - moveX > 0 ) {
-          $body.find('.canvas-wrapper').scrollLeft( this.scrollLeft + (- moveX) );
+        if( this.offsetLeft() - moveX > 0 ) {
+          $body.find('.canvas-wrapper').scrollLeft( this.offsetLeft() + (- moveX) );
         }
-        if( this.scrollTop - moveY > 0 ) {
-          $body.find('.canvas-wrapper').scrollTop( this.scrollTop + (- moveY) ) ;
+        if( this.offsetTop() - moveY > 0 ) {
+          $body.find('.canvas-wrapper').scrollTop( this.offsetTop + (- moveY) ) ;
         }
       }
       e.preventDefault();
+    },
+    //Grabs the offset left of the canvas, which is the scroll and the margin
+    offsetLeft: function() {
+      return this.$canvasWrapper[0].scrollLeft - this.$canvasContainer[0].offsetLeft;
+    },
+    //Grabs the offset left of the canvas, which is the scroll and the margin
+    offsetTop: function() {
+      return this.$canvasWrapper[0].scrollTop - this.$canvasContainer[0].offsetTop;
+    },
+    //Sets overlay size to size of the canvasWrapper
+    setOverlaySize: function() {
+      this.$editorOverlay.hide();
+      //If there is no scroll, set it to size 100%
+      var width = this.$canvasWrapper.outerWidth() >= this.$canvasWrapper[0].scrollWidth ? '100%' : this.$canvasWrapper[0].scrollWidth,
+          height = this.$canvasWrapper.outerHeight() >= this.$canvasWrapper[0].scrollHeight ? '100%' : this.$canvasWrapper[0].scrollHeight;
+      this.$editorOverlay.css({width:width,height:height});
+      this.$editorOverlay.show();
     },
     
     /**
@@ -1134,9 +1415,33 @@ $(document).ready(function() {
         SCALE_FACTOR = 1.2;
         canvasScale = 1;
         return {
+          activateZoomIn: function() {
+            this.canvas.deactivateAll();
+            this.zoom.deactivateZoom();
+            //Show overlay so they're not clicking on the canvas
+            this.$editorOverlay.show().addClass('zoom-in');
+            //add events
+            $body.on('click.zoom','.overlay', _.bind( this.zoom.In, this ) );
+            this.setOverlaySize();
+          },
+          activateZoomOut: function() {
+            this.canvas.deactivateAll();
+            this.zoom.deactivateZoom();
+            //Show overlay so they're not clicking on the canvas
+            this.$editorOverlay.show().addClass('zoom-out');
+            //add events
+            $body.on('click.zoom','.overlay', _.bind( this.zoom.Out, this ) );
+            this.setOverlaySize();
+          },
+          deactivateZoom: function() {
+            //Show overlay so they're not clicking on the canvas
+            $body.find('.editor .overlay').hide().removeClass('zoom-in').removeClass('zoom-out');
+            //add events
+            $body.off('.zoom');
+          },
           In: function(event) {
             // TODO limit the max canvas zoom in
-            canvasScale: canvasScale * SCALE_FACTOR,
+            canvasScale = canvasScale * SCALE_FACTOR,
             
             canvas.setHeight(canvas.getHeight() * SCALE_FACTOR);
             canvas.setWidth(canvas.getWidth() * SCALE_FACTOR);
@@ -1160,13 +1465,15 @@ $(document).ready(function() {
                 
                 objects[i].setCoords();
             }
-                
+            this.canvasScale = canvasScale;
             canvas.renderAll();
+            this.setOverlaySize();
+            console.log(canvasScale);
           },
           Out: function() {
             // TODO limit max cavas zoom out
             canvasScale = canvasScale / SCALE_FACTOR;
-            
+            //Set canvas size
             canvas.setHeight(canvas.getHeight() * (1 / SCALE_FACTOR));
             canvas.setWidth(canvas.getWidth() * (1 / SCALE_FACTOR));
             
@@ -1189,7 +1496,9 @@ $(document).ready(function() {
 
                 objects[i].setCoords();
             }
-            
+            this.setOverlaySize();
+            this.canvasScale = canvasScale;
+            console.log(canvasScale);
             canvas.renderAll();
           }
         };
@@ -1204,8 +1513,8 @@ $(document).ready(function() {
       //Init function. Needs context to our global object
       init: function(context) {
         this.canvas = context.canvas;
-        this.circle = this.circleUtil(this.canvas);
-        this.rectangle = this.rectangleUtil(this.canvas);
+        this.circle = this.circleUtil(this.canvas,context);
+        this.rectangle = this.rectangleUtil(this.canvas,context);
         return this;
       },
       /**
@@ -1214,9 +1523,11 @@ $(document).ready(function() {
        * These functions help draw a circle. Like always, one to activate/deactivate/
        * start/stop/draw
        */
-      circleUtil: function(canvas) {
+      circleUtil: function(canvas,context) {
         return {
           canvas: canvas,
+
+          scope: context,
 
           color: 'red',
 
@@ -1228,6 +1539,7 @@ $(document).ready(function() {
             this.canvas.on('mouse:up', this.stopCircleDraw);
             this.canvas.on('mouse:move', this.drawCircle);
             this.canvasWrapper = $body.find('.canvas-wrapper')[0];
+            this.canvasContainer = $body.find('.canvas-container')[0];
           },
           //Disable drawing
           stopDrawing: function() {
@@ -1239,14 +1551,17 @@ $(document).ready(function() {
           //with some intial qualities and then making it bigger
           startCircleDraw: function(event) {
             //Where did the mouse click start
-            this.startX = this.canvasWrapper.scrollLeft + event.e.clientX;
-            this.startY = this.canvasWrapper.scrollTop + event.e.clientY;
+            this.offsetLeft = this.scope.offsetLeft();
+            this.offsetTop = this.scope.offsetTop();
+            this.startX = this.offsetLeft + event.e.clientX;
+            this.startY = this.offsetTop + event.e.clientY;
+
             //Don't start if this is already an object
             if( ! event.target ){
               //Create our "circle"
               var object = new fabric.Ellipse({
-                left:   this.startX,
-                top:    this.startY,
+                left: this.startX,
+                top: this.startY,
                 originX: 'left',
                 originY: 'top',
                 rx: 0,
@@ -1266,7 +1581,7 @@ $(document).ready(function() {
           stopCircleDraw: function(event) {
             if( this.circle ){
               // Remove object if mouse didn't move anywhere
-              if(this.canvasWrapper.scrollLeft + event.e.clientX == this.startX && this.canvasWrapper.scrollTop + event.e.clientY == this.startY ){
+              if(this.offsetLeft + event.e.clientX == this.startX && this.offsetTop + event.e.clientY == this.startY ){
                 this.canvas.remove(this.circle);
               }
               
@@ -1280,8 +1595,8 @@ $(document).ready(function() {
           drawCircle: function(event) {
             if( this.circle ){
               // Resize object as mouse moves
-              var width = (this.canvasWrapper.scrollLeft + event.e.clientX - this.startX),
-                  height = (this.canvasWrapper.scrollTop + event.e.clientY - this.startY),
+              var width = (this.offsetLeft + event.e.clientX - this.startX),
+                  height = (this.offsetTop + event.e.clientY - this.startY),
                   originX = width > 0 ? 'left' : 'right',
                   originY = height > 0 ? 'top' : 'bottom';
 
@@ -1305,9 +1620,11 @@ $(document).ready(function() {
        * These functions help draw a rectangle. Like always, one to activate/deactivate/
        * start/stop/draw
        */
-      rectangleUtil: function(canvas) {
+      rectangleUtil: function(canvas,context) {
         return {
           canvas: canvas,
+
+          scope: context,
 
           color: 'green',
 
@@ -1319,6 +1636,7 @@ $(document).ready(function() {
             this.canvas.on('mouse:up', this.stopRectangleDraw);
             this.canvas.on('mouse:move', this.drawRectange);
             this.canvasWrapper = $body.find('.canvas-wrapper')[0];
+            this.canvasContainer = $body.find('.canvas-container')[0];
           },
           //Disable drawing
           stopDrawing: function() {
@@ -1330,14 +1648,16 @@ $(document).ready(function() {
           //with some intial qualities and then making it bigger
           startRectangleDraw: function(event) {
             //Where did the mouse click start
-            this.startX = event.e.clientX;
-            this.startY = event.e.clientY;
+            this.offsetLeft = this.scope.offsetLeft();
+            this.offsetTop = this.scope.offsetTop();
+            this.startX = this.offsetLeft + event.e.clientX;
+            this.startY = this.offsetTop + event.e.clientY;
             //Don't start if this is already an object
             if( ! event.target ){
               //Create our "circle"
               var object = new fabric.Rect({
-                left:   this.canvasWrapper.scrollLeft + this.startX,
-                top:    this.canvasWrapper.scrollLeft + this.startY,
+                left: this.startX,
+                top: this.startY,
                 originX: 'left',
                 originY: 'top',
                 width: 10,
@@ -1358,7 +1678,7 @@ $(document).ready(function() {
           stopRectangleDraw: function(event) {
             if( this.rectangle ){
               // Remove object if mouse didn't move anywhere
-              if(this.canvasWrapper.scrollLeft + event.e.clientX == this.startX && this.canvasWrapper.scrollTop + event.e.clientY == this.startY ){
+              if(this.offsetLeft + event.e.clientX == this.startX && this.offsetTop + event.e.clientY == this.startY ){
                 this.canvas.remove(this.rectangle);
               }
               
@@ -1373,8 +1693,8 @@ $(document).ready(function() {
             
             if( this.rectangle ){
               // Resize object as mouse moves
-              var width = (event.e.clientX - this.startX),
-                  height = (event.e.clientY - this.startY),
+              var width = (this.offsetLeft + event.e.clientX - this.startX),
+                  height = (this.offsetTop + event.e.clientY - this.startY),
                   originX = width > 0 ? 'left' : 'right',
                   originY = height > 0 ? 'top' : 'bottom';
 
