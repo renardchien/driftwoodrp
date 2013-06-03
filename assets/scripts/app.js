@@ -211,12 +211,11 @@ $(document).ready(function() {
 
       //Change grid size
       if( settings.hasOwnProperty('gridSize') || settings.hasOwnProperty('gridUnit')) {
-        this.updateGridLabel(this.settings.gridSize,this.settings.gridUnit)
+        this.updateGridLabel(this.settings.gridUnit)
       }
     },
 
-    updateGridLabel: function(size,unit) {
-      this.$gridLabel.find('.size-label').html(size + 'px');
+    updateGridLabel: function(unit) {
       this.$gridLabel.find('.unit-label').html(unit);
     },
 
@@ -735,10 +734,12 @@ $(document).ready(function() {
      * Makes this object unselectable (cannot click on it or move it),
      * as well as change the opacity a bit to make it a bit transparent
      */
-    disable: function() {
+    disable: function(opacity) {
       var object = this.get('object');
       object.selectable = false;
-      object.opacity = 0.7;
+      if( typeof opacity === 'undefined' || opacity == true ) {
+        object.opacity = 0.7;
+      }
     },
     /**
      * Enables this object by making it selectable and setting its opacit
@@ -1144,7 +1145,9 @@ $(document).ready(function() {
         _.each( this.contextMenu.objects, _.bind( function(object) {
           object.switchLayer(layer);
           if( object.get('layer') !== this.currentLayer ) {
-            object.disable();
+            var opacity = object.get('layerIndex') > this.getLayerIndex(this.currentLayer);
+            console.log(opacity);
+            object.disable(opacity);
           }
           object.sendToFront();
         }, this ) );
@@ -1269,6 +1272,21 @@ $(document).ready(function() {
       object.sendToFront(true);
     },
 
+    /**
+     * Given a layer string, figures out what index the layer is at.
+     */
+    getLayerIndex: function(layer) {
+      var layerIndex;
+      //Go through the layers until we find a matching name.
+      //FIXME: Is there better way to do this? 
+      _.each( this.layers, function(layerObj,index) {
+        if( layerObj.layer_name == layer ) {
+          layerIndex = index;
+        }
+      } );
+      return layerIndex;
+    },
+
     //Make sure the canvas wrapper stays the width of the screen, minus our side panel
     onResize: function() {
       $body.find('.canvas-wrapper').width($window.width()-$('.panel').outerWidth());
@@ -1307,12 +1325,14 @@ $(document).ready(function() {
      */
     switchLayer: function(layer) {
       this.currentLayer = layer;
-      var _objects = this.getObjects();
+      var _objects = this.getObjects(),
+          _layerIndex = this.getLayerIndex(this.currentLayer);
       //Go through each object and add it to the correct canvas
       _objects.forEach( _.bind( function(object) {
         //Not on this later, move to the tmp canvas
         if( object.get('layer') !== this.currentLayer ) {
-          object.disable();
+          var opacity = object.get('layerIndex') > _layerIndex;
+          object.disable(opacity);
         //Is the current layer, so let's interact with it
         } else {
           object.enable();
