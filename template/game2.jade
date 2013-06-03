@@ -8,7 +8,7 @@ html(lang='en')
     meta(name='msvalidate.01', content='TODO: Fill me in!')
     meta(name='google-site-verification', content='TODO: Fill me in!')
     title Driftwood 0.0.1
-    // Application styles #{}/img/card.png
+    // Application styles
     link(rel='stylesheet', href='/css/libs/bootstrap/bootstrap.css')
     link(rel='stylesheet', href='/css/libs/font-awesome/font-awesome.css')
     link(rel='stylesheet', href='/scripts/libs/colorpicker/css/colorpicker.css')
@@ -29,27 +29,14 @@ html(lang='en')
             .btn-group.command.move-pan
               span.btn.menu-btn.active(data-cmd='selectCanvas')
                 b.icon-hand-up
-              ul.dropdown-menu
-                li(data-cmd='selectCanvas')
-                  a(href='#')
-                    b.icon-hand-up
-                    | Select
-                li(data-cmd='moveCanvas')
-                  a(href='#')
-                    b.icon-move
-                    | Move
-            .btn-group.command.layer-commands
+            .btn-group.command.has-sub-menu.layer-commands
               span.btn.menu-btn(data-cmd='switchLayer', data-cmd-value='map_layer')
                 b.icon-picture
-              ul.dropdown-menu
+              ul.dropdown-menu.layer-menu
                 li(data-cmd='switchLayer', data-cmd-value='map_layer')
                   a(href='#')
                     b.icon-picture
                     | Map Layer
-                li(data-cmd='switchLayer', data-cmd-value='grid_layer')
-                  a(href='#')
-                    b.icon-th
-                    | Grid Layer
                 li(data-cmd='switchLayer', data-cmd-value='object_layer')
                   a(href='#')
                     b.icon-pushpin
@@ -58,7 +45,7 @@ html(lang='en')
                   a(href='#')
                     b.icon-user
                     | GM Layer
-            .btn-group.command
+            .btn-group.has-sub-menu.command
               span.btn.menu-btn(data-cmd='draw', data-cmd-value='free')
                 b.icon-pencil
               ul.dropdown-menu
@@ -74,7 +61,7 @@ html(lang='en')
                   a(href='#')
                     b.icon-circle
                     | Circle
-            .btn-group.command
+            .btn-group.has-sub-menu.command
               span.btn.menu-btn(data-cmd='zoomIn')
                 b.icon-zoom-in
               ul.dropdown-menu
@@ -86,6 +73,10 @@ html(lang='en')
                   a(href='#')
                     b.icon-zoom-out
                     | Zoom Out
+          .grid-label
+            span.size-label 1 block
+            | =
+            span.unit-label
           // Canvas
           .canvas-wrapper
             canvas#c
@@ -198,7 +189,7 @@ html(lang='en')
                   li.object
                     p.tmp
                       input.input-block-level(type='text', placeholder='http://')
-                  li.object(data-url='/images/tmp/goblin.png')
+                  li.object(data-url='/images/tmp/goblin.png', data-type='token')
                     .preview
                       img(src='/images/tmp/goblin.png')
                     p.name Goblin
@@ -210,7 +201,7 @@ html(lang='en')
                       ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
                         li
                           a(tabindex='-1', href='#') Delete
-                  li.object(data-url='/images/tmp/paladin.png')
+                  li.object(data-url='/images/tmp/paladin.png', data-type='token')
                     .preview
                       img(src='/images/tmp/paladin.png')
                     p.name Paladin
@@ -222,7 +213,7 @@ html(lang='en')
                       ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
                         li
                           a(tabindex='-1', href='#') Delete
-                  li.object(data-url='/images/tmp/fighter.png')
+                  li.object(data-url='/images/tmp/fighter.png', data-type='token')
                     .preview
                       img(src='/images/tmp/fighter.png')
                     p.name Warrior
@@ -234,7 +225,7 @@ html(lang='en')
                       ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
                         li
                           a(tabindex='-1', href='#') Delete
-                  li.object(data-url='/images/tmp/map.jpg')
+                  li.object(data-url='/images/tmp/map.jpg', data-type='map')
                     .preview
                       img(src='/images/tmp/map.jpg')
                     p.name Map of Taul
@@ -246,7 +237,7 @@ html(lang='en')
                       ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
                         li
                           a(tabindex='-1', href='#') Delete
-                  li.object(data-url='/images/tmp/mage.png')
+                  li.object(data-url='/images/tmp/mage.png', data-type='token')
                     .preview
                       img(src='/images/tmp/mage.png')
                     p.name Mage
@@ -258,7 +249,7 @@ html(lang='en')
                       ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
                         li
                           a(tabindex='-1', href='#') Delete
-                  li.object(data-url='/images/tmp/treasureChest.png')
+                  li.object(data-url='/images/tmp/treasureChest.png', data-type='item')
                     .preview
                       img(src='/images/tmp/treasureChest.png')
                     p.name Treasure Chest
@@ -292,16 +283,27 @@ html(lang='en')
                   .control-group
                     label.control-label Background Color:
                     .controls
-                      input.span1.editor-color(type='color', value='#EAEAEA')
-                  //
-                        .control-group
-                          label(class="control-label") Grid Color:
-                          .controls
-                            input.span.grid-color(type="color", value="#b5b5b5")
-                                  
+                      input.span1.editor-color(type='color')
+                  h2 Grid Settings
+                  .control-group
+                    .controls
+                      .btn-group(data-toggle='buttons-radio')
+                        button.btn.grid-on.btn-primary.active(type='button') On
+                        button.btn.grid-off.btn-primary(type='button') Off
+                  .grid-settings
+                    .control-group
+                      label.control-label Grid Color:
+                      .controls
+                        input.span1.grid-color(type='color')
+                    .control-group
+                      label.control-label Grid Size:
+                      .controls
+                        input.span1.grid-size(type='number', value='')
+                        | px =
+                        input.span1.grid-unit(type='text', placeholder='5 ft', value='5 ft')
               .tr
                 .actions
-                  input.btn.btn-success.input-block-level(type='button', value='Save')
+                  input.save-settings.btn.btn-success.input-block-level(type='button', value='Save')
                   input.btn.input-block-level(type='button', value='Cancel')
       // END: main container
       // BEGIN: footer
@@ -324,11 +326,20 @@ html(lang='en')
         <% if( menu.copy ) { %>
         <li data-cmd="copy"><a href="#">Copy</a></li>
         <% } %>
+        <% if( menu.cut ) { %>
+        <li data-cmd="cut"><a href="#">Cut</a></li>
+        <% } %>
         <% if( menu.paste ) { %>
         <li data-cmd="paste"><a href="#">Paste</a></li>
         <% } %>
         <% if( menu.delete ) { %>
         <li data-cmd="delete"><a href="#">Delete</a></li>
+        <% } %>
+        <% if( menu.lock ) { %>
+        <li data-cmd="lock"><a href="#">Lock</a></li>
+        <% } %>
+        <% if( menu.unlock ) { %>
+        <li data-cmd="unlock"><a href="#">Unlock</a></li>
         <% } %>
         <% if( menu.move_backward || menu.move_forward || menu.move_to_back || menu.move_to_front ) { %>
         <li class="divider"></li>
@@ -342,7 +353,6 @@ html(lang='en')
         <li class="dropdown-submenu"><a href="#">Switch Layer</a>
         <ul class="dropdown-menu">
         <li data-cmd="switchObjectLayer" data-cmd-value="map_layer"><a href="#"><b class="icon-picture"></b> Map Layer</a></li>
-        <li data-cmd="switchObjectLayer" data-cmd-value="grid_layer"><a href="#"><b class="icon-th"></b> Grid Layer</a></li>
         <li data-cmd="switchObjectLayer" data-cmd-value="object_layer"><a href="#"><b class="icon-pushpin"></b> Object Layer</a></li>
         <li data-cmd="switchObjectLayer" data-cmd-value="gm_layer"><a href="#"><b class="icon-user"></b> GM Layer</a></li>
         </ul>
