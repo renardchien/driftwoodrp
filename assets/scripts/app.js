@@ -64,6 +64,7 @@ $(document).ready(function() {
       this.$gridColor.val(this.settings.gridColor);
       this.$gridSize.val(this.settings.gridSize);
       //Move canvas to center
+      //FIXME: Doesn't quite work
       this.$canvasWrapper[0].scrollLeft = this.$canvasWrapper.offset().top + (this.$canvasWrapper.find('.canvas-container').height()/2);
       this.$canvasWrapper[0].scrollTop = this.$canvasWrapper.offset().left + (this.$canvasWrapper.find('.canvas-container').width()/2);
     },
@@ -684,12 +685,17 @@ $(document).ready(function() {
      * it will scale the object to the size of the canvas and center
      * it. Anything else will scale it to the size of a grid block
      */
-    fitTo: function(what) {
+    fitTo: function(what,scaleFactor) {
       var width = (what == 'canvas') ? driftwood.engine.settings.canvasWidth : driftwood.engine.settings.gridSize,
           height = (what == 'canvas') ? driftwood.engine.settings.canvasWidth : driftwood.engine.settings.gridSize;
 
+      if( scaleFactor ) {
+        width = width * scaleFactor;
+        height = height * scaleFactor;
+      }
       this.get('object').scaleToWidth(width);
       this.get('object').scaleToHeight(height);
+
 
       if( what === 'canvas' ) {
         this.get('object').center();
@@ -1253,10 +1259,10 @@ $(document).ready(function() {
       var object = this.toObject(activeObject);
       //If this is a token or item, fit it the grid size
       if( ['token','item'].indexOf(object.get('objectType')) !== -1 ) {
-        object.fitTo('grid');
+        object.fitTo('grid',this.canvasScale);
       //Its a map, fit it to the canvas
       } else if( ['map'].indexOf(object.get('objectType')) !== -1) {
-        object.fitTo('canvas');
+        object.fitTo('canvas',this.canvasScale);
       }
 
       //Make sure the object is at the front of its layer
