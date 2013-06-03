@@ -63,9 +63,18 @@ body {
 /* line 72, ../scss/main.scss */
 .form-horizontal .control-label {
   text-align: left;
-  width: auto; }
+  width: auto;
+  margin-right: 10px; }
+/* line 77, ../scss/main.scss */
+.form-horizontal .controls {
+  margin-left: 0; }
 
-/* line 88, ../scss/main.scss */
+/* line 92, ../scss/main.scss */
+.canvas-container {
+  margin: 100px;
+  padding-right: 100px; }
+
+/* line 96, ../scss/main.scss */
 .editor {
   position: relative;
   display: table-cell;
@@ -74,35 +83,42 @@ body {
   height: 100%;
   width: 100%;
   overflow: hidden;
-  background-color: #eaeaea; }
-  /* line 97, ../scss/main.scss */
+  background: transparent url("../images/mooning.png"); }
+  /* line 105, ../scss/main.scss */
   .editor .canvas-wrapper {
+    position: relative;
+    z-index: 1;
     height: 100%;
     max-height: 100%;
     max-width: 100%;
-    overflow: hidden; }
-    /* line 102, ../scss/main.scss */
+    overflow: auto; }
+    /* line 112, ../scss/main.scss */
     .editor .canvas-wrapper .overlay {
       position: absolute;
       left: 0;
       top: 0;
-      cursor: move;
       width: 100%;
       height: 100%; }
-  /* line 112, ../scss/main.scss */
+      /* line 118, ../scss/main.scss */
+      .editor .canvas-wrapper .overlay.zoom-in {
+        cursor: url("../images/zoomIn.png"), auto; }
+      /* line 121, ../scss/main.scss */
+      .editor .canvas-wrapper .overlay.zoom-out {
+        cursor: url("../images/zoomOut.png"), auto; }
+  /* line 126, ../scss/main.scss */
   .editor .commands {
     position: absolute;
-    z-index: 1;
+    z-index: 2;
     top: 30px;
     left: 30px; }
-    /* line 117, ../scss/main.scss */
+    /* line 131, ../scss/main.scss */
     .editor .commands .btn-group {
       position: relative; }
-      /* line 118, ../scss/main.scss */
+      /* line 132, ../scss/main.scss */
       .editor .commands .btn-group > .btn {
         width: 15px; }
-      /* line 122, ../scss/main.scss */
-      .editor .commands .btn-group:after {
+      /* line 136, ../scss/main.scss */
+      .editor .commands .btn-group.has-sub-menu:after {
         content: "";
         position: absolute;
         right: 0;
@@ -113,81 +129,98 @@ body {
         border-width: 0 0 7px 7px;
         border-color: transparent transparent #666666 transparent;
         z-index: 400; }
-    /* line 135, ../scss/main.scss */
+    /* line 149, ../scss/main.scss */
     .editor .commands .dropdown-menu {
       top: 0;
       left: 100%; }
+  /* line 154, ../scss/main.scss */
+  .editor .grid-label {
+    -webkit-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+    -moz-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+    filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=60);
+    opacity: 0.6;
+    -webkit-transition: opacity 0.3s ease;
+    -moz-transition: opacity 0.3s ease;
+    -o-transition: opacity 0.3s ease;
+    transition: opacity 0.3s ease;
+    position: absolute;
+    z-index: 2;
+    right: 35px;
+    bottom: 35px;
+    padding: 10px;
+    background-color: white;
+    cursor: default; }
+    /* line 165, ../scss/main.scss */
+    .editor .grid-label:hover {
+      filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=100);
+      opacity: 1; }
 
-/* line 147, ../scss/main.scss */
+/* line 176, ../scss/main.scss */
 .nav, .chat, .message-wrapper, .input, .objects, .settings, .tr {
   display: table-row;
   border-collapse: collapse;
   width: 100%;
   height: 100%; }
 
-/* line 153, ../scss/main.scss */
+/* line 182, ../scss/main.scss */
 .panel, .content {
   display: table;
   width: 100%;
   height: 100%; }
 
-/* line 158, ../scss/main.scss */
+/* line 187, ../scss/main.scss */
 .content {
   max-height: 100%; }
 
-/* line 161, ../scss/main.scss */
+/* line 190, ../scss/main.scss */
 .tr-flow {
   height: auto; }
 
-/* line 164, ../scss/main.scss */
+/* line 193, ../scss/main.scss */
 .panel {
+  -webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  -moz-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   position: relative;
   overflow: hidden;
   width: 340px;
   float: right;
-  z-index: 1;
-  -webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  -moz-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); }
-  /* line 171, ../scss/main.scss */
+  z-index: 1; }
+  /* line 200, ../scss/main.scss */
   .panel .nav {
     height: auto; }
-    /* line 173, ../scss/main.scss */
+    /* line 202, ../scss/main.scss */
     .panel .nav ol {
+      -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      box-sizing: border-box;
       margin-bottom: 0;
       padding: 10px;
       background-color: #eaeaea;
-      border-bottom: 1px solid #cccccc;
-      -webkit-box-sizing: border-box;
-      -moz-box-sizing: border-box;
-      box-sizing: border-box; }
-      /* line 179, ../scss/main.scss */
+      border-bottom: 1px solid #cccccc; }
+      /* line 208, ../scss/main.scss */
       .panel .nav ol li {
-        padding: 5px 10px;
-        cursor: pointer;
         -webkit-box-sizing: border-box;
         -moz-box-sizing: border-box;
         box-sizing: border-box;
+        padding: 5px 10px;
+        cursor: pointer;
         text-align: center;
         width: 32%; }
-        /* line 185, ../scss/main.scss */
+        /* line 214, ../scss/main.scss */
         .panel .nav ol li b {
           margin-right: 4px; }
-  /* line 192, ../scss/main.scss */
+  /* line 221, ../scss/main.scss */
   .panel .chat {
     background-color: #eaeaea; }
-    /* line 194, ../scss/main.scss */
+    /* line 223, ../scss/main.scss */
     .panel .chat .messages {
       height: 100%;
       overflow-y: auto;
       overflow-x: hidden; }
-    /* line 199, ../scss/main.scss */
+    /* line 228, ../scss/main.scss */
     .panel .chat .message {
-      position: relative;
-      background-color: #FFF;
-      margin: 10px;
-      padding: 10px;
-      left: 0;
       -webkit-box-sizing: border-box;
       -moz-box-sizing: border-box;
       box-sizing: border-box;
@@ -205,65 +238,70 @@ body {
       -moz-transition: left 0.3s ease;
       -o-transition: left 0.3s ease;
       transition: left 0.3s ease;
+      position: relative;
+      background-color: #FFF;
+      margin: 10px;
+      padding: 10px;
+      left: 0;
       word-wrap: break-word;
       word-break: break-word;
       max-width: 100%; }
-      /* line 213, ../scss/main.scss */
+      /* line 242, ../scss/main.scss */
       .panel .chat .message.active {
         left: -120%; }
-      /* line 216, ../scss/main.scss */
+      /* line 245, ../scss/main.scss */
       .panel .chat .message .username, .panel .chat .message .text {
         display: inline-block; }
-      /* line 219, ../scss/main.scss */
+      /* line 248, ../scss/main.scss */
       .panel .chat .message .username {
         float: left;
         font-weight: bold;
         margin-right: 4px; }
-        /* line 223, ../scss/main.scss */
+        /* line 252, ../scss/main.scss */
         .panel .chat .message .username:after {
           content: ":"; }
-    /* line 228, ../scss/main.scss */
+    /* line 257, ../scss/main.scss */
     .panel .chat .input {
       background-color: #FFF;
       border-top: 1px solid #cccccc; }
-      /* line 231, ../scss/main.scss */
+      /* line 260, ../scss/main.scss */
       .panel .chat .input .textarea {
         -webkit-box-sizing: border-box;
         -moz-box-sizing: border-box;
         box-sizing: border-box;
         padding: 10px;
         width: 100%; }
-        /* line 235, ../scss/main.scss */
+        /* line 264, ../scss/main.scss */
         .panel .chat .input .textarea textarea {
+          -webkit-box-shadow: none;
+          -moz-box-shadow: none;
+          box-shadow: none;
           margin-bottom: 0;
           max-height: 85px;
           border: none;
-          resize: none;
-          -webkit-box-shadow: none;
-          -moz-box-shadow: none;
-          box-shadow: none; }
-  /* line 248, ../scss/main.scss */
+          resize: none; }
+  /* line 277, ../scss/main.scss */
   .panel .objects {
     display: none; }
-    /* line 250, ../scss/main.scss */
+    /* line 279, ../scss/main.scss */
     .panel .objects .search {
-      position: relative;
-      padding: 5px 10px 5px 35px;
-      border-bottom: 1px solid #cccccc;
       -webkit-transition: padding 0.3s ease;
       -moz-transition: padding 0.3s ease;
       -o-transition: padding 0.3s ease;
-      transition: padding 0.3s ease; }
-      /* line 255, ../scss/main.scss */
+      transition: padding 0.3s ease;
+      position: relative;
+      padding: 5px 10px 5px 35px;
+      border-bottom: 1px solid #cccccc; }
+      /* line 284, ../scss/main.scss */
       .panel .objects .search.focus {
         padding-left: 10px; }
-        /* line 257, ../scss/main.scss */
+        /* line 286, ../scss/main.scss */
         .panel .objects .search.focus label {
           left: -18px; }
-        /* line 260, ../scss/main.scss */
+        /* line 289, ../scss/main.scss */
         .panel .objects .search.focus .target {
           right: -50%; }
-        /* line 263, ../scss/main.scss */
+        /* line 292, ../scss/main.scss */
         .panel .objects .search.focus .clear {
           filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=100);
           opacity: 1;
@@ -272,117 +310,117 @@ body {
           -moz-transition: opacity 0.3s ease 0.3s;
           -o-transition: opacity 0.3s ease 0.3s;
           transition: opacity 0.3s ease 0.3s; }
-      /* line 268, ../scss/main.scss */
+      /* line 297, ../scss/main.scss */
       .panel .objects .search .input {
         border: none;
         -webkit-box-shadow: none;
         -moz-box-shadow: none;
         box-shadow: none;
         margin-bottom: 0; }
-      /* line 273, ../scss/main.scss */
+      /* line 302, ../scss/main.scss */
       .panel .objects .search label {
-        position: absolute;
-        top: 9px;
-        left: 12px;
-        font-size: 17px;
         -webkit-transition: left 0.3s ease;
         -moz-transition: left 0.3s ease;
         -o-transition: left 0.3s ease;
-        transition: left 0.3s ease; }
-      /* line 280, ../scss/main.scss */
-      .panel .objects .search .clear {
+        transition: left 0.3s ease;
         position: absolute;
-        right: 10px;
-        top: 0;
-        line-height: 40px;
-        cursor: pointer;
+        top: 9px;
+        left: 12px;
+        font-size: 17px; }
+      /* line 309, ../scss/main.scss */
+      .panel .objects .search .clear {
         filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=0);
         opacity: 0;
         -webkit-transition: opacity 0.2s ease;
         -webkit-transition-delay: 0s;
         -moz-transition: opacity 0.2s ease 0s;
         -o-transition: opacity 0.2s ease 0s;
-        transition: opacity 0.2s ease 0s; }
-      /* line 289, ../scss/main.scss */
+        transition: opacity 0.2s ease 0s;
+        position: absolute;
+        right: 10px;
+        top: 0;
+        line-height: 40px;
+        cursor: pointer; }
+      /* line 318, ../scss/main.scss */
       .panel .objects .search .target {
+        -webkit-transition: right 0.3s ease;
+        -moz-transition: right 0.3s ease;
+        -o-transition: right 0.3s ease;
+        transition: right 0.3s ease;
         position: absolute;
         top: 0;
         right: 0;
         height: 100%;
-        padding: 10px;
-        -webkit-transition: right 0.3s ease;
-        -moz-transition: right 0.3s ease;
-        -o-transition: right 0.3s ease;
-        transition: right 0.3s ease; }
-        /* line 296, ../scss/main.scss */
+        padding: 10px; }
+        /* line 325, ../scss/main.scss */
         .panel .objects .search .target .dropdown-toggle {
           cursor: pointer; }
-    /* line 302, ../scss/main.scss */
+    /* line 331, ../scss/main.scss */
     .panel .objects .object-list ol {
       margin-bottom: 0; }
-    /* line 307, ../scss/main.scss */
+    /* line 336, ../scss/main.scss */
     .panel .objects .upload {
-      padding: 10px;
-      border-top: 1px solid #cccccc;
-      width: 100%;
-      line-height: 28px;
       -webkit-box-sizing: border-box;
       -moz-box-sizing: border-box;
       box-sizing: border-box;
       overflow: hidden;
       *zoom: 1;
+      padding: 10px;
+      border-top: 1px solid #cccccc;
+      width: 100%;
+      line-height: 28px;
       overflow: visible; }
-      /* line 315, ../scss/main.scss */
+      /* line 344, ../scss/main.scss */
       .panel .objects .upload .dropdown-toggle {
         cursor: pointer; }
-      /* line 318, ../scss/main.scss */
+      /* line 347, ../scss/main.scss */
       .panel .objects .upload .dropdown-menu {
         bottom: 100%;
         top: auto; }
-  /* line 324, ../scss/main.scss */
+  /* line 353, ../scss/main.scss */
   .panel .settings {
     display: none; }
-    /* line 326, ../scss/main.scss */
+    /* line 355, ../scss/main.scss */
     .panel .settings .control-pane {
       padding: 10px; }
-    /* line 329, ../scss/main.scss */
+    /* line 358, ../scss/main.scss */
     .panel .settings input[type="color"] {
-      border: none;
       -webkit-box-shadow: none;
       -moz-box-shadow: none;
       box-shadow: none;
+      border: none;
       height: 25px; }
-    /* line 334, ../scss/main.scss */
+    /* line 363, ../scss/main.scss */
     .panel .settings .actions {
-      padding: 15px 10px;
       -webkit-box-sizing: border-box;
       -moz-box-sizing: border-box;
       box-sizing: border-box;
+      padding: 15px 10px;
       background-color: #eaeaea;
       border-top: 1px solid #cccccc; }
-      /* line 339, ../scss/main.scss */
+      /* line 368, ../scss/main.scss */
       .panel .settings .actions .btn {
         width: 49%; }
-        /* line 341, ../scss/main.scss */
+        /* line 370, ../scss/main.scss */
         .panel .settings .actions .btn.btn-primary {
           width: 50%; }
 
-/* line 348, ../scss/main.scss */
+/* line 377, ../scss/main.scss */
 .object {
-  list-style: none;
-  position: relative;
-  padding: 10px;
-  cursor: move;
-  background-color: #FFF;
-  border-bottom: 1px solid #cccccc;
   overflow: hidden;
   *zoom: 1;
   -webkit-transition: background-color 0.3s ease;
   -moz-transition: background-color 0.3s ease;
   -o-transition: background-color 0.3s ease;
   transition: background-color 0.3s ease;
+  list-style: none;
+  position: relative;
+  padding: 10px;
+  cursor: move;
+  background-color: #FFF;
+  border-bottom: 1px solid #cccccc;
   overflow: visible; }
-  /* line 358, ../scss/main.scss */
+  /* line 387, ../scss/main.scss */
   .object .preview {
     height: 50px;
     width: 50px;
@@ -390,46 +428,46 @@ body {
     border: 1px solid #cccccc;
     margin-right: 10px;
     text-align: center; }
-    /* line 365, ../scss/main.scss */
+    /* line 394, ../scss/main.scss */
     .object .preview img {
       max-height: 100%; }
-  /* line 369, ../scss/main.scss */
+  /* line 398, ../scss/main.scss */
   .object p {
     margin-bottom: 5px; }
-  /* line 372, ../scss/main.scss */
+  /* line 401, ../scss/main.scss */
   .object:hover {
     background-color: #f7f7f7; }
-    /* line 374, ../scss/main.scss */
+    /* line 403, ../scss/main.scss */
     .object:hover .menu {
       display: block; }
-  /* line 378, ../scss/main.scss */
+  /* line 407, ../scss/main.scss */
   .object .menu {
     position: absolute;
     top: 10px;
     right: 10px;
     cursor: auto;
     display: none; }
-    /* line 384, ../scss/main.scss */
+    /* line 413, ../scss/main.scss */
     .object .menu .dropdown-toggle {
       cursor: pointer;
       color: #cccccc; }
-      /* line 387, ../scss/main.scss */
+      /* line 416, ../scss/main.scss */
       .object .menu .dropdown-toggle:hover {
         color: inherit; }
-  /* line 392, ../scss/main.scss */
+  /* line 421, ../scss/main.scss */
   .object .tmp {
     clear: both;
     margin: 15px 0 0 0; }
-  /* line 396, ../scss/main.scss */
+  /* line 425, ../scss/main.scss */
   .object.ui-draggable-dragging {
     width: 340px;
     border: 1px solid #cccccc;
     z-index: 10; }
-    /* line 400, ../scss/main.scss */
+    /* line 429, ../scss/main.scss */
     .object.ui-draggable-dragging .menu {
       display: none; }
 
-/* line 410, ../scss/main.scss */
+/* line 439, ../scss/main.scss */
 .context-menu {
   display: block;
   position: absolute;
@@ -437,6 +475,6 @@ body {
   left: 0; }
 
 @media (max-width: 767px) {
-  /* line 422, ../scss/main.scss */
+  /* line 451, ../scss/main.scss */
   body {
     padding: 0; } }

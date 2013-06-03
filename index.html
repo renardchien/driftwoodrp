@@ -37,23 +37,18 @@
           <span class="btn menu-btn active" data-cmd="selectCanvas">
             <b class="icon-hand-up"></b> 
           </span>
-          <ul class="dropdown-menu">
-            <li data-cmd="selectCanvas"><a href="#"><b class="icon-hand-up"></b> Select</a></li>
-            <li data-cmd="moveCanvas"><a href="#"><b class="icon-move"></b> Move</a></li>
-          </ul>
         </div>
-        <div class="btn-group command layer-commands">
+        <div class="btn-group command has-sub-menu layer-commands">
           <span class="btn menu-btn" data-cmd="switchLayer" data-cmd-value="map_layer">
             <b class="icon-picture"></b> 
           </span>
-          <ul class="dropdown-menu">
+          <ul class="dropdown-menu layer-menu">
             <li data-cmd="switchLayer" data-cmd-value="map_layer"><a href="#"><b class="icon-picture"></b> Map Layer</a></li>
-            <li data-cmd="switchLayer" data-cmd-value="grid_layer"><a href="#"><b class="icon-th"></b> Grid Layer</a></li>
             <li data-cmd="switchLayer" data-cmd-value="object_layer"><a href="#"><b class="icon-pushpin"></b> Object Layer</a></li>
             <li data-cmd="switchLayer" data-cmd-value="gm_layer"><a href="#"><b class="icon-user"></b> GM Layer</a></li>
           </ul>
         </div>
-        <div class="btn-group command">
+        <div class="btn-group has-sub-menu command">
           <span class="btn menu-btn" data-cmd="draw" data-cmd-value="free">
             <b class="icon-pencil"></b> 
           </span>
@@ -63,7 +58,7 @@
             <li data-cmd="draw" data-cmd-value="circle"><a href="#"><b class="icon-circle"></b> Circle</a></li>
           </ul>
         </div>
-        <div class="btn-group command">
+        <div class="btn-group has-sub-menu command">
           <span class="btn menu-btn" data-cmd="zoomIn">
             <b class="icon-zoom-in"></b> 
           </span>
@@ -72,6 +67,9 @@
             <li data-cmd="zoomOut"><a href="#"><b class="icon-zoom-out"></b> Zoom Out</a></li>
           </ul>
         </div>
+      </div>
+      <div class="grid-label">
+        <span class="size-label">1 block</span> = <span class="unit-label"></span>
       </div>
       <!-- Canvas -->
       <div class="canvas-wrapper">
@@ -184,8 +182,8 @@
               <li class="object">
                 <p class="tmp"><input type="text" class="input-block-level" placeholder="http://" /></p>
               </li>
-              <li class="object" data-url="assets/images/tmp/goblin.png">
-                <div class="preview"><img src="assets/images/tmp/goblin.png" /></div>
+              <li class="object" data-url="assets/images/tmp/goblin.png" data-type="token">
+                <div class="preview"><img src="assets/images/tmp/goblin.png"/></div>
                 <p class="name">Goblin</p>
                 <p class="muted">Token</p>
                 <div class="dropdown menu">
@@ -198,7 +196,7 @@
                   </ul>
                 </div>
               </li>
-              <li class="object" data-url="assets/images/tmp/paladin.png">
+              <li class="object" data-url="assets/images/tmp/paladin.png" data-type="token">
                 <div class="preview"><img src="assets/images/tmp/paladin.png" /></div>
                 <p class="name">Paladin</p>
                 <p class="muted">Token</p>
@@ -212,7 +210,7 @@
                   </ul>
                 </div>
               </li>
-              <li class="object" data-url="assets/images/tmp/fighter.png">
+              <li class="object" data-url="assets/images/tmp/fighter.png" data-type="token">
                 <div class="preview"><img src="assets/images/tmp/fighter.png" /></div>
                 <p class="name">Warrior</p>
                 <p class="muted">Token</p>
@@ -226,7 +224,7 @@
                   </ul>
                 </div>
               </li>
-              <li class="object" data-url="assets/images/tmp/map.jpg">
+              <li class="object" data-url="assets/images/tmp/map.jpg" data-type="map">
                 <div class="preview"><img src="assets/images/tmp/map.jpg" /></div>
                 <p class="name">Map of Taul</p>
                 <p class="muted">Map</p>
@@ -240,7 +238,7 @@
                   </ul>
                 </div>
               </li>
-              <li class="object" data-url="assets/images/tmp/mage.png">
+              <li class="object" data-url="assets/images/tmp/mage.png" data-type="token">
                 <div class="preview"><img src="assets/images/tmp/mage.png" /></div>
                 <p class="name">Mage</p>
                 <p class="muted">Token</p>
@@ -254,7 +252,7 @@
                   </ul>
                 </div>
               </li>
-              <li class="object" data-url="assets/images/tmp/treasureChest.png">
+              <li class="object" data-url="assets/images/tmp/treasureChest.png" data-type="item">
                 <div class="preview"><img src="assets/images/tmp/treasureChest.png" /></div>
                 <p class="name">Treasure Chest</p>
                 <p class="muted">Item</p>
@@ -296,22 +294,37 @@
               <div class="control-group">
                 <label class="control-label">Background Color:</label>
                 <div class="controls">
-                  <input class="span1 editor-color" type="color" value="#EAEAEA">
+                  <input class="span1 editor-color" type="color">
                 </div>
               </div>
-              <!--
-              <div class="control-group">
-                <label class="control-label">Grid Color:</label>
+              <h2>Grid Settings</h2>
+               <div class="control-group">
                 <div class="controls">
-                  <input class="span1 grid-color" type="color" value="#b5b5b5">
+                  <div class="btn-group" data-toggle="buttons-radio">
+                    <button type="button" class="btn grid-on btn-primary active">On</button>
+                    <button type="button" class="btn grid-off btn-primary">Off</button>
+                  </div>
                 </div>
               </div>
-              -->
+              <div class="grid-settings">
+                <div class="control-group">
+                  <label class="control-label">Grid Color:</label>
+                  <div class="controls">
+                    <input class="span1 grid-color" type="color">
+                  </div>
+                </div>
+                <div class="control-group">
+                  <label class="control-label">Grid Size:</label>
+                  <div class="controls">
+                    <input class="span1 grid-size" type="number" value="">px = <input class="span1 grid-unit" type="text" placeholder="5 ft" value="5 ft">
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           <div class="tr">
             <div class="actions">
-              <input type="button" class="btn btn-success input-block-level" value="Save">
+              <input type="button" class="save-settings btn btn-success input-block-level" value="Save">
               <input type="button" class="btn input-block-level" value="Cancel">
             </div>
           </div>
@@ -343,11 +356,20 @@
     <% if( menu.copy ) { %>
     <li data-cmd="copy"><a href="#">Copy</a></li>
     <% } %>
+    <% if( menu.cut ) { %>
+    <li data-cmd="cut"><a href="#">Cut</a></li>
+    <% } %>
     <% if( menu.paste ) { %>
     <li data-cmd="paste"><a href="#">Paste</a></li>
     <% } %>
     <% if( menu.delete ) { %>
     <li data-cmd="delete"><a href="#">Delete</a></li>
+    <% } %>
+    <% if( menu.lock ) { %>
+    <li data-cmd="lock"><a href="#">Lock</a></li>
+    <% } %>
+    <% if( menu.unlock ) { %>
+    <li data-cmd="unlock"><a href="#">Unlock</a></li>
     <% } %>
     <% if( menu.move_backward || menu.move_forward || menu.move_to_back || menu.move_to_front ) { %>
     <li class="divider"></li>
@@ -361,7 +383,6 @@
     <li class="dropdown-submenu"><a href="#">Switch Layer</a>
       <ul class="dropdown-menu">
         <li data-cmd="switchObjectLayer" data-cmd-value="map_layer"><a href="#"><b class="icon-picture"></b> Map Layer</a></li>
-        <li data-cmd="switchObjectLayer" data-cmd-value="grid_layer"><a href="#"><b class="icon-th"></b> Grid Layer</a></li>
         <li data-cmd="switchObjectLayer" data-cmd-value="object_layer"><a href="#"><b class="icon-pushpin"></b> Object Layer</a></li>
         <li data-cmd="switchObjectLayer" data-cmd-value="gm_layer"><a href="#"><b class="icon-user"></b> GM Layer</a></li>
       </ul>
