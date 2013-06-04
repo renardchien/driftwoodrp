@@ -180,6 +180,7 @@ $(document).ready(function() {
           var color = '#' + hex;
           this.$freeDrawFill.val(color);
           this.settings.freeDrawFill = color;
+          this.CanvasManager.setFreeDraw();
         }, this )
       });
       //Free draw stroke width
@@ -1524,8 +1525,8 @@ $(document).ready(function() {
     },
 
     setFreeDraw: function() {
-      //this.canvas.freeDrawingBrush.color = driftwood.engine.settings.freeDrawColor;
-      //this.canvas.freeDrawingBrush.width = driftwood.engine.settings.freeDrawWidth;
+      this.canvas.freeDrawingBrush.color = driftwood.engine.settings.freeDrawColor;
+      this.canvas.freeDrawingBrush.width = driftwood.engine.settings.freeDrawWidth;
     },
 
     /**
