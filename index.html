@@ -48,7 +48,7 @@
             <li data-cmd="switchLayer" data-cmd-value="gm_layer"><a href="#"><b class="icon-user"></b> GM Layer</a></li>
           </ul>
         </div>
-        <div class="btn-group has-sub-menu command">
+        <div class="btn-group has-sub-menu draw-menu command">
           <span class="btn menu-btn" data-cmd="draw" data-cmd-value="free">
             <b class="icon-pencil"></b> 
           </span>
@@ -67,6 +67,25 @@
             <li data-cmd="zoomOut"><a href="#"><b class="icon-zoom-out"></b> Zoom Out</a></li>
           </ul>
         </div>
+      </div>
+      <div class="sub-menu free-draw">
+        <p>
+          <strong>Stroke</strong> <br />
+          <input type="color" class="span1 freeDrawStroke" />
+        </p>
+        <p class="fill">
+          <strong>Fill</strong> <br />
+          <input type="color" class="span1 freeDrawFill" />
+        </p>
+        <p>
+          <strong>Border</strong> <br />
+          <select class="span2 freeDrawStrokeWidth">
+            <option value="1">Small</option>
+            <option value="2">Medium</option>
+            <option value="3">Large</option>
+            <option value="4">Extra Large</option>
+          </select>
+        </p>
       </div>
       <div class="grid-label">
         <span class="size-label">1 block</span> = <span class="unit-label"></span>
@@ -395,7 +414,19 @@
     <div class="username">Ryan</div> <div class="text"><%= message %></div>
   </div>
   </script>
-  
+  <div id="uploadModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="uploadLabel" aria-hidden="true">
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+      <h3 id="uploadLabel">Upload</h3>
+    </div>
+    <div class="modal-body">
+      <p>One fine body…</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+      <button class="btn btn-primary">Upload</button>
+    </div>
+  </div>
 </div>
 <!-- END: Main wrapper -->
 </body>

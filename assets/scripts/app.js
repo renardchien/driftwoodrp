@@ -32,6 +32,9 @@ $(document).ready(function() {
       gridSize: 100,
       gridUnit: '5 ft',
       gridColor: '#777777',
+      freeDrawColor: '#333333',
+      freeDrawWidth: 1,
+      freeDrawFill: '#ff0000'
     },
 
     initialize: function(options) {
@@ -63,6 +66,9 @@ $(document).ready(function() {
       this.$editorColor.val(this.settings.editorColor);
       this.$gridColor.val(this.settings.gridColor);
       this.$gridSize.val(this.settings.gridSize);
+      this.$freeDrawStroke.val(this.settings.freeDrawColor);
+      this.$freeDrawFill.val(this.settings.freeDrawFill);
+      this.$freeDrawStrokeWidth.find('option[value="'+this.settings.freeDrawWidth+'"]').prop('selected',true);
       //Move canvas to center
       //FIXME: Doesn't quite work
       this.$canvasWrapper[0].scrollLeft = this.$canvasWrapper.offset().top + (this.$canvasWrapper.find('.canvas-container').height()/2);
@@ -79,6 +85,8 @@ $(document).ready(function() {
       this.$canvasWrapper = $body.find('.canvas-wrapper');
       this.$editorColor = $body.find('.editor-color');
       this.$editor = $body.find('.editor');
+      this.$freeDrawMenu = $body.find('.sub-menu.free-draw');
+      this.$freeDrawStrokeWidth = this.$freeDrawMenu.find('.freeDrawStrokeWidth');
 
       //Tabs
       $body.on('click','[data-toggle="tab"]', function() {
@@ -119,14 +127,51 @@ $(document).ready(function() {
         onChange: _.bind( function (hsb, hex, rgb) {
           var color = '#' + hex;
           this.$editorColor.val(color);
-          this.updateSettings({backgroundColor:color});
+          this.updateSettings({editorColor:color});
         }, this )
       });
+
+      //Free draw stroke color
+      this.$freeDrawStroke = this.$freeDrawMenu.find('.freeDrawStroke');
+      this.$freeDrawStroke.ColorPicker({
+        onSubmit: function(hsb, hex, rgb, el) {
+          this.$freeDrawStroke.val('#' + hex);
+        },
+        onBeforeShow: function () {
+          $(this).ColorPickerSetColor(this.value);
+        },
+        onChange: _.bind( function (hsb, hex, rgb) {
+          var color = '#' + hex;
+          this.$freeDrawStroke.val(color);
+          this.settings.freeDrawColor = color;
+          this.CanvasManager.setFreeDraw();
+        }, this )
+      });
+      //Free draw fill color
+      this.$freeDrawFill = this.$freeDrawMenu.find('.freeDrawFill');
+      this.$freeDrawFill.ColorPicker({
+        onSubmit: function(hsb, hex, rgb, el) {
+          this.$freeDrawFill.val('#' + hex);
+        },
+        onBeforeShow: function () {
+          $(this).ColorPickerSetColor(this.value);
+        },
+        onChange: _.bind( function (hsb, hex, rgb) {
+          var color = '#' + hex;
+          this.$freeDrawFill.val(color);
+          this.settings.freeDrawFill = color;
+        }, this )
+      });
+      //Free draw stroke width
+      $body.on('change','.freeDrawStrokeWidth', _.bind( function() {
+        this.settings.freeDrawWidth = parseInt(this.$freeDrawStrokeWidth.val());
+        this.CanvasManager.setFreeDraw();
+      }, this ) );
 
       
       //Allows objects to be draggable onto the canvas
       $body.find('.object-list .object').draggable({helper:'clone',revert:'invalid',scroll:false,appendTo:'#Main' });
-      //Allows the obhects to be droppable on the canvas
+      //Allows the objects to be droppable on the canvas
       this.$canvasWrapper.droppable({
         drop: _.bind( function( event, ui ) {
           //FIXME: This is just temporary until we have uploads
@@ -172,6 +217,19 @@ $(document).ready(function() {
           this.updateSettings({gridColor:color});
         }, this)
       });
+
+      //Show sub menu
+      $body.on('click','.commands [data-cmd]', function() {
+        var cmd = $(this).attr('data-cmd'),
+            drawType = $(this).attr('data-cmd-value');
+
+        if( cmd === 'draw' ) {
+          scope.showSubMenu('.free-draw',drawType);
+        } else {
+          scope.showSubMenu();
+        }
+        
+      } );
       
       //Save all our settings
       $body.on('click','.save-settings', _.bind( function() {
@@ -213,6 +271,11 @@ $(document).ready(function() {
       if( settings.hasOwnProperty('gridSize') || settings.hasOwnProperty('gridUnit')) {
         this.updateGridLabel(this.settings.gridUnit)
       }
+    },
+
+    showSubMenu: function(menu,option) {
+      $body.find('.sub-menu').hide();
+      $body.find('.sub-menu'+menu).show().attr('data-type',option);
     },
 
     updateGridLabel: function(unit) {
@@ -811,6 +874,8 @@ $(document).ready(function() {
       //Zoom utility
       this.zoom = this.zoomUtil.init(this);
 
+      this.canvas.freeDrawingBrush = new fabric['PencilBrush'](this.canvas);
+
       //Add event listeners
       this.addEventListeners();
       
@@ -1146,7 +1211,6 @@ $(document).ready(function() {
           object.switchLayer(layer);
           if( object.get('layer') !== this.currentLayer ) {
             var opacity = object.get('layerIndex') > this.getLayerIndex(this.currentLayer);
-            console.log(opacity);
             object.disable(opacity);
           }
           object.sendToFront();
@@ -1260,11 +1324,11 @@ $(document).ready(function() {
       }
       //Move the object to the front of it's layer
       var object = this.toObject(activeObject);
-      //If this is a token or item, fit it the grid size
-      if( ['token','item'].indexOf(object.get('objectType')) !== -1 ) {
+      //If this is a token or item AND it was just added, scale it
+      if( this.addedObjectType && ['token','item'].indexOf(object.get('objectType')) !== -1 ) {
         object.fitTo('grid',this.canvasScale);
       //Its a map, fit it to the canvas
-      } else if( ['map'].indexOf(object.get('objectType')) !== -1) {
+      } else if( this.addedObjectType && ['map'].indexOf(object.get('objectType')) !== -1) {
         object.fitTo('canvas',this.canvasScale);
       }
 
@@ -1308,14 +1372,21 @@ $(document).ready(function() {
       switch(what) {
         case 'free':
           this.canvas.isDrawingMode = true;
+          this.setFreeDraw();
           break;
         case 'circle':
           this.drawing.circle.startDrawing();
           break;
         case 'rectangle':
           this.drawing.rectangle.startDrawing();
+          break;
       }
       
+    },
+
+    setFreeDraw: function() {
+      //this.canvas.freeDrawingBrush.color = driftwood.engine.settings.freeDrawColor;
+      //this.canvas.freeDrawingBrush.width = driftwood.engine.settings.freeDrawWidth;
     },
 
     /**
@@ -1494,7 +1565,6 @@ $(document).ready(function() {
             this.canvasScale = canvasScale;
             canvas.renderAll();
             this.setOverlaySize();
-            console.log(canvasScale);
           },
           Out: function() {
             // TODO limit max cavas zoom out
@@ -1524,7 +1594,6 @@ $(document).ready(function() {
             }
             this.setOverlaySize();
             this.canvasScale = canvasScale;
-            console.log(canvasScale);
             canvas.renderAll();
           }
         };
@@ -1555,8 +1624,6 @@ $(document).ready(function() {
 
           scope: context,
 
-          color: 'red',
-
           //Sets variables and adds events to the mouse
           startDrawing: function(canvas) {
             this.canvas.selection = false;
@@ -1576,6 +1643,7 @@ $(document).ready(function() {
           //Set our intial circle. We're actually creating an Ellipse
           //with some intial qualities and then making it bigger
           startCircleDraw: function(event) {
+            console.log('starting circle draw');
             //Where did the mouse click start
             this.offsetLeft = this.scope.offsetLeft();
             this.offsetTop = this.scope.offsetTop();
@@ -1593,9 +1661,9 @@ $(document).ready(function() {
                 rx: 0,
                 ry: 0,
                 selectable: false,
-                stroke: this.color,
-                strokeWidth: 2,
-                fill: this.color
+                stroke: driftwood.engine.settings.freeDrawColor,
+                strokeWidth: driftwood.engine.settings.freeDrawWidth,
+                fill: driftwood.engine.settings.freeDrawFill
               });
 
               //Add it to the canvas
@@ -1652,8 +1720,6 @@ $(document).ready(function() {
 
           scope: context,
 
-          color: 'green',
-
           //Sets variables and adds events to the mouse
           startDrawing: function(canvas) {
             this.canvas.selection = false;
@@ -1689,9 +1755,9 @@ $(document).ready(function() {
                 width: 10,
                 height: 10,
                 selectable: false,
-                stroke: this.color,
-                strokeWidth: 2,
-                fill: 'green'
+                stroke: driftwood.engine.settings.freeDrawColor,
+                strokeWidth: driftwood.engine.settings.freeDrawWidth,
+                fill: driftwood.engine.settings.freeDrawFill
               });
 
               //Add it to the canvas
