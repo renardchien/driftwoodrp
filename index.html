@@ -296,6 +296,8 @@
                 <option value="map">Map</option>
                 <option value="item">Item</option>
               </select>
+              <input type="hidden" name="_csrf" value="xxx"/>
+              <input type="hidden" name="uploadUrl" value="/uploadToken/test/test"/>
               <div class="file-upload select-file btn btn-primary">
                 Upload
                 <input type="file" name="object" id="object-upload" accept="image/*"/>
@@ -391,6 +393,9 @@
     <script src="assets/scripts/libs/colorpicker/js/colorpicker.js"></script>
     <script src="assets/scripts/libs/colorpicker/js/eye.js"></script>
     <script src="assets/scripts/libs/colorpicker/js/utils.js"></script>
+    <script> 
+      var liveUrl = "http://driftwoodrp.com";
+    </script>
     <script src="assets/scripts/app.js"></script>
   </div>
   <script type="text/template" id="contextMenuTemplate">
