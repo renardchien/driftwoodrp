@@ -21,6 +21,19 @@ html, body, #Main, .main {
 body {
   overflow: hidden;
 }
+input[type="color"] {
+  @include box-shadow(none);
+  border: none;
+  height: 32px;
+  margin: -1px 0 0 0;
+  padding: 0;
+}
+input[type="button"].input-block-level {
+  width: 100%;
+}
+select {
+  margin: 0;
+}
 .canvas-container + .canvas-container {
   position: absolute;
   top: -3000px;
@@ -79,7 +92,24 @@ body {
   }
 
 }
-
+//
+//
+// File Upload
+//------------------------------
+.file-upload {
+  position: relative;
+  overflow: hidden;
+  input[type="file"] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+}
 //
 //
 // Icons
@@ -151,10 +181,29 @@ body {
       left: 100%;
     }
   }
+  .sub-menu {
+    @include box-shadow(0 1px 2px rgba(0,0,0,.15));
+    @include border-radius(2px);
+    position: absolute;
+    z-index: 2;
+    top: 30px;
+    left: 80px;
+    background-color: white;
+    padding: 5px;
+    display: none;
+    > p {
+      float: left;
+      margin: 0px 3px;
+    }
+    &[data-type="free"] .fill{
+      display: none;
+    }
+  }
   .grid-label {
     @include box-shadow(0 1px 2px rgba(0,0,0,.15));
     @include opacity(0.6);
     @include transition(opacity 0.3s ease);
+    @include border-radius(2px);
     position: absolute;
     z-index: 2;
     right: 35px;
@@ -189,6 +238,9 @@ $sidePanelWidth: 340px;
 }
 .tr-flow {
   height: auto;
+}
+.clear {
+  cursor: pointer;
 }
 .panel {
   @include box-shadow(0 2px 6px rgba(0,0,0,.2));
@@ -341,6 +393,21 @@ $sidePanelWidth: 340px;
       width: 100%;
       line-height: 28px;
       overflow: visible;
+      .select-file {
+        @include transition(margin-top 0.3s ease);
+        &.selected {
+          display: none;
+          & ~ div {
+            display: block;
+          }
+        }
+      }
+      .file-selected {
+        display: none;
+      }
+      .filename {
+        @include force-wrap();
+      }
       .dropdown-toggle {
         cursor: pointer;
       }
@@ -354,11 +421,6 @@ $sidePanelWidth: 340px;
     display: none;
     .control-pane {
       padding: 10px;
-    }
-    input[type="color"] {
-      @include box-shadow(none);
-      border: none;
-      height: 25px;
     }
     .actions {
       @include box-sizing(border-box);

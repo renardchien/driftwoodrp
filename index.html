@@ -48,7 +48,7 @@
             <li data-cmd="switchLayer" data-cmd-value="gm_layer"><a href="#"><b class="icon-user"></b> GM Layer</a></li>
           </ul>
         </div>
-        <div class="btn-group has-sub-menu command">
+        <div class="btn-group has-sub-menu draw-menu command">
           <span class="btn menu-btn" data-cmd="draw" data-cmd-value="free">
             <b class="icon-pencil"></b> 
           </span>
@@ -67,6 +67,25 @@
             <li data-cmd="zoomOut"><a href="#"><b class="icon-zoom-out"></b> Zoom Out</a></li>
           </ul>
         </div>
+      </div>
+      <div class="sub-menu free-draw">
+        <p>
+          <strong>Stroke</strong> <br />
+          <input type="color" class="span1 freeDrawStroke" />
+        </p>
+        <p class="fill">
+          <strong>Fill</strong> <br />
+          <input type="color" class="span1 freeDrawFill" />
+        </p>
+        <p>
+          <strong>Border</strong> <br />
+          <select class="span2 freeDrawStrokeWidth">
+            <option value="1">Small</option>
+            <option value="2">Medium</option>
+            <option value="3">Large</option>
+            <option value="4">Extra Large</option>
+          </select>
+        </p>
       </div>
       <div class="grid-label">
         <span class="size-label">1 block</span> = <span class="unit-label"></span>
@@ -270,17 +289,38 @@
           </div>
           <div class="tr">
             <div class="upload">
-              <div class="btn-group">
-                <button class="btn btn-primary upload-type">Upload Token</button>
-                <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
-                  <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu pull-left">
-                  <li><a tabindex="-1" href="#" data-activate="replace" data-target=".upload-type" value="Upload Token" data-on="click">Token</a></li>
-                  <li><a tabindex="-1" href="#" data-activate="replace" data-target=".upload-type" value="Upload Map" data-on="click">Map</a></li>
-                  <li><a tabindex="-1" href="#" data-activate="replace" data-target=".upload-type" value="Upload Item" data-on="click">Item</a></li>
-                </ul>
+              <select name="upload-type">
+                <option value="token">Token</option>
+                <option value="map">Map</option>
+                <option value="item">Item</option>
+              </select>
+              <div class="file-upload select-file btn btn-primary">
+                Upload
+                <input type="file" name="object" id="object-upload" accept="image/*"/>
               </div>
+             <!-- <div class="row-fluid file-selected">
+                <div class="span12">
+                  <span class="filename"></span> <b class="icon-remove-sign clear" data-toggle-class="selected" data-target=".select-file"></b>
+                </div>
+              </div>
+              <div class="row-fluid file-selected">
+                <div class="span6">
+                  <input type="text" class="input-block-level" placeholder="Name">
+                </div>
+                <div class="span6">
+                  <div class="btn-group pull-left">
+                    <button class="btn btn-success upload-type">Upload as Token</button>
+                    <button class="btn btn-success dropdown-toggle" data-toggle="dropdown">
+                      <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu pull-left">
+                      <li><a tabindex="-1" href="#" data-activate="replace" data-target=".upload-type" value="Upload as Token" data-on="click">Token</a></li>
+                      <li><a tabindex="-1" href="#" data-activate="replace" data-target=".upload-type" value="Upload as Map" data-on="click">Map</a></li>
+                      <li><a tabindex="-1" href="#" data-activate="replace" data-target=".upload-type" value="Upload as Item" data-on="click">Item</a></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>-->
             </div>
           </div>
         </div>
@@ -395,7 +435,19 @@
     <div class="username">Ryan</div> <div class="text"><%= message %></div>
   </div>
   </script>
-  
+  <div id="uploadModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="uploadLabel" aria-hidden="true">
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+      <h3 id="uploadLabel">Upload</h3>
+    </div>
+    <div class="modal-body">
+      <p>One fine body…</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+      <button class="btn btn-primary">Upload</button>
+    </div>
+  </div>
 </div>
 <!-- END: Main wrapper -->
 </body>
