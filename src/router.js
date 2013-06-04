@@ -28,7 +28,7 @@ var router = function(app, controllers, mid) {
         app.use(mid.requests);
 	app.use(mid.responses);
 
-	app.get('/test', controllers.Sessions.test);
+	app.get('/test/test', controllers.Sessions.test);
 	app.get('/', controllers.Players.loginPage);
 	app.get('/login', controllers.Players.loginPage);
 	app.post('/login', controllers.Players.login);

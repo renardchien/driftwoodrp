@@ -45,7 +45,7 @@ html(lang='en')
                   a(href='#')
                     b.icon-user
                     | GM Layer
-            .btn-group.has-sub-menu.command
+            .btn-group.has-sub-menu.draw-menu.command
               span.btn.menu-btn(data-cmd='draw', data-cmd-value='free')
                 b.icon-pencil
               ul.dropdown-menu
@@ -73,6 +73,23 @@ html(lang='en')
                   a(href='#')
                     b.icon-zoom-out
                     | Zoom Out
+          .sub-menu.free-draw
+            p
+              strong Stroke
+              br
+              input.span1.freeDrawStroke(type='color')
+            p.fill
+              strong Fill
+              br
+              input.span1.freeDrawFill(type='color')
+            p
+              strong Border
+              br
+              select.span2.freeDrawStrokeWidth
+                option(value='1') Small
+                option(value='2') Medium
+                option(value='3') Large
+                option(value='4') Extra Large
           .grid-label
             span.size-label 1 block
             | =
@@ -80,14 +97,6 @@ html(lang='en')
           // Canvas
           .canvas-wrapper
             canvas#c
-            // <canvas id="over"></canvas>
-            //
-              svg(width="100%", height="100%", xmlns="http://www.w3.org/2000/svg")
-                defs
-                  pattern(id="grid", width="80", height="80", patternUnits="userSpaceOnUse")
-                    path(d="M 80 0 L 0 0 0 80", class="grid-path", fill="none", stroke="gray", stroke-width="1")
-                      defs
-                        rect(width="100%", height="100%", fill="url(#grid)")
             .overlay
         // Side Panel
         aside.panel
@@ -110,80 +119,12 @@ html(lang='en')
                   .message
                     .username Ryan
                     .text This is a message.
-                  .message
-                    .username Ryan
-                    .text This is a message.
-                  .message
-                    .username Ryan
-                    .text This is a message.
-                  .message
-                    .username Ryan
-                    .text This is a message.
-                  .message
-                    .username Ryan
-                    .text This is a message.
-                  .message
-                    .username Ryan
-                    .text This is a message.
-                  .message
-                    .username Ryan
-                    .text This is a message.
-                  .message
-                    .username Ryan
-                    .text This is a message.
-                  .message
-                    .username Ryan
-                    .text This is a message.
-                  .message
-                    .username Ryan
-                    .text
-                      | This is a message.
-                      br
-                      br
-                      br
-                      | asdfasdfafds fasd fasdf ads fasdf
-                  .message
-                    .username Ryan
-                    .text This is a message.
-                  .message
-                    .username Ryan
-                    .text This is a message.
-                  .message
-                    .username Ryan
-                    .text This is a message.
-                  .message
-                    .username Ryan
-                    .text This is a message.
               .input
                 .textarea
                   textarea.input-block-level(rows='1', data-activate='elastic', data-on='load', placeholder='Chat away...')
           // Objects
           #objects.objects
             .content
-              .tr.tr-flow
-                .search
-                  div
-                    input#search-object.input-block-level.input(type='text', placeholder='Search...', data-activate='focus', data-on='focusin,focusout', data-target='.objects .search')
-                    b.icon-remove-sign.clear(data-clear='#search-object')
-                  label(for='search-object')
-                    b.icon-search
-                  .target
-                    .dropdown
-                      .dropdown-toggle(data-toggle='dropdown', href='#')
-                        span.text All
-                        b.icon-caret-down
-                      // Link or button to toggle dropdown
-                      ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
-                        li
-                          a(tabindex='-1', href='#', data-activate='replace', data-target='.search .text', data-on='click') All
-                        li
-                          a(tabindex='-1', href='#', data-activate='replace', data-target='.search .text', data-on='click') My Library
-                        li
-                          a(tabindex='-1', href='#', data-activate='replace', data-target='.search .text', data-on='click') Token
-                        li
-                          a(tabindex='-1', href='#', data-activate='replace', data-target='.search .text', data-on='click') Map
-                        li
-                          a(tabindex='-1', href='#', data-activate='replace', data-target='.search .text', data-on='click') Item
               .tr.object-list
                 ol.unstyled
                   li.object
@@ -263,17 +204,15 @@ html(lang='en')
                           a(tabindex='-1', href='#') Delete
               .tr
                 .upload
-                  .btn-group
-                    button.btn.btn-primary.upload-type Upload Token
-                    button.btn.btn-primary.dropdown-toggle(data-toggle='dropdown')
-                      span.caret
-                    ul.dropdown-menu.pull-left
-                      li
-                        a(tabindex='-1', href='#', data-activate='replace', data-target='.upload-type', value='Upload Token', data-on='click') Token
-                      li
-                        a(tabindex='-1', href='#', data-activate='replace', data-target='.upload-type', value='Upload Map', data-on='click') Map
-                      li
-                        a(tabindex='-1', href='#', data-activate='replace', data-target='.upload-type', value='Upload Item', data-on='click') Item
+                  select(name='upload-type')
+                    option(value='token') Token
+                    option(value='map') Map
+                    option(value='item') Item
+                  input(type='hidden', name='_csrf', value='#{session._csrf}')
+                  input(type='hidden', name='uploadUrl', value='/uploadToken/test/test')  
+                  .file-upload.select-file.btn.btn-primary
+                    | Upload
+                    input#object-upload(type='file', name='object', accept='image/*')
           // Settings
           .settings
             .content
@@ -320,6 +259,9 @@ html(lang='en')
         script(src='/scripts/libs/colorpicker/js/colorpicker.js')
         script(src='/scripts/libs/colorpicker/js/eye.js')
         script(src='/scripts/libs/colorpicker/js/utils.js')
+        script(src='/socket.io/socket.io.js')
+        script
+          var liveUrl = "#{url}";
         script(src='/scripts/app.js')
       script#contextMenuTemplate(type='text/template')
         <ul class="context-menu dropdown-menu">
@@ -363,4 +305,28 @@ html(lang='en')
         <div class="message active">
         <div class="username">Ryan</div> <div class="text"><%= message %></div>
         </div>
+      script#objectItemTemplate(type='text/template')
+        <li class="object ui-draggable" data-url="<%= url %>" data-type="<%= type.toLowerCase() %>">
+        <div class="preview"><img src="<%= thumbnail %>"/></div>
+        <p class="name"><%= name %></p>
+        <p class="muted"><%= type %></p>
+        <div class="dropdown menu">
+        <div class="dropdown-toggle" data-toggle="dropdown" href="#">
+        <b class="icon-caret-down"></b>
+        </div>
+        <!-- Link or button to toggle dropdown -->
+        <ul class="dropdown-menu pull-right" role="menu" aria-labelledby="dLabel">
+        <li><a tabindex="-1" href="#">Delete</a></li>
+        </ul>
+        </div>
+        </li>
+      #uploadModal.modal.hide.fade(tabindex='-1', role='dialog', aria-labelledby='uploadLabel', aria-hidden='true')
+        .modal-header
+          button.close(type='button', data-dismiss='modal', aria-hidden='true') ×
+          h3#uploadLabel Upload
+        .modal-body
+          p One fine body…
+        .modal-footer
+          button.btn(data-dismiss='modal', aria-hidden='true') Close
+          button.btn.btn-primary Upload
     // END: Main wrapper

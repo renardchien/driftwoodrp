@@ -10,7 +10,6 @@ $(document).ready(function() {
       $window = $(window),
       $body = $('body');
 
-
   /**
    * Core engine. Creates instances of all our sub controllers
    * and listens for major events to pass along to the correct
@@ -337,6 +336,7 @@ $(document).ready(function() {
      // Container element
     el: $('.object-list ol'),
 
+
     //Grab the template from the page
     template: _.template($('#objectItemTemplate').html()),
 
@@ -358,16 +358,56 @@ $(document).ready(function() {
     },
 
     addEventListeners: function() {
+      var scope = this;
       //User has selected a file, gather values and do AJAX upload
       $body.on('change','.select-file :file',function(e) {
         var $this = $(this),
             $parent = $this.parent(),
             value = $this.val();
-            type = $body.find('[name="upload-type"]').val();
+            type = $body.find('[name="upload-type"]').val(),
+            csrf = $body.find('[name="_csrf"]').val(),
+            uploadUrl = $body.find('[name="uploadUrl"]').val();
 
-        console.log(value,type);
         //Insert AJAX call. On success call processServerData,
         //which should in turn call addToList
+
+        /*
+        var file = this.files[0],
+            reader = new FileReader();
+
+        reader.onload = function(evt) {
+          console.log(file);
+          socket.emit('uploadToken', { 'assetFile': evt.target.result, 
+                                       'type': type,
+                                       'name': file.name,
+                                       'fileType': file.type
+                                     });
+        };
+
+        reader.readAsDataURL(file);
+
+        */
+        
+        var formdata = new FormData();
+        formdata.append('assetFile', this.files[0]);
+        formdata.append('type', type);
+        formdata.append('_csrf', csrf);
+
+        $.ajax({
+          url: uploadUrl,
+          data: formdata,
+          processData: false,
+          contentType: false,
+          type: 'POST',
+          success: function(data) {
+            //socket.emit('newUpload', data)
+            scope.processServerData(data);
+          },
+         error: function( jqXHR, textStatus, errorThrown ) {
+            console.log(jqXHR);
+         }
+        });
+        
       });
     },
 
@@ -375,6 +415,9 @@ $(document).ready(function() {
       //TODO: Data is information returned from the database. Do
       //any necessary checks, conversions necessary to pass to 
       //addToList()
+      var arrayData = [];  
+      arrayData.push(data);
+      this.addToList(arrayData);
     },
 
     /**
@@ -387,8 +430,7 @@ $(document).ready(function() {
      * type: token|map|item
      * name: Name of file
      */
-    addToList: function(objects) {
-      
+    addToList: function(objects) {     
       if( typeof objects !== 'object') {
         objects = [objects];
       }

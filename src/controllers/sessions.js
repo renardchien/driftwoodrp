@@ -268,8 +268,10 @@ var removeBackground = function(req, res) {
 	res.json('request to remove a background image');
 };
 
+
 var uploadToken = function(req, res) {
-        if(!(req.files && req.files.assetFile)){
+
+        if(!(req.files && req.files.assetFile && req.body.type)){
 	  return res.badRequest('Only valid image formats are accepted');
         }
 
@@ -283,7 +285,7 @@ var uploadToken = function(req, res) {
           sessionId: res.locals.game.id,
           playerId: req.session.player.id,
           name: req.files.assetFile.name,
-          type: 'token',
+          type: req.body.type,
           publicPath: publicPath
         });
 
@@ -327,10 +329,18 @@ var uploadToken = function(req, res) {
                 return res.err(err);  
                }
 
-               res.json('File uploaded to game library');               
+	       res.json({
+                          'url': config.getConfig().specialConfigs.awsUrl + publicPath,
+                          'thumbnail': config.getConfig().specialConfigs.awsUrl + publicPath + config.getConfig().specialConfigs.imageSize.thumb.type,
+                          'type': req.body.type,
+                          'name': req.files.assetFile.name
+                       });
+
+               //res.json('File uploaded to game library');               
            });
         });
 };
+
 
 var removeToken = function(req, res) {
 	if(!req.body.assetFile){
@@ -366,8 +376,19 @@ var loadEvents = function(req, res) {
 	res.json('request to load an event');
 };
 
-var test = function(req, res) {
-	res.render('game2');
+var test = function(req, res) {	
+	models.Player.playerModel.findByUsername('test', function(err, player) {
+		if(err) {
+			return res.json("failed to load session");
+		}
+
+		if(!player) {
+			return res.json("failed to load session");
+		}
+
+		req.session.player = player.api();
+                res.render('game2', { url: config.getConfig().liveUrl });
+	});
 };
 
 module.exports.test = test;

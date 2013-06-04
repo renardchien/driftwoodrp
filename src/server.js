@@ -107,6 +107,7 @@ var ioRedis = require('socket.io/node_modules/redis');
 var ioPub = ioRedis.createClient();
 var ioSub = ioRedis.createClient();
 var ioClient = ioRedis.createClient();
+var sockets = require('./sockets.js');
 
 io.set('store', new IoStore({
   redisPub: ioPub, 
@@ -124,7 +125,7 @@ io.configure(function() {
 
 		data.cookie = cookie.parse(data.headers.cookie);
 		data.sessionId = data.cookie['driftwood.sid'].substring(2, 26);
-		sessionStore.get(data.sessionId, function(err, session) {
+		sessionStore.load(data.sessionId, function(err, session) {
 			
 			if(err || !session) {
 				return callback(new Error('Session not found'));
@@ -135,62 +136,14 @@ io.configure(function() {
 			}
 
 			data.session = new Session(data, session);
+
 			callback(null, true);
 		});
 	});
 
 });
 
-io.sockets.on('connection', function(socket) {
-
-	socket.on('join', function(data) {
-
-		middleware.findGame(data.gameName, data.owner, function(err, game) {
-			if(err) {
-				return socket.disconnect(err);
-			}
-
-			if(!game) {
-				return socket.disconnect('game was not found');
-			}
-
-			middleware.getPermission(socket.handshake.session.player.id, game.id, function(err, doc) {
-				if(err) {
-					return socket.disconnect(err);
-				}
-				if(!doc) {
-					return socket.disconnect('Not authorized');
-				}
-			});
-
-			socket.join(data.gameName + "/" + data.owner);
-
-			socket.room = data.gameName + "/" + data.owner;
-
-			socket.emit('joined', 'joined');
-		});
-
-	});
-
-        socket.on('hideToken', function(data) {
-		if(!socket.room) {
-			socket.emit('error', 'Not Connected to a game');
-		}
-        });
-
-	socket.on('chat', function(data) {
-
-		if(!socket.room) {
-			socket.emit('error', 'Not connected to a game');
-		}
-
-		io.sockets.in(socket.room).emit('chat', data);
-        });
-
-	socket.on('disconnect', function(data) {
-		socket.leave(socket.room);
-        });
-});
+sockets.configureSockets(io);
 
 server.listen(config.getConfig().port, function() {
 	module.exports.app = app;
