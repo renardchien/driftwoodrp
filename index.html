@@ -289,17 +289,38 @@
           </div>
           <div class="tr">
             <div class="upload">
-              <div class="btn-group">
-                <button class="btn btn-primary upload-type">Upload Token</button>
-                <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
-                  <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu pull-left">
-                  <li><a tabindex="-1" href="#" data-activate="replace" data-target=".upload-type" value="Upload Token" data-on="click">Token</a></li>
-                  <li><a tabindex="-1" href="#" data-activate="replace" data-target=".upload-type" value="Upload Map" data-on="click">Map</a></li>
-                  <li><a tabindex="-1" href="#" data-activate="replace" data-target=".upload-type" value="Upload Item" data-on="click">Item</a></li>
-                </ul>
+              <select name="upload-type">
+                <option value="token">Token</option>
+                <option value="map">Map</option>
+                <option value="item">Item</option>
+              </select>
+              <div class="file-upload select-file btn btn-primary">
+                Upload
+                <input type="file" name="object" id="object-upload" accept="image/*"/>
               </div>
+             <!-- <div class="row-fluid file-selected">
+                <div class="span12">
+                  <span class="filename"></span> <b class="icon-remove-sign clear" data-toggle-class="selected" data-target=".select-file"></b>
+                </div>
+              </div>
+              <div class="row-fluid file-selected">
+                <div class="span6">
+                  <input type="text" class="input-block-level" placeholder="Name">
+                </div>
+                <div class="span6">
+                  <div class="btn-group pull-left">
+                    <button class="btn btn-success upload-type">Upload as Token</button>
+                    <button class="btn btn-success dropdown-toggle" data-toggle="dropdown">
+                      <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu pull-left">
+                      <li><a tabindex="-1" href="#" data-activate="replace" data-target=".upload-type" value="Upload as Token" data-on="click">Token</a></li>
+                      <li><a tabindex="-1" href="#" data-activate="replace" data-target=".upload-type" value="Upload as Map" data-on="click">Map</a></li>
+                      <li><a tabindex="-1" href="#" data-activate="replace" data-target=".upload-type" value="Upload as Item" data-on="click">Item</a></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>-->
             </div>
           </div>
         </div>

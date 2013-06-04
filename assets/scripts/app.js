@@ -95,6 +95,25 @@ $(document).ready(function() {
         $body.find($(this).data('target')).css('display','table-row');
       } );
 
+      $body.on('click','[data-toggle-class]', function() {
+        var $target = $body.find($(this).data('target')),
+            className = $(this).data('toggle-class');
+        $target.toggleClass(className);
+      } );
+
+      /*$body.on('change','.select-file :file',function(e) {
+        var $this = $(this),
+            $parent = $this.parent(),
+            value = $this.val();
+        console.log('file');
+        if( value === '' ) {
+          $parent.removeClass('selected');
+        } else {
+          $parent.addClass('selected');
+          $body.find('.filename').html(value.replace(/^.*[\\\/]/, ''));
+        }
+      });*/
+
       //Elastic input
       var scope = this;
       
@@ -112,6 +131,7 @@ $(document).ready(function() {
       //Clears a target of its value
       $body.on('click','[data-clear]', function() {
         var $target = $body.find($(this).data('clear'));
+        console.log($target);
         $target.val('');
       })
 
