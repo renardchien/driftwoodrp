@@ -126,90 +126,91 @@ html(lang='en')
           #objects.objects
             .content
               .tr.object-list
-                ol.unstyled
-                  li.object
-                    p.tmp
-                      input.input-block-level(type='text', placeholder='http://')
-                  li.object(data-url='/images/tmp/goblin.png', data-type='token')
-                    .preview
-                      img(src='/images/tmp/goblin.png')
-                    p.name Goblin
-                    p.muted Token
-                    .dropdown.menu
-                      .dropdown-toggle(data-toggle='dropdown', href='#')
-                        b.icon-caret-down
-                      // Link or button to toggle dropdown
-                      ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
-                        li
-                          a(tabindex='-1', href='#') Delete
-                  li.object(data-url='/images/tmp/paladin.png', data-type='token')
-                    .preview
-                      img(src='/images/tmp/paladin.png')
-                    p.name Paladin
-                    p.muted Token
-                    .dropdown.menu
-                      .dropdown-toggle(data-toggle='dropdown', href='#')
-                        b.icon-caret-down
-                      // Link or button to toggle dropdown
-                      ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
-                        li
-                          a(tabindex='-1', href='#') Delete
-                  li.object(data-url='/images/tmp/fighter.png', data-type='token')
-                    .preview
-                      img(src='/images/tmp/fighter.png')
-                    p.name Warrior
-                    p.muted Token
-                    .dropdown.menu
-                      .dropdown-toggle(data-toggle='dropdown', href='#')
-                        b.icon-caret-down
-                      // Link or button to toggle dropdown
-                      ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
-                        li
-                          a(tabindex='-1', href='#') Delete
-                  li.object(data-url='/images/tmp/map.jpg', data-type='map')
-                    .preview
-                      img(src='/images/tmp/map.jpg')
-                    p.name Map of Taul
-                    p.muted Map
-                    .dropdown.menu
-                      .dropdown-toggle(data-toggle='dropdown', href='#')
-                        b.icon-caret-down
-                      // Link or button to toggle dropdown
-                      ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
-                        li
-                          a(tabindex='-1', href='#') Delete
-                  li.object(data-url='/images/tmp/mage.png', data-type='token')
-                    .preview
-                      img(src='/images/tmp/mage.png')
-                    p.name Mage
-                    p.muted Token
-                    .dropdown.menu
-                      .dropdown-toggle(data-toggle='dropdown', href='#')
-                        b.icon-caret-down
-                      // Link or button to toggle dropdown
-                      ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
-                        li
-                          a(tabindex='-1', href='#') Delete
-                  li.object(data-url='/images/tmp/treasureChest.png', data-type='item')
-                    .preview
-                      img(src='/images/tmp/treasureChest.png')
-                    p.name Treasure Chest
-                    p.muted Item
-                    .dropdown.menu
-                      .dropdown-toggle(data-toggle='dropdown', href='#')
-                        b.icon-caret-down
-                      // Link or button to toggle dropdown
-                      ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
-                        li
-                          a(tabindex='-1', href='#') Delete
+                .object-wrapper
+                  ol.unstyled
+                    li.object
+                      p.tmp
+                        input.input-block-level(type='text', placeholder='http://')
+                    li.object(data-url='/images/tmp/goblin.png', data-type='token')
+                      .preview
+                        img(src='/images/tmp/goblin.png')
+                      p.name Goblin
+                      p.muted Token
+                      .dropdown.menu
+                        .dropdown-toggle(data-toggle='dropdown', href='#')
+                          b.icon-caret-down
+                        // Link or button to toggle dropdown
+                        ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
+                          li
+                            a(tabindex='-1', href='#') Delete
+                    li.object(data-url='/images/tmp/paladin.png', data-type='token')
+                      .preview
+                        img(src='/images/tmp/paladin.png')
+                      p.name Paladin
+                      p.muted Token
+                      .dropdown.menu
+                        .dropdown-toggle(data-toggle='dropdown', href='#')
+                          b.icon-caret-down
+                        // Link or button to toggle dropdown
+                        ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
+                          li
+                            a(tabindex='-1', href='#') Delete
+                    li.object(data-url='/images/tmp/fighter.png', data-type='token')
+                      .preview
+                        img(src='/images/tmp/fighter.png')
+                      p.name Warrior
+                      p.muted Token
+                      .dropdown.menu
+                        .dropdown-toggle(data-toggle='dropdown', href='#')
+                          b.icon-caret-down
+                        // Link or button to toggle dropdown
+                        ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
+                          li
+                            a(tabindex='-1', href='#') Delete
+                    li.object(data-url='/images/tmp/map.jpg', data-type='map')
+                      .preview
+                        img(src='/images/tmp/map.jpg')
+                      p.name Map of Taul
+                      p.muted Map
+                      .dropdown.menu
+                        .dropdown-toggle(data-toggle='dropdown', href='#')
+                          b.icon-caret-down
+                        // Link or button to toggle dropdown
+                        ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
+                          li
+                            a(tabindex='-1', href='#') Delete
+                    li.object(data-url='/images/tmp/mage.png', data-type='token')
+                      .preview
+                        img(src='/images/tmp/mage.png')
+                      p.name Mage
+                      p.muted Token
+                      .dropdown.menu
+                        .dropdown-toggle(data-toggle='dropdown', href='#')
+                          b.icon-caret-down
+                        // Link or button to toggle dropdown
+                        ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
+                          li
+                            a(tabindex='-1', href='#') Delete
+                    li.object(data-url='/images/tmp/treasureChest.png', data-type='item')
+                      .preview
+                        img(src='/images/tmp/treasureChest.png')
+                      p.name Treasure Chest
+                      p.muted Item
+                      .dropdown.menu
+                        .dropdown-toggle(data-toggle='dropdown', href='#')
+                          b.icon-caret-down
+                        // Link or button to toggle dropdown
+                        ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
+                          li
+                            a(tabindex='-1', href='#') Delete
               .tr
                 .upload
                   select(name='upload-type')
                     option(value='token') Token
                     option(value='map') Map
                     option(value='item') Item
-                  input(type='hidden', name='_csrf', value='#{session._csrf}')
-                  input(type='hidden', name='uploadUrl', value='/uploadToken/test/test')  
+                  input(type='hidden', name='_csrf', value='#{session._csrf}')  
+                  input(type='hidden', name='uploadUrl', value='/uploadToken/test/test')
                   .file-upload.select-file.btn.btn-primary
                     | Upload
                     input#object-upload(type='file', name='object', accept='image/*')
@@ -259,9 +260,8 @@ html(lang='en')
         script(src='/scripts/libs/colorpicker/js/colorpicker.js')
         script(src='/scripts/libs/colorpicker/js/eye.js')
         script(src='/scripts/libs/colorpicker/js/utils.js')
-        script(src='/socket.io/socket.io.js')
         script
-          var liveUrl = "#{url}";
+          var liveUrl = "http://driftwoodrp.com";
         script(src='/scripts/app.js')
       script#contextMenuTemplate(type='text/template')
         <ul class="context-menu dropdown-menu">

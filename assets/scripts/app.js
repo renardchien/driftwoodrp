@@ -367,7 +367,6 @@ $(document).ready(function() {
             type = $body.find('[name="upload-type"]').val(),
             csrf = $body.find('[name="_csrf"]').val(),
             uploadUrl = $body.find('[name="uploadUrl"]').val();
-
         //Insert AJAX call. On success call processServerData,
         //which should in turn call addToList
 
@@ -407,7 +406,6 @@ $(document).ready(function() {
             console.log(jqXHR);
          }
         });
-        
       });
     },
 
@@ -430,7 +428,9 @@ $(document).ready(function() {
      * type: token|map|item
      * name: Name of file
      */
-    addToList: function(objects) {     
+
+    addToList: function(objects) {
+      
       if( typeof objects !== 'object') {
         objects = [objects];
       }
