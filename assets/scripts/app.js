@@ -336,7 +336,6 @@ $(document).ready(function() {
      // Container element
     el: $('.object-list ol'),
 
-
     //Grab the template from the page
     template: _.template($('#objectItemTemplate').html()),
 
@@ -359,11 +358,13 @@ $(document).ready(function() {
 
     addEventListeners: function() {
       var scope = this;
+
       //User has selected a file, gather values and do AJAX upload
       $body.on('change','.select-file :file',function(e) {
         var $this = $(this),
             $parent = $this.parent(),
             value = $this.val();
+
             type = $body.find('[name="upload-type"]').val(),
             csrf = $body.find('[name="_csrf"]').val(),
             uploadUrl = $body.find('[name="uploadUrl"]').val();
@@ -407,7 +408,7 @@ $(document).ready(function() {
             console.log(jqXHR);
          }
         });
-        
+
       });
     },
 
@@ -415,6 +416,7 @@ $(document).ready(function() {
       //TODO: Data is information returned from the database. Do
       //any necessary checks, conversions necessary to pass to 
       //addToList()
+
       var arrayData = [];  
       arrayData.push(data);
       this.addToList(arrayData);
@@ -429,8 +431,10 @@ $(document).ready(function() {
      * thumbnail: url of thumbnail image
      * type: token|map|item
      * name: Name of file
-     */
-    addToList: function(objects) {     
+     */ 
+
+    addToList: function(objects) {
+      
       if( typeof objects !== 'object') {
         objects = [objects];
       }
