@@ -10,7 +10,6 @@ $(document).ready(function() {
       $window = $(window),
       $body = $('body');
 
-
   /**
    * Core engine. Creates instances of all our sub controllers
    * and listens for major events to pass along to the correct
@@ -32,6 +31,9 @@ $(document).ready(function() {
       gridSize: 100,
       gridUnit: '5 ft',
       gridColor: '#777777',
+      freeDrawColor: '#333333',
+      freeDrawWidth: 1,
+      freeDrawFill: '#ff0000'
     },
 
     initialize: function(options) {
@@ -47,6 +49,7 @@ $(document).ready(function() {
     run: function() {
       this.Chat = new Chat();
       this.Commands = new Commands();
+      this.ObjectList = new ObjectList();
 
       this.CanvasManager = new CanvasManager({
         canvasHeight: this.settings.canvasHeight,
@@ -63,6 +66,9 @@ $(document).ready(function() {
       this.$editorColor.val(this.settings.editorColor);
       this.$gridColor.val(this.settings.gridColor);
       this.$gridSize.val(this.settings.gridSize);
+      this.$freeDrawStroke.val(this.settings.freeDrawColor);
+      this.$freeDrawFill.val(this.settings.freeDrawFill);
+      this.$freeDrawStrokeWidth.find('option[value="'+this.settings.freeDrawWidth+'"]').prop('selected',true);
       //Move canvas to center
       //FIXME: Doesn't quite work
       this.$canvasWrapper[0].scrollLeft = this.$canvasWrapper.offset().top + (this.$canvasWrapper.find('.canvas-container').height()/2);
@@ -79,6 +85,8 @@ $(document).ready(function() {
       this.$canvasWrapper = $body.find('.canvas-wrapper');
       this.$editorColor = $body.find('.editor-color');
       this.$editor = $body.find('.editor');
+      this.$freeDrawMenu = $body.find('.sub-menu.free-draw');
+      this.$freeDrawStrokeWidth = this.$freeDrawMenu.find('.freeDrawStrokeWidth');
 
       //Tabs
       $body.on('click','[data-toggle="tab"]', function() {
@@ -86,6 +94,25 @@ $(document).ready(function() {
         $body.find($this.closest('[data-tab-panels]').data('tab-panels')).hide();
         $body.find($(this).data('target')).css('display','table-row');
       } );
+
+      $body.on('click','[data-toggle-class]', function() {
+        var $target = $body.find($(this).data('target')),
+            className = $(this).data('toggle-class');
+        $target.toggleClass(className);
+      } );
+
+      /*$body.on('change','.select-file :file',function(e) {
+        var $this = $(this),
+            $parent = $this.parent(),
+            value = $this.val();
+        console.log('file');
+        if( value === '' ) {
+          $parent.removeClass('selected');
+        } else {
+          $parent.addClass('selected');
+          $body.find('.filename').html(value.replace(/^.*[\\\/]/, ''));
+        }
+      });*/
 
       //Elastic input
       var scope = this;
@@ -104,6 +131,7 @@ $(document).ready(function() {
       //Clears a target of its value
       $body.on('click','[data-clear]', function() {
         var $target = $body.find($(this).data('clear'));
+        console.log($target);
         $target.val('');
       })
 
@@ -119,14 +147,48 @@ $(document).ready(function() {
         onChange: _.bind( function (hsb, hex, rgb) {
           var color = '#' + hex;
           this.$editorColor.val(color);
-          this.updateSettings({backgroundColor:color});
+          this.updateSettings({editorColor:color});
         }, this )
       });
 
-      
-      //Allows objects to be draggable onto the canvas
-      $body.find('.object-list .object').draggable({helper:'clone',revert:'invalid',scroll:false,appendTo:'#Main' });
-      //Allows the obhects to be droppable on the canvas
+      //Free draw stroke color
+      this.$freeDrawStroke = this.$freeDrawMenu.find('.freeDrawStroke');
+      this.$freeDrawStroke.ColorPicker({
+        onSubmit: function(hsb, hex, rgb, el) {
+          this.$freeDrawStroke.val('#' + hex);
+        },
+        onBeforeShow: function () {
+          $(this).ColorPickerSetColor(this.value);
+        },
+        onChange: _.bind( function (hsb, hex, rgb) {
+          var color = '#' + hex;
+          this.$freeDrawStroke.val(color);
+          this.settings.freeDrawColor = color;
+          this.CanvasManager.setFreeDraw();
+        }, this )
+      });
+      //Free draw fill color
+      this.$freeDrawFill = this.$freeDrawMenu.find('.freeDrawFill');
+      this.$freeDrawFill.ColorPicker({
+        onSubmit: function(hsb, hex, rgb, el) {
+          this.$freeDrawFill.val('#' + hex);
+        },
+        onBeforeShow: function () {
+          $(this).ColorPickerSetColor(this.value);
+        },
+        onChange: _.bind( function (hsb, hex, rgb) {
+          var color = '#' + hex;
+          this.$freeDrawFill.val(color);
+          this.settings.freeDrawFill = color;
+        }, this )
+      });
+      //Free draw stroke width
+      $body.on('change','.freeDrawStrokeWidth', _.bind( function() {
+        this.settings.freeDrawWidth = parseInt(this.$freeDrawStrokeWidth.val());
+        this.CanvasManager.setFreeDraw();
+      }, this ) );
+
+      //Allows the objects to be droppable on the canvas
       this.$canvasWrapper.droppable({
         drop: _.bind( function( event, ui ) {
           //FIXME: This is just temporary until we have uploads
@@ -172,6 +234,19 @@ $(document).ready(function() {
           this.updateSettings({gridColor:color});
         }, this)
       });
+
+      //Show sub menu
+      $body.on('click','.commands [data-cmd]', function() {
+        var cmd = $(this).attr('data-cmd'),
+            drawType = $(this).attr('data-cmd-value');
+
+        if( cmd === 'draw' ) {
+          scope.showSubMenu('.free-draw',drawType);
+        } else {
+          scope.showSubMenu();
+        }
+        
+      } );
       
       //Save all our settings
       $body.on('click','.save-settings', _.bind( function() {
@@ -215,6 +290,11 @@ $(document).ready(function() {
       }
     },
 
+    showSubMenu: function(menu,option) {
+      $body.find('.sub-menu').hide();
+      $body.find('.sub-menu'+menu).show().attr('data-type',option);
+    },
+
     updateGridLabel: function(unit) {
       this.$gridLabel.find('.unit-label').html(unit);
     },
@@ -244,6 +324,124 @@ $(document).ready(function() {
       var b="overflow"+("overflowY" in document.getElementsByTagName("script")[0].style?"Y":""),e=function(h,g,j){if(g.addEventListener){for(var f=0;f<h.length;f++){g.addEventListener(h[f],j,0)}}else{if(g.attachEvent){for(var f=0;f<h.length;f++){g.attachEvent("on"+h[f],j)}}}};for(var c=0;c<a.length;c++){a[c].style[b]="hidden";a[c].__originalRows=a[c].rows;var d=function(f){var h=f.target||f.srcElement||this,g=h.scrollTop;h.scrollTop=1;while(h.scrollTop>0){var j=h.clientHeight,i=true;h.rows++;if(h.clientHeight==j){if(h.style[b]){h.style[b]=""}h.scrollTop=g;return}h.scrollTop=1}if(!i){while(h.scrollTop==0&&h.rows>h.__originalRows){h.rows--;h.scrollTop=1}if(h.scrollTop>0){h.rows++}}if(!h.style[b]){h.style[b]="hidden"}};e(["keyup","paste"],a[c],d);d({target:a[c]})}
     },
  
+  } );
+
+  /**
+   * Object List
+   *
+   * Allows us to drag stuff onto the camvas, upload objects,
+   * search objects.
+   */
+  ObjectList = Backbone.View.extend( {
+     // Container element
+    el: $('.object-list ol'),
+
+
+    //Grab the template from the page
+    template: _.template($('#objectItemTemplate').html()),
+
+    testData: [
+      {
+        url: 'assets/images/tmp/goblin.png',
+        thumbnail: 'assets/images/tmp/goblin.png',
+        type: 'token',
+        name: 'Goblin'
+      },
+    ],
+
+    initialize: function(options) {
+      _.bindAll(this,'render');
+      //Add event listeners
+      this.addEventListeners();
+      //Run test data
+      this.addToList(this.testData);
+    },
+
+    addEventListeners: function() {
+      var scope = this;
+      //User has selected a file, gather values and do AJAX upload
+      $body.on('change','.select-file :file',function(e) {
+        var $this = $(this),
+            $parent = $this.parent(),
+            value = $this.val();
+            type = $body.find('[name="upload-type"]').val(),
+            csrf = $body.find('[name="_csrf"]').val(),
+            uploadUrl = $body.find('[name="uploadUrl"]').val();
+
+        //Insert AJAX call. On success call processServerData,
+        //which should in turn call addToList
+
+        /*
+        var file = this.files[0],
+            reader = new FileReader();
+
+        reader.onload = function(evt) {
+          console.log(file);
+          socket.emit('uploadToken', { 'assetFile': evt.target.result, 
+                                       'type': type,
+                                       'name': file.name,
+                                       'fileType': file.type
+                                     });
+        };
+
+        reader.readAsDataURL(file);
+
+        */
+        
+        var formdata = new FormData();
+        formdata.append('assetFile', this.files[0]);
+        formdata.append('type', type);
+        formdata.append('_csrf', csrf);
+
+        $.ajax({
+          url: uploadUrl,
+          data: formdata,
+          processData: false,
+          contentType: false,
+          type: 'POST',
+          success: function(data) {
+            //socket.emit('newUpload', data)
+            scope.processServerData(data);
+          },
+         error: function( jqXHR, textStatus, errorThrown ) {
+            console.log(jqXHR);
+         }
+        });
+        
+      });
+    },
+
+    processServerData: function(data) {
+      //TODO: Data is information returned from the database. Do
+      //any necessary checks, conversions necessary to pass to 
+      //addToList()
+      var arrayData = [];  
+      arrayData.push(data);
+      this.addToList(arrayData);
+    },
+
+    /**
+     * Adds objects to our object list. You should pass in
+     * an array of objects, even if there's one
+     *
+     * Each object should contain the following:
+     * url: full url of image
+     * thumbnail: url of thumbnail image
+     * type: token|map|item
+     * name: Name of file
+     */
+    addToList: function(objects) {     
+      if( typeof objects !== 'object') {
+        objects = [objects];
+      }
+
+      _.each( objects, _.bind( function(object) {
+        $(this.el).append(this.template(object));
+      }, this ) );
+
+      //Allows objects to be draggable onto the canvas
+      $body.find('.object-list .object').draggable({helper:'clone',revert:'invalid',scroll:false,appendTo:'#Main' });
+    }
   } );
 
   /**
@@ -811,6 +1009,8 @@ $(document).ready(function() {
       //Zoom utility
       this.zoom = this.zoomUtil.init(this);
 
+      this.canvas.freeDrawingBrush = new fabric['PencilBrush'](this.canvas);
+
       //Add event listeners
       this.addEventListeners();
       
@@ -1146,7 +1346,6 @@ $(document).ready(function() {
           object.switchLayer(layer);
           if( object.get('layer') !== this.currentLayer ) {
             var opacity = object.get('layerIndex') > this.getLayerIndex(this.currentLayer);
-            console.log(opacity);
             object.disable(opacity);
           }
           object.sendToFront();
@@ -1260,11 +1459,11 @@ $(document).ready(function() {
       }
       //Move the object to the front of it's layer
       var object = this.toObject(activeObject);
-      //If this is a token or item, fit it the grid size
-      if( ['token','item'].indexOf(object.get('objectType')) !== -1 ) {
+      //If this is a token or item AND it was just added, scale it
+      if( this.addedObjectType && ['token','item'].indexOf(object.get('objectType')) !== -1 ) {
         object.fitTo('grid',this.canvasScale);
       //Its a map, fit it to the canvas
-      } else if( ['map'].indexOf(object.get('objectType')) !== -1) {
+      } else if( this.addedObjectType && ['map'].indexOf(object.get('objectType')) !== -1) {
         object.fitTo('canvas',this.canvasScale);
       }
 
@@ -1308,14 +1507,21 @@ $(document).ready(function() {
       switch(what) {
         case 'free':
           this.canvas.isDrawingMode = true;
+          this.setFreeDraw();
           break;
         case 'circle':
           this.drawing.circle.startDrawing();
           break;
         case 'rectangle':
           this.drawing.rectangle.startDrawing();
+          break;
       }
       
+    },
+
+    setFreeDraw: function() {
+      //this.canvas.freeDrawingBrush.color = driftwood.engine.settings.freeDrawColor;
+      //this.canvas.freeDrawingBrush.width = driftwood.engine.settings.freeDrawWidth;
     },
 
     /**
@@ -1494,7 +1700,6 @@ $(document).ready(function() {
             this.canvasScale = canvasScale;
             canvas.renderAll();
             this.setOverlaySize();
-            console.log(canvasScale);
           },
           Out: function() {
             // TODO limit max cavas zoom out
@@ -1524,7 +1729,6 @@ $(document).ready(function() {
             }
             this.setOverlaySize();
             this.canvasScale = canvasScale;
-            console.log(canvasScale);
             canvas.renderAll();
           }
         };
@@ -1555,8 +1759,6 @@ $(document).ready(function() {
 
           scope: context,
 
-          color: 'red',
-
           //Sets variables and adds events to the mouse
           startDrawing: function(canvas) {
             this.canvas.selection = false;
@@ -1576,6 +1778,7 @@ $(document).ready(function() {
           //Set our intial circle. We're actually creating an Ellipse
           //with some intial qualities and then making it bigger
           startCircleDraw: function(event) {
+            console.log('starting circle draw');
             //Where did the mouse click start
             this.offsetLeft = this.scope.offsetLeft();
             this.offsetTop = this.scope.offsetTop();
@@ -1593,9 +1796,9 @@ $(document).ready(function() {
                 rx: 0,
                 ry: 0,
                 selectable: false,
-                stroke: this.color,
-                strokeWidth: 2,
-                fill: this.color
+                stroke: driftwood.engine.settings.freeDrawColor,
+                strokeWidth: driftwood.engine.settings.freeDrawWidth,
+                fill: driftwood.engine.settings.freeDrawFill
               });
 
               //Add it to the canvas
@@ -1652,8 +1855,6 @@ $(document).ready(function() {
 
           scope: context,
 
-          color: 'green',
-
           //Sets variables and adds events to the mouse
           startDrawing: function(canvas) {
             this.canvas.selection = false;
@@ -1689,9 +1890,9 @@ $(document).ready(function() {
                 width: 10,
                 height: 10,
                 selectable: false,
-                stroke: this.color,
-                strokeWidth: 2,
-                fill: 'green'
+                stroke: driftwood.engine.settings.freeDrawColor,
+                strokeWidth: driftwood.engine.settings.freeDrawWidth,
+                fill: driftwood.engine.settings.freeDrawFill
               });
 
               //Add it to the canvas
