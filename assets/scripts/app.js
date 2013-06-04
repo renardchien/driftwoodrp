@@ -50,6 +50,7 @@ $(document).ready(function() {
     run: function() {
       this.Chat = new Chat();
       this.Commands = new Commands();
+      this.ObjectList = new ObjectList();
 
       this.CanvasManager = new CanvasManager({
         canvasHeight: this.settings.canvasHeight,
@@ -188,9 +189,6 @@ $(document).ready(function() {
         this.CanvasManager.setFreeDraw();
       }, this ) );
 
-      
-      //Allows objects to be draggable onto the canvas
-      $body.find('.object-list .object').draggable({helper:'clone',revert:'invalid',scroll:false,appendTo:'#Main' });
       //Allows the objects to be droppable on the canvas
       this.$canvasWrapper.droppable({
         drop: _.bind( function( event, ui ) {
@@ -327,6 +325,78 @@ $(document).ready(function() {
       var b="overflow"+("overflowY" in document.getElementsByTagName("script")[0].style?"Y":""),e=function(h,g,j){if(g.addEventListener){for(var f=0;f<h.length;f++){g.addEventListener(h[f],j,0)}}else{if(g.attachEvent){for(var f=0;f<h.length;f++){g.attachEvent("on"+h[f],j)}}}};for(var c=0;c<a.length;c++){a[c].style[b]="hidden";a[c].__originalRows=a[c].rows;var d=function(f){var h=f.target||f.srcElement||this,g=h.scrollTop;h.scrollTop=1;while(h.scrollTop>0){var j=h.clientHeight,i=true;h.rows++;if(h.clientHeight==j){if(h.style[b]){h.style[b]=""}h.scrollTop=g;return}h.scrollTop=1}if(!i){while(h.scrollTop==0&&h.rows>h.__originalRows){h.rows--;h.scrollTop=1}if(h.scrollTop>0){h.rows++}}if(!h.style[b]){h.style[b]="hidden"}};e(["keyup","paste"],a[c],d);d({target:a[c]})}
     },
  
+  } );
+
+  /**
+   * Object List
+   *
+   * Allows us to drag stuff onto the camvas, upload objects,
+   * search objects.
+   */
+  ObjectList = Backbone.View.extend( {
+     // Container element
+    el: $('.object-list ol'),
+
+    //Grab the template from the page
+    template: _.template($('#objectItemTemplate').html()),
+
+    testData: [
+      {
+        url: 'assets/images/tmp/goblin.png',
+        thumbnail: 'assets/images/tmp/goblin.png',
+        type: 'token',
+        name: 'Goblin'
+      },
+    ],
+
+    initialize: function(options) {
+      _.bindAll(this,'render');
+      //Run test data
+      this.addToList(this.testData);
+    },
+
+    addEventListener: function() {
+      //User has selected a file, gather values and do AJAX upload
+      $body.on('change','.select-file :file',function(e) {
+        var $this = $(this),
+            $parent = $this.parent(),
+            value = $this.val();
+            type = $body.find('[name="upload-type"]').val();
+
+        //Insert AJAX call. On success call processServerData,
+        //which should in turn call addToList
+      });
+    },
+
+    processServerData: function(data) {
+      //TODO: Data is information returned from the database. Do
+      //any necessary checks, conversions necessary to pass to 
+      //addToList()
+    },
+
+    /**
+     * Adds objects to our object list. You should pass in
+     * an array of objects, even if there's one
+     *
+     * Each object should contain the following:
+     * url: full url of image
+     * thumbnail: url of thumbnail image
+     * type: token|map|item
+     * name: Name of file
+     */
+    addToList: function(objects) {
+      
+      if( typeof objects !== 'object') {
+        objects = [objects];
+      }
+
+      _.each( objects, _.bind( function(object) {
+        $(this.el).append(this.template(object));
+      }, this ) );
+
+      //Allows objects to be draggable onto the canvas
+      $body.find('.object-list .object').draggable({helper:'clone',revert:'invalid',scroll:false,appendTo:'#Main' });
+    }
   } );
 
   /**

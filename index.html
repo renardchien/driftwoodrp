@@ -173,7 +173,7 @@
       <!-- Objects -->
       <div class="objects" id="objects">
         <div class="content">
-          <div class="tr tr-flow">
+          <!--<div class="tr tr-flow">
             <div class="search">
               <div>
                 <input type="text" id="search-object" class="input-block-level input" placeholder="Search..." data-activate="focus" data-on="focusin,focusout" data-target=".objects .search"/>
@@ -184,7 +184,7 @@
               <div class="target">
                 <div class="dropdown">
                   <div class="dropdown-toggle" data-toggle="dropdown" href="#"><span class="text">All</span> <b class="icon-caret-down"></b></div>
-                  <!-- Link or button to toggle dropdown -->
+                  <!-- Link or button to toggle dropdown 
                   <ul class="dropdown-menu pull-right" role="menu" aria-labelledby="dLabel">
                     <li><a tabindex="-1" href="#" data-activate="replace" data-target=".search .text" data-on="click">All</a></li>
                     <li><a tabindex="-1" href="#" data-activate="replace" data-target=".search .text" data-on="click">My Library</a></li>
@@ -195,7 +195,7 @@
                 </div>
               </div>
             </div>
-          </div>
+          </div> -->
           <div class="tr object-list">
             <ol class="unstyled">
               <li class="object">
@@ -434,6 +434,22 @@
   <div class="message active">
     <div class="username">Ryan</div> <div class="text"><%= message %></div>
   </div>
+  </script>
+  <script type="text/template" id="objectItemTemplate">
+  <li class="object ui-draggable" data-url="<%= url %>" data-type="<%= type.toLowerCase() %>">
+    <div class="preview"><img src="<%= thumbnail %>"/></div>
+    <p class="name"><%= name %></p>
+    <p class="muted"><%= type %></p>
+    <div class="dropdown menu">
+      <div class="dropdown-toggle" data-toggle="dropdown" href="#">
+        <b class="icon-caret-down"></b>
+      </div>
+      <!-- Link or button to toggle dropdown -->
+      <ul class="dropdown-menu pull-right" role="menu" aria-labelledby="dLabel">
+        <li><a tabindex="-1" href="#">Delete</a></li>
+      </ul>
+    </div>
+  </li>
   </script>
   <div id="uploadModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="uploadLabel" aria-hidden="true">
     <div class="modal-header">
