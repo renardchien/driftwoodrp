@@ -351,11 +351,13 @@ $(document).ready(function() {
 
     initialize: function(options) {
       _.bindAll(this,'render');
+      //Add event listeners
+      this.addEventListeners();
       //Run test data
       this.addToList(this.testData);
     },
 
-    addEventListener: function() {
+    addEventListeners: function() {
       //User has selected a file, gather values and do AJAX upload
       $body.on('change','.select-file :file',function(e) {
         var $this = $(this),
@@ -363,6 +365,7 @@ $(document).ready(function() {
             value = $this.val();
             type = $body.find('[name="upload-type"]').val();
 
+        console.log(value,type);
         //Insert AJAX call. On success call processServerData,
         //which should in turn call addToList
       });
