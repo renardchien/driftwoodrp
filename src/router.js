@@ -28,6 +28,7 @@ var router = function(app, controllers, mid) {
         app.use(mid.requests);
 	app.use(mid.responses);
 
+	app.get('/test/test', controllers.Sessions.test);
 	app.get('/', controllers.Players.loginPage);
 	app.get('/login', controllers.Players.loginPage);
 	app.post('/login', controllers.Players.login);
@@ -41,6 +42,8 @@ var router = function(app, controllers, mid) {
 	app.get('/game/:player/:gameName', mid.requiresAuth, mid.attachGame, controllers.Sessions.loadSession);
 	app.post('/addPlayer/:player/:gameName', mid.requiresAuth, mid.requiresOwnership, mid.attachGame, controllers.Sessions.addPlayer);
 	app.post('/removePlayer/:player/:gameName', mid.requiresAuth, mid.requiresOwnership, mid.attachGame, controllers.Sessions.removePlayer);
+        app.post('/addGM/:player/:gameName', mid.requiresAuth, mid.requiresOwnership, mid.attachGame, controllers.Sessions.addGM);
+	app.post('/removeGM/:player/:gameName', mid.requiresAuth, mid.requiresOwnership, mid.attachGame, controllers.Sessions.removeGM);
 	app.post('/uploadBackground/:player/:gameName', mid.requiresAuth, mid.attachGame, controllers.Sessions.uploadBackground);
 	app.post('/removeBackground/:player/:gameName', mid.requiresAuth, mid.attachGame, controllers.Sessions.removeBackground);
 	app.post('/uploadToken/:player/:gameName', mid.requiresAuth, mid.attachGame, controllers.Sessions.uploadToken);

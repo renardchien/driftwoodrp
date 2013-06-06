@@ -1,0 +1,332 @@
+!!! 5
+html(lang='en')
+  head
+    meta(charset='utf-8')
+    meta(http-equiv='X-UA-Compatible', content='IE=edge,chrome=1')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    // SEO Validation Tags
+    meta(name='msvalidate.01', content='TODO: Fill me in!')
+    meta(name='google-site-verification', content='TODO: Fill me in!')
+    title Driftwood 0.0.1
+    // Application styles
+    link(rel='stylesheet', href='/css/libs/bootstrap/bootstrap.css')
+    link(rel='stylesheet', href='/css/libs/font-awesome/font-awesome.css')
+    link(rel='stylesheet', href='/scripts/libs/colorpicker/css/colorpicker.css')
+    link(rel='stylesheet', href='/css/main.css')
+    // Site Web Fonts
+  body
+    // BEGIN: Main wrapper
+    #Main
+      // BEGIN: header
+      header.header
+      // END: header
+      // BEGIN: Main container
+      section.main(role='main')
+        // Editor
+        section.editor
+          // Command Pallet
+          .commands.btn-group.btn-group-vertical(data-toggle='buttons-radio')
+            .btn-group.command.move-pan
+              span.btn.menu-btn.active(data-cmd='selectCanvas')
+                b.icon-hand-up
+            .btn-group.command.has-sub-menu.layer-commands
+              span.btn.menu-btn(data-cmd='switchLayer', data-cmd-value='map_layer')
+                b.icon-picture
+              ul.dropdown-menu.layer-menu
+                li(data-cmd='switchLayer', data-cmd-value='map_layer')
+                  a(href='#')
+                    b.icon-picture
+                    | Map Layer
+                li(data-cmd='switchLayer', data-cmd-value='object_layer')
+                  a(href='#')
+                    b.icon-pushpin
+                    | Object Layer
+                li(data-cmd='switchLayer', data-cmd-value='gm_layer')
+                  a(href='#')
+                    b.icon-user
+                    | GM Layer
+            .btn-group.has-sub-menu.draw-menu.command
+              span.btn.menu-btn(data-cmd='draw', data-cmd-value='free')
+                b.icon-pencil
+              ul.dropdown-menu
+                li(data-cmd='draw', data-cmd-value='free')
+                  a(href='#')
+                    b.icon-pencil
+                    | Free Draw
+                li(data-cmd='draw', data-cmd-value='rectangle')
+                  a(href='#')
+                    b.icon-sign-blank
+                    | Rectangle
+                li(data-cmd='draw', data-cmd-value='circle')
+                  a(href='#')
+                    b.icon-circle
+                    | Circle
+            .btn-group.has-sub-menu.command
+              span.btn.menu-btn(data-cmd='zoomIn')
+                b.icon-zoom-in
+              ul.dropdown-menu
+                li(data-cmd='zoomIn')
+                  a(href='#')
+                    b.icon-zoom-in
+                    | Zoom In
+                li(data-cmd='zoomOut')
+                  a(href='#')
+                    b.icon-zoom-out
+                    | Zoom Out
+          .sub-menu.free-draw
+            p
+              strong Stroke
+              br
+              input.span1.freeDrawStroke(type='color')
+            p.fill
+              strong Fill
+              br
+              input.span1.freeDrawFill(type='color')
+            p
+              strong Border
+              br
+              select.span2.freeDrawStrokeWidth
+                option(value='1') Small
+                option(value='2') Medium
+                option(value='3') Large
+                option(value='4') Extra Large
+          .grid-label
+            span.size-label 1 block
+            | =
+            span.unit-label
+          // Canvas
+          .canvas-wrapper
+            canvas#c
+            .overlay
+        // Side Panel
+        aside.panel
+          .nav
+            ol.unstyled.inline(data-tabs='tabs', data-tab-panels='.chat,.objects,.settings')
+              li(data-toggle='tab', data-target='.chat')
+                b.icon-comment
+                | Chat
+              li(data-toggle='tab', data-target='.objects')
+                b.icon-pushpin
+                | Objects
+              li(data-toggle='tab', data-target='.settings')
+                b.icon-cog
+                | Settings
+          // Chat
+          #chat.chat
+            .content
+              .message-wrapper
+                .messages(data-spy='scroll')
+                  .message
+                    .username Ryan
+                    .text This is a message.
+              .input
+                .textarea
+                  textarea.input-block-level(rows='1', data-activate='elastic', data-on='load', placeholder='Chat away...')
+          // Objects
+          #objects.objects
+            .content
+              .tr.object-list
+                .object-wrapper
+                  ol.unstyled
+                    li.object
+                      p.tmp
+                        input.input-block-level(type='text', placeholder='http://')
+                    li.object(data-url='/images/tmp/goblin.png', data-type='token')
+                      .preview
+                        img(src='/images/tmp/goblin.png')
+                      p.name Goblin
+                      p.muted Token
+                      .dropdown.menu
+                        .dropdown-toggle(data-toggle='dropdown', href='#')
+                          b.icon-caret-down
+                        // Link or button to toggle dropdown
+                        ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
+                          li
+                            a(tabindex='-1', href='#') Delete
+                    li.object(data-url='/images/tmp/paladin.png', data-type='token')
+                      .preview
+                        img(src='/images/tmp/paladin.png')
+                      p.name Paladin
+                      p.muted Token
+                      .dropdown.menu
+                        .dropdown-toggle(data-toggle='dropdown', href='#')
+                          b.icon-caret-down
+                        // Link or button to toggle dropdown
+                        ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
+                          li
+                            a(tabindex='-1', href='#') Delete
+                    li.object(data-url='/images/tmp/fighter.png', data-type='token')
+                      .preview
+                        img(src='/images/tmp/fighter.png')
+                      p.name Warrior
+                      p.muted Token
+                      .dropdown.menu
+                        .dropdown-toggle(data-toggle='dropdown', href='#')
+                          b.icon-caret-down
+                        // Link or button to toggle dropdown
+                        ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
+                          li
+                            a(tabindex='-1', href='#') Delete
+                    li.object(data-url='/images/tmp/map.jpg', data-type='map')
+                      .preview
+                        img(src='/images/tmp/map.jpg')
+                      p.name Map of Taul
+                      p.muted Map
+                      .dropdown.menu
+                        .dropdown-toggle(data-toggle='dropdown', href='#')
+                          b.icon-caret-down
+                        // Link or button to toggle dropdown
+                        ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
+                          li
+                            a(tabindex='-1', href='#') Delete
+                    li.object(data-url='/images/tmp/mage.png', data-type='token')
+                      .preview
+                        img(src='/images/tmp/mage.png')
+                      p.name Mage
+                      p.muted Token
+                      .dropdown.menu
+                        .dropdown-toggle(data-toggle='dropdown', href='#')
+                          b.icon-caret-down
+                        // Link or button to toggle dropdown
+                        ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
+                          li
+                            a(tabindex='-1', href='#') Delete
+                    li.object(data-url='/images/tmp/treasureChest.png', data-type='item')
+                      .preview
+                        img(src='/images/tmp/treasureChest.png')
+                      p.name Treasure Chest
+                      p.muted Item
+                      .dropdown.menu
+                        .dropdown-toggle(data-toggle='dropdown', href='#')
+                          b.icon-caret-down
+                        // Link or button to toggle dropdown
+                        ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
+                          li
+                            a(tabindex='-1', href='#') Delete
+              .tr
+                .upload
+                  select(name='upload-type')
+                    option(value='token') Token
+                    option(value='map') Map
+                    option(value='item') Item
+                  input(type='hidden', name='_csrf', value='#{session._csrf}')  
+                  input(type='hidden', name='uploadUrl', value='/uploadToken/test/test')
+                  .file-upload.select-file.btn.btn-primary
+                    | Upload
+                    input#object-upload(type='file', name='object', accept='image/*')
+          // Settings
+          .settings
+            .content
+              .tr
+                .control-pane.form-horizontal
+                  h2 Editor
+                  .control-group
+                    label.control-label Background Color:
+                    .controls
+                      input.span1.editor-color(type='color')
+                  h2 Grid Settings
+                  .control-group
+                    .controls
+                      .btn-group(data-toggle='buttons-radio')
+                        button.btn.grid-on.btn-primary.active(type='button') On
+                        button.btn.grid-off.btn-primary(type='button') Off
+                  .grid-settings
+                    .control-group
+                      label.control-label Grid Color:
+                      .controls
+                        input.span1.grid-color(type='color')
+                    .control-group
+                      label.control-label Grid Size:
+                      .controls
+                        input.span1.grid-size(type='number', value='')
+                        | px =
+                        input.span1.grid-unit(type='text', placeholder='5 ft', value='5 ft')
+              .tr
+                .actions
+                  input.save-settings.btn.btn-success.input-block-level(type='button', value='Save')
+                  input.btn.input-block-level(type='button', value='Cancel')
+      // END: main container
+      // BEGIN: footer
+      footer.footer
+      // END: footer
+      #scripts
+        script(src='/scripts/libs/jquery/jquery.js')
+        script(src='/scripts/libs/jquery/jquery-ui-1.10.3.custom.js')
+        script(src='/scripts/libs/jquery/scrollTo.js')
+        script(src='/scripts/libs/bootstrap/bootstrap.js')
+        script(src='/scripts/libs/underscore/underscore.js')
+        script(src='/scripts/libs/backbone/backbone.js')
+        script(src='/scripts/libs/fabric/all.js')
+        script(src='/scripts/libs/colorpicker/js/colorpicker.js')
+        script(src='/scripts/libs/colorpicker/js/eye.js')
+        script(src='/scripts/libs/colorpicker/js/utils.js')
+        script
+          var liveUrl = "http://driftwoodrp.com";
+        script(src='/scripts/app.js')
+      script#contextMenuTemplate(type='text/template')
+        <ul class="context-menu dropdown-menu">
+        <% if( menu.copy ) { %>
+        <li data-cmd="copy"><a href="#">Copy</a></li>
+        <% } %>
+        <% if( menu.cut ) { %>
+        <li data-cmd="cut"><a href="#">Cut</a></li>
+        <% } %>
+        <% if( menu.paste ) { %>
+        <li data-cmd="paste"><a href="#">Paste</a></li>
+        <% } %>
+        <% if( menu.delete ) { %>
+        <li data-cmd="delete"><a href="#">Delete</a></li>
+        <% } %>
+        <% if( menu.lock ) { %>
+        <li data-cmd="lock"><a href="#">Lock</a></li>
+        <% } %>
+        <% if( menu.unlock ) { %>
+        <li data-cmd="unlock"><a href="#">Unlock</a></li>
+        <% } %>
+        <% if( menu.move_backward || menu.move_forward || menu.move_to_back || menu.move_to_front ) { %>
+        <li class="divider"></li>
+        <li data-cmd="moveObject" data-cmd-value="backwards"><a href="#">Move Back</a></li>
+        <li data-cmd="moveObject" data-cmd-value="forwards"><a href="#">Move Forward</a></li>
+        <li data-cmd="moveObject" data-cmd-value="toFront"><a href="#">Move to Front</a></li>
+        <li data-cmd="moveObject" data-cmd-value="toBack"><a href="#">Move to Back</a></li>
+        <% } %>
+        <% if( menu.delete ) { %>
+        <li class="divider"></li>
+        <li class="dropdown-submenu"><a href="#">Switch Layer</a>
+        <ul class="dropdown-menu">
+        <li data-cmd="switchObjectLayer" data-cmd-value="map_layer"><a href="#"><b class="icon-picture"></b> Map Layer</a></li>
+        <li data-cmd="switchObjectLayer" data-cmd-value="object_layer"><a href="#"><b class="icon-pushpin"></b> Object Layer</a></li>
+        <li data-cmd="switchObjectLayer" data-cmd-value="gm_layer"><a href="#"><b class="icon-user"></b> GM Layer</a></li>
+        </ul>
+        </li>
+        <% } %>
+        </ul>
+      script#chatMessageTemplate(type='text/template')
+        <div class="message active">
+        <div class="username">Ryan</div> <div class="text"><%= message %></div>
+        </div>
+      script#objectItemTemplate(type='text/template')
+        <li class="object ui-draggable" data-url="<%= url %>" data-type="<%= type.toLowerCase() %>">
+        <div class="preview"><img src="<%= thumbnail %>"/></div>
+        <p class="name"><%= name %></p>
+        <p class="muted"><%= type %></p>
+        <div class="dropdown menu">
+        <div class="dropdown-toggle" data-toggle="dropdown" href="#">
+        <b class="icon-caret-down"></b>
+        </div>
+        <!-- Link or button to toggle dropdown -->
+        <ul class="dropdown-menu pull-right" role="menu" aria-labelledby="dLabel">
+        <li><a tabindex="-1" href="#">Delete</a></li>
+        </ul>
+        </div>
+        </li>
+      #uploadModal.modal.hide.fade(tabindex='-1', role='dialog', aria-labelledby='uploadLabel', aria-hidden='true')
+        .modal-header
+          button.close(type='button', data-dismiss='modal', aria-hidden='true') ×
+          h3#uploadLabel Upload
+        .modal-body
+          p One fine body…
+        .modal-footer
+          button.btn(data-dismiss='modal', aria-hidden='true') Close
+          button.btn.btn-primary Upload
+    // END: Main wrapper

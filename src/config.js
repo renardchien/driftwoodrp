@@ -18,7 +18,6 @@ under the License.
 **/
 
 var fs = require('fs');
-var async = require('async');
 
 var logger;
 var environment = 'development'; 

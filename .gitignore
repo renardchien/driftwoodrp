@@ -1,8 +1,50 @@
-#SECRET FILES
-src/configs/awsConfig.json
-src/config.json
-src/configs/imageConfig.json
-src/secrets.json
+# Linux
+!.gitignore
+*~
+~*
+Session.vim
 
-#Crap Files
+# OSX
 *.DS_Store
+*.ds_store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+*.json
+*.log
+.#*
+.project
+.settings
+build
+node_modules
+reports
+/cache
+
+lib-cov
+*.seed
+*.log
+*.csv
+*.dat
+*.out
+*.pid
+*.gz
+
+pids
+logs
+results
+
+npm-debug.log
+
+# Project Specific
+/public/assets/
+/public/img/

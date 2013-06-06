@@ -20,9 +20,9 @@ under the License.
 
 var models = require('../models');
 var async = require('async');
+require('async-rollback');
 var fs = require('fs');
 var mongoose = require ("mongoose"); 
-var async = require('async');
 var Schema = mongoose.Schema;
 var config = require('../config.js');
 var xxhash = require('xxhash');
@@ -80,7 +80,8 @@ var createSession = function(req, res){
 
 			var newGamePlayer = new models.Session.sessionPlayerModel({
 				sessionId: gameId,
-				playerId: player.id
+				playerId: player.id,
+                                isGM: true
 			});
 
 			newGamePlayer.save(function(err) {
@@ -169,6 +170,96 @@ var removePlayer = function(req, res) {
 	});
 };
 
+var addGM = function(req, res) {
+	var playerUsername = req.body.username;
+	var game = res.locals.game;
+	
+	if(!playerUsername) {
+		return res.badRequest("A player's username is required");
+	}
+
+	if(playerUsername.toLowerCase() === game.ownerUsername.toLowerCase()) {
+		return res.badRequest("You are already a GM");
+	}
+
+	models.Player.playerModel.findByUsername(playerUsername, function(err, newPlayer){
+
+		if(err || !newPlayer){
+			return res.notFound("player could not be found");
+		}
+
+		models.Session.sessionPlayerModel.findPlayerGamePermission(newPlayer.id, game.id, function(err, player) {
+
+			if(err) {
+				return res.err('an error occurred adding the GM to the game');
+			}
+
+			if(!player) {
+				return res.err('Player could not be found in this game. Please add them to the game first');
+			}
+
+			if(player.isGM === true) {
+				return res.err('Player is already a GM');
+			}
+
+			player.isGM = true;
+
+			player.save(function(err) {
+				if(err) {
+					return res.err('an error occurred adding the GM to the game');
+				}
+
+				res.created(newPlayer.username + " has been promoted to a GM");
+			});
+		});
+	});
+};
+
+var removeGM = function(req, res) {
+	var playerUsername = req.body.username;
+	var game = res.locals.game;
+	
+	if(!playerUsername) {
+		return res.badRequest("A player's username is required");
+	}
+
+	if(playerUsername.toLowerCase() === game.ownerUsername.toLowerCase()) {
+		return res.badRequest("You cannot remove yourself as a GM");
+	}
+
+	models.Player.playerModel.findByUsername(playerUsername, function(err, newPlayer){
+
+		if(err || !newPlayer){
+			return res.notFound("player could not be found");
+		}
+
+		models.Session.sessionPlayerModel.findPlayerGamePermission(newPlayer.id, game.id, function(err, player) {
+
+			if(err) {
+				return res.err('an error occurred adding the GM to the game');
+			}
+
+			if(!player) {
+				return res.err('Player could not be found in this game. Please add them to the game first');
+			}
+
+                        if(player.isGM === false) {
+			  	return res.err('Player is not currently a GM');
+                        }
+
+			player.isGM = false;
+
+			player.save(function(err) {
+				if(err) {
+					return res.err('an error occurred removing the GM from the game');
+				}
+
+				res.created(newPlayer.username + " has been made into a normal player");
+			});
+		});
+	});
+};
+
 var uploadBackground = function(req, res) {
 	res.json('request to upload a background image');
 };
@@ -177,8 +268,10 @@ var removeBackground = function(req, res) {
 	res.json('request to remove a background image');
 };
 
+
 var uploadToken = function(req, res) {
-        if(!(req.files && req.files.assetFile)){
+
+        if(!(req.files && req.files.assetFile && req.body.type)){
 	  return res.badRequest('Only valid image formats are accepted');
         }
 
@@ -192,7 +285,7 @@ var uploadToken = function(req, res) {
           sessionId: res.locals.game.id,
           playerId: req.session.player.id,
           name: req.files.assetFile.name,
-          type: 'token',
+          type: req.body.type,
           publicPath: publicPath
         });
 
@@ -201,21 +294,31 @@ var uploadToken = function(req, res) {
             return res.err('Token failed to upload, please try again');
           }
 
-           async.parallel({
-             main: function(asyncCallback) {
-               utils.uploadModule.uploadAsset(req.files.assetFile, publicPath, asyncCallback);
+           async.parallelRollback({
+             main: {
+               do: function(asyncCallback) { 
+                 utils.uploadModule.uploadAsset(req.files.assetFile, publicPath, asyncCallback);
+               },
+               undo: function(result, asyncCallback) {
+                 utils.uploadModule.removeAsset(publicPath, asyncCallback);
+               }
 	    },/////
-             thumb: function(asyncCallback) {
-               var thumb = new utils.imageModule.Image(req.files.assetFile.path);
-               thumb.resize(config.getConfig().specialConfigs.imageSize.thumb, function(err){
-                 if(err) {
-                   return asyncCallback(err);
-                 }
+             thumb: {
+               do: function(asyncCallback) { 
+                 var thumb = new utils.imageModule.Image(req.files.assetFile.path);
+		 thumb.resize(config.getConfig().specialConfigs.imageSize.thumb, function(err){
+		   if(err) {
+		     return asyncCallback(err);
+		   }
 
-                 thumb.uploadStream(publicPath + config.getConfig().specialConfigs.imageSize.thumb.type, asyncCallback); 
-               });
+		   thumb.uploadStream(publicPath + config.getConfig().specialConfigs.imageSize.thumb.type, asyncCallback); 
+		 });
+               },
+               undo: function(result, asyncCallback) {
+                 utils.uploadModule.removeAsset(publicPath + config.getConfig().specialConfigs.imageSize.thumb.type, asyncCallback); 
+               }
              } 
-           }, function(err) { 
+           }, function(err, results) { 
               if(err) {
                 newToken.remove(function(err) {
                   if(err) {
@@ -226,10 +329,18 @@ var uploadToken = function(req, res) {
                 return res.err(err);  
                }
 
-               res.json('File uploaded to game library');               
+	       res.json({
+                          'url': config.getConfig().specialConfigs.awsUrl + publicPath,
+                          'thumbnail': config.getConfig().specialConfigs.awsUrl + publicPath + config.getConfig().specialConfigs.imageSize.thumb.type,
+                          'type': req.body.type,
+                          'name': req.files.assetFile.name
+                       });
+
+               //res.json('File uploaded to game library');               
            });
         });
 };
+
 
 var removeToken = function(req, res) {
 	if(!req.body.assetFile){
@@ -265,11 +376,29 @@ var loadEvents = function(req, res) {
 	res.json('request to load an event');
 };
 
+var test = function(req, res) {	
+	models.Player.playerModel.findByUsername('test', function(err, player) {
+		if(err) {
+			return res.json("failed to load session");
+		}
+
+		if(!player) {
+			return res.json("failed to load session");
+		}
+
+		req.session.player = player.api();
+                res.render('game2', { url: config.getConfig().liveUrl });
+	});
+};
+
+module.exports.test = test;
 module.exports.joinSessionPage = joinSessionPage;
 module.exports.createSession = createSession;
 module.exports.loadSession = loadSession;
 module.exports.addPlayer = addPlayer;
 module.exports.removePlayer = removePlayer;
+module.exports.addGM = addGM;
+module.exports.removeGM = removeGM;
 module.exports.uploadBackground = uploadBackground;
 module.exports.removeBackground = removeBackground;
 module.exports.uploadToken = uploadToken;

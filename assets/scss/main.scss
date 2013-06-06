@@ -1,0 +1,525 @@
+@import "compass/css3/box-sizing";
+@import "compass/css3/box-shadow";
+@import "compass/css3/border-radius";
+@import "compass/css3/opacity";
+@import "compass/css3/transition";
+@import "compass/utilities/general/clearfix";
+@import "compass/typography/text/force-wrap";
+
+//
+//
+// Variables
+//------------------------------
+$borderColor: #CCC;
+$bgColor: #EAEAEA;
+
+html, body, #Main, .main {
+  height: 100%;
+  color: #555;
+}
+
+body {
+  overflow: hidden;
+}
+input[type="color"] {
+  @include box-shadow(none);
+  border: none;
+  height: 32px;
+  margin: -1px 0 0 0;
+  padding: 0;
+}
+input[type="button"].input-block-level {
+  width: 100%;
+}
+select {
+  margin: 0;
+}
+.canvas-container + .canvas-container {
+  position: absolute;
+  top: -3000px;
+  left: 0;
+  pointer-events: none;
+}
+//
+//
+// Main Styling
+//------------------------------
+//Helps us get a fixed right column with dynamic left column size
+.main {
+  display: table;
+}
+//Make sure everything we want gets the correct box sizing
+.main, .editor, .panel {
+  @include box-sizing(border-box);
+}
+
+//
+//
+// Button Group
+//------------------------------
+.btn-group > .btn-group > .btn.menu-btn {
+  margin-left: 0;
+  @include border-radius(0);
+}
+.btn-group > .btn-group + .btn-group {
+  margin-left: 0;
+  display: block;
+}
+.btn-group > .btn-group:not(:last-child) > .btn.menu-btn{
+  border-bottom: 0;
+}
+.btn-group > .btn-group:last-child > .btn.menu-btn {
+  @include border-bottom-right-radius(4px);
+  @include border-bottom-left-radius(4px);
+}
+.btn-group > .btn-group:first-child > .btn.menu-btn {
+  @include border-top-right-radius(4px);
+  @include border-top-left-radius(4px);
+}
+
+//
+//
+// Form
+//------------------------------
+.form-horizontal {
+  .control-label {
+    text-align: left;
+    width: auto;
+    margin-right: 10px;
+  }
+  .controls {
+    margin-left: 0;
+  }
+
+}
+//
+//
+// File Upload
+//------------------------------
+.file-upload {
+  position: relative;
+  overflow: hidden;
+  input[type="file"] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+}
+//
+//
+// Icons
+//------------------------------
+
+//
+//
+// Editor
+//------------------------------
+.canvas-container {
+  margin: 100px;
+  padding-right: 100px; //Damned if we can't get a margin right up in here
+}
+.editor {
+  position: relative;
+  display: table-cell;
+  border-spacing: 0; 
+  vertical-align: top;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: transparent url('../images/mooning.png');
+  .canvas-wrapper {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    max-height: 100%;
+    max-width: 100%;
+    overflow: auto;
+    .overlay {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      &.zoom-in {
+        cursor: url('../images/zoomIn.png'), auto;
+      }
+      &.zoom-out {
+        cursor: url('../images/zoomOut.png'), auto;
+      }
+    }
+  }
+  .commands {
+    position: absolute;
+    z-index: 2;
+    top: 30px;
+    left: 30px;
+    .btn-group {
+      > .btn {
+        width: 15px;
+      }
+      position: relative;
+      &.has-sub-menu:after {
+        content: "";
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        width: 0px;
+        height: 0px;
+        border-style: solid;
+        border-width: 0 0 7px 7px;
+        border-color: transparent transparent #666 transparent;
+        z-index: 400;
+      }
+    }
+    .dropdown-menu {
+      top: 0;
+      left: 100%;
+    }
+  }
+  .sub-menu {
+    @include box-shadow(0 1px 2px rgba(0,0,0,.15));
+    @include border-radius(2px);
+    position: absolute;
+    z-index: 2;
+    top: 30px;
+    left: 80px;
+    background-color: white;
+    padding: 5px;
+    display: none;
+    > p {
+      float: left;
+      margin: 0px 3px;
+    }
+    &[data-type="free"] .fill{
+      display: none;
+    }
+    &.open {
+      display: block;
+      @include opacity(1);
+    }
+  }
+  .grid-label {
+    @include box-shadow(0 1px 2px rgba(0,0,0,.15));
+    @include opacity(0.6);
+    @include transition(opacity 0.3s ease);
+    @include border-radius(2px);
+    position: absolute;
+    z-index: 2;
+    right: 35px;
+    bottom: 35px;
+    padding: 10px;
+    background-color: white;
+    cursor: default;
+    &:hover {
+      @include opacity(1);
+    }
+  }
+}
+
+//
+//
+// Side Panel
+//------------------------------
+$sidePanelWidth: 340px;
+.nav, .chat, .message-wrapper, .input, .objects, .settings, .tr {
+  display: table-row;
+  border-collapse: collapse;
+  width: 100%;
+  height: 100%;
+}
+.panel, .content {
+  display: table;
+  width: 100%;
+  height: 100%;
+}
+.content {
+  max-height: 100%;
+}
+.tr-flow {
+  height: auto;
+}
+.clear {
+  cursor: pointer;
+}
+.panel {
+  @include box-shadow(0 2px 6px rgba(0,0,0,.2));
+  position: relative;
+  overflow: hidden;
+  width: $sidePanelWidth;
+  float: right;
+  z-index: 1;
+  .nav {
+    height: auto;
+    ol {
+      @include box-sizing(border-box);
+      margin-bottom: 0;
+      padding: 10px;
+      background-color: $bgColor;
+      border-bottom: 1px solid $borderColor;
+      li {
+        @include box-sizing(border-box);
+        padding: 5px 10px;
+        cursor: pointer;
+        text-align: center;
+        width: 32%;
+        b {
+          margin-right: 4px;
+        }
+      }
+    }
+      
+  }//END .nav
+  .chat {
+    background-color: $bgColor;
+    .messages {
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    .message {
+      @include box-sizing(border-box);
+      @include border-radius(2px);
+      @include box-shadow(0 1px 2px rgba(0,0,0,.15));
+      @include clearfix();
+      @include transition(left 0.3s ease);
+      position: relative;
+      background-color: #FFF;
+      margin: 10px;
+      padding: 10px;
+      left: 0;
+      word-wrap: break-word;
+      word-break: break-word;
+      max-width: 100%;
+      &.active {
+        left: -120%;
+      }
+      .username, .text{
+        display: inline-block;
+      }
+      .username {
+        float: left;
+        font-weight: bold;
+        margin-right: 4px;
+        &:after {
+          content: ":";
+        }
+      }
+    }// END .message
+    .input {
+      background-color: #FFF;
+      border-top: 1px solid $borderColor;
+      .textarea {
+        @include box-sizing(border-box);
+        padding: 10px;
+        width: 100%;
+        textarea {
+          @include box-shadow(none);
+          margin-bottom: 0;
+          max-height: 85px;
+          border: none;
+          resize: none; 
+          &:focus {
+
+          }
+        }
+      }
+    }// END .input
+  }// END .chat
+  .objects {
+    display: none;
+    .object-wrapper {
+      height: 100%;
+      max-height: 100%;
+      overflow: auto;
+    }
+    .search {
+      @include transition(padding 0.3s ease);
+      position: relative;
+      padding: 5px 10px 5px 35px;
+      border-bottom: 1px solid $borderColor;
+      &.focus {
+        padding-left: 10px;
+        label {
+          left: -18px;
+        }
+        .target {
+          right: -50%;
+        }
+        .clear {
+          @include opacity(1);
+          @include transition(opacity .3s ease .3s);
+        }
+      }
+      .input {
+        border: none;
+        @include box-shadow(none);
+        margin-bottom: 0;
+      }
+      label {
+        @include transition(left 0.3s ease);
+        position: absolute;
+        top: 9px;
+        left: 12px;
+        font-size: 17px;
+      }
+      .clear {
+        @include opacity(0);
+        @include transition(opacity .2s ease 0s);
+        position: absolute;
+        right: 10px;
+        top: 0;
+        line-height: 40px;
+        cursor: pointer;
+      }
+      .target {
+        @include transition(right 0.3s ease);
+        position: absolute;
+        top: 0;
+        right: 0;
+        height: 100%;
+        padding: 10px;
+        .dropdown-toggle {
+          cursor: pointer;
+        }
+      }
+    }
+    .object-list {
+      ol {
+        margin-bottom: 0;
+        
+      }
+    }// END object list
+    .upload {
+      @include box-sizing(border-box);
+      @include clearfix();
+      padding: 10px;
+      border-top: 1px solid $borderColor;
+      width: 100%;
+      line-height: 28px;
+      overflow: visible;
+      .select-file {
+        @include transition(margin-top 0.3s ease);
+        &.selected {
+          display: none;
+          & ~ div {
+            display: block;
+          }
+        }
+      }
+      .file-selected {
+        display: none;
+      }
+      .filename {
+        @include force-wrap();
+      }
+      .dropdown-toggle {
+        cursor: pointer;
+      }
+      .dropdown-menu {
+        bottom: 100%;
+        top: auto;
+      }
+    }
+  }//END .objects
+  .settings {
+    display: none;
+    .control-pane {
+      padding: 10px;
+    }
+    .actions {
+      @include box-sizing(border-box);
+      padding: 15px 10px;
+      background-color: $bgColor;
+      border-top: 1px solid $borderColor;
+      .btn {
+        width: 49%;
+        &.btn-primary {
+          width: 50%;
+        }
+      }
+    }
+  }
+}
+.object {
+  @include clearfix();
+  @include transition(background-color 0.3s ease);
+  list-style: none;
+  position: relative;
+  padding: 10px;
+  cursor: move;
+  background-color: #FFF;
+  border-bottom: 1px solid $borderColor;
+  overflow: visible;
+  .preview {
+    height: 50px;
+    width: 50px;
+    float: left;
+    border: 1px solid $borderColor;
+    margin-right: 10px;
+    text-align: center;
+    img{ 
+      max-height: 100%
+    }
+  }
+  p {
+    margin-bottom: 5px;
+  }
+  &:hover {
+    background-color: lighten($bgColor,5%);
+    .menu {
+      display: block;
+    }
+  }
+  .menu {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: auto;
+    display: none;
+    .dropdown-toggle {
+      cursor: pointer;
+      color: $borderColor;
+      &:hover {
+        color: inherit;
+      }
+    }
+  }
+  .tmp {
+    clear: both;
+    margin: 15px 0 0 0;
+  }
+  &.ui-draggable-dragging {
+    width: $sidePanelWidth;
+    border: 1px solid $borderColor;
+    z-index: 10;
+    .menu {
+      display: none;
+    }
+  }
+}
+
+//
+//
+// Editor
+//------------------------------
+.context-menu {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+//
+//
+// Media Queries
+//------------------------------
+//Table on down
+@media (max-width: 767px) {
+  body {
+    padding: 0;
+  }
+}
