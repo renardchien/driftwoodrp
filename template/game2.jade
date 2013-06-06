@@ -237,6 +237,11 @@ html(lang='en')
         script(src='/scripts/libs/colorpicker/js/colorpicker.js')
         script(src='/scripts/libs/colorpicker/js/eye.js')
         script(src='/scripts/libs/colorpicker/js/utils.js')
+        script(src='/socket.io/socket.io.js')
+        script
+          var liveUrl = "#{url}";
+          var gamename = "#{game.name}";
+          var owner = "#{game.ownerUsername}";
         script(src='/scripts/app.js')
       script#commandMenuTemplate(type='text/template')
         <div class="commands btn-group btn-group-vertical" data-toggle="buttons-radio">

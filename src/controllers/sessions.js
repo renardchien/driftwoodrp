@@ -28,6 +28,7 @@ var config = require('../config.js');
 var xxhash = require('xxhash');
 var log = config.getLogger();
 var utils = require('../utils');
+var sockets = require('../sockets.js');
 
 var joinSessionPage = function(req, res) {
 	var player = res.locals.player;
@@ -329,6 +330,13 @@ var uploadToken = function(req, res) {
                 return res.err(err);  
                }
 
+               sockets.updateSessionLibrary(res.locals.game.name + "/" + res.locals.game.ownerUsername, {
+                          'url': config.getConfig().specialConfigs.awsUrl + publicPath,
+                          'thumbnail': config.getConfig().specialConfigs.awsUrl + publicPath + config.getConfig().specialConfigs.imageSize.thumb.type,
+                          'type': req.body.type,
+                          'name': req.files.assetFile.name
+                       });
+
 	       res.json({
                           'url': config.getConfig().specialConfigs.awsUrl + publicPath,
                           'thumbnail': config.getConfig().specialConfigs.awsUrl + publicPath + config.getConfig().specialConfigs.imageSize.thumb.type,
@@ -387,7 +395,20 @@ var test = function(req, res) {
 		}
 
 		req.session.player = player.api();
-                res.render('game2', { url: config.getConfig().liveUrl });
+
+                var game;
+
+		models.Session.sessionModel.findByNameOwner('test', 'test', function(err, doc) {
+			if(err) {
+				return next(err);
+			}
+
+			if(!doc) {
+				return res.json('game was not found');
+			}
+
+			res.render('game2', { url: config.getConfig().liveUrl, game: doc });
+		});
 	});
 };
 

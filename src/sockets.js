@@ -20,74 +20,61 @@ under the License.
 var middleware = require('./middleware');
 var controllers = require('./controllers');
 
-var configureSockets = function(io) {
+var io;
+
+var configureSockets = function(socketio) {
+        io = socketio;
         io.sockets.on('connection', function(socket) {
 
-	socket.on('join', function(data) {
+		socket.on('join', function(data) {
 
-		middleware.findGame(data.gameName, data.owner, function(err, game) {
-			if(err) {
-				return socket.disconnect(err);
-			}
-
-			if(!game) {
-				return socket.disconnect('game was not found');
-			}
-
-			middleware.getPermission(socket.handshake.session.player.id, game.id, function(err, doc) {
+			middleware.findGame(data.gameName, data.owner, function(err, game) {
 				if(err) {
 					return socket.disconnect(err);
 				}
-				if(!doc) {
-					return socket.disconnect('Not authorized');
+
+				if(!game) {
+					return socket.disconnect('game was not found');
 				}
+
+				middleware.getPermission(socket.handshake.session.player.id, game.id, function(err, doc) {
+					if(err) {
+						return socket.disconnect(err);
+					}
+					if(!doc) {
+						return socket.disconnect('Not authorized');
+					}
+				});
+
+				socket.join(data.gameName + "/" + data.owner);
+
+				socket.room = data.gameName + "/" + data.owner;
+
+				socket.emit('joined', 'joined');
 			});
 
-			socket.join(data.gameName + "/" + data.owner);
-
-			socket.room = data.gameName + "/" + data.owner;
-
-			socket.emit('joined', 'joined');
 		});
 
-	});
 
-        socket.on('newUpload', function(data) {
-           	if(!socket.room) {
-                	socket.emit('error', 'Not Connected to a game');
-                }
+		socket.on('chat', function(data) {
 
-		socket.emit('newUpload', data);
-        });
+			if(!socket.room) {
+				socket.emit('error', 'Not connected to a game');
+			}
 
-        socket.on('hideToken', function(data) {
-		if(!socket.room) {
-			socket.emit('error', 'Not Connected to a game');
-		}
-        });
+			io.sockets.in(socket.room).emit('chat', data);
+		});
 
-	socket.on('chat', function(data) {
-
-		if(!socket.room) {
-			socket.emit('error', 'Not connected to a game');
-		}
-
-		io.sockets.in(socket.room).emit('chat', data);
-        });
-
-        socket.on('uploadToken', function(data) {
-	        if(!socket.room) {
-			socket.emit('error', 'Not connected to a game');
-                }
- 
-                console.log(data);
-        });
-
-	socket.on('disconnect', function(data) {
-		socket.leave(socket.room);
-        });
-});
+		socket.on('disconnect', function(data) {
+			socket.leave(socket.room);
+		});
+     });
 };
+
+var updateSessionLibrary = function(room, message) {
+  io.sockets.in(room).emit('sessionLibraryUpdate', message);
+}
 
 
 module.exports.configureSockets = configureSockets;
+module.exports.updateSessionLibrary = updateSessionLibrary;

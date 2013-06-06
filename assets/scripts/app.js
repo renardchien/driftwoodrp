@@ -10,6 +10,43 @@ $(document).ready(function() {
       $window = $(window),
       $body = $('body');
 
+    /**
+     * Socket data. This sets up the socket connection and the functions that it handles
+     *
+     */
+   
+    //liveUrl, gamename and owner are all defined dynamically in game2.jade (which is the html you wrote)
+    var socket = io.connect(liveUrl); 
+
+    //tells the socket to connect
+    socket.on('connect', function() {
+      console.log('joining');
+      socket.emit('join', { 'gameName': gamename, 'owner': owner });
+    });
+   
+    socket.on('joined', function() {
+      //What to do after successully joining a game
+      console.log('joined successfully');
+    });
+
+    socket.on('chat', function(data) {
+      //what to do when receiving a chat message
+    });
+
+    socket.on('sessionLibraryUpdate', function(data) {
+      //what to do when receiving a new list of objects to display in the session library
+    });
+
+    //this could actually be any function. They just need to emit to the socket like shown inside of the function
+    function sendMessage(message ) {
+        //emit a chat message
+        socket.emit('chat', message);
+    }
+
+  /********************END SOCKET DATA *****************************/
+  /*****************************************************************/
+   
+
   /**
    * Core engine. Creates instances of all our sub controllers
    * and listens for major events to pass along to the correct

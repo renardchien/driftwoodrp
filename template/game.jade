@@ -39,6 +39,11 @@ block body
       input(type='hidden', name='_csrf', value='#{session._csrf}')      
       label(for='assetFile') Choose File
       input(id='assetFile',type='file', accept='image/*', name='assetFile')
+      label(for='type') Type
+      select(name='type')
+        option(value='token') Token
+        option(value='map') Map
+        option(value='item') Item
       input(id='uploadAssetSubmit',type='submit',value='Upload',name='uploadAssetSubmit')
   div#game
     #{game}
@@ -64,6 +69,7 @@ block body
     });
 
     socket.on('chat', function(data) {
+      console.log(data);
       var childText = document.createElement('div');
       var text = document.createTextNode(data);
       childText.appendChild(text);
