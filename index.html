@@ -32,61 +32,7 @@
     <!-- Editor -->
     <section class="editor">
       <!-- Command Pallet -->
-      <div class="commands btn-group btn-group-vertical" data-toggle="buttons-radio">
-        <div class="btn-group command move-pan">
-          <span class="btn menu-btn active" data-cmd="selectCanvas">
-            <b class="icon-hand-up"></b> 
-          </span>
-        </div>
-        <div class="btn-group command has-sub-menu layer-commands">
-          <span class="btn menu-btn" data-cmd="switchLayer" data-cmd-value="map_layer">
-            <b class="icon-picture"></b> 
-          </span>
-          <ul class="dropdown-menu layer-menu">
-            <li data-cmd="switchLayer" data-cmd-value="map_layer"><a href="#"><b class="icon-picture"></b> Map Layer</a></li>
-            <li data-cmd="switchLayer" data-cmd-value="object_layer"><a href="#"><b class="icon-pushpin"></b> Object Layer</a></li>
-            <li data-cmd="switchLayer" data-cmd-value="gm_layer"><a href="#"><b class="icon-user"></b> GM Layer</a></li>
-          </ul>
-        </div>
-        <div class="btn-group has-sub-menu draw-menu command">
-          <span class="btn menu-btn" data-cmd="draw" data-cmd-value="free">
-            <b class="icon-pencil"></b> 
-          </span>
-          <ul class="dropdown-menu">
-            <li data-cmd="draw" data-cmd-value="free"><a href="#"><b class="icon-pencil"></b> Free Draw</a></li>
-            <li data-cmd="draw" data-cmd-value="rectangle"><a href="#"><b class="icon-sign-blank"></b> Rectangle</a></li>
-            <li data-cmd="draw" data-cmd-value="circle"><a href="#"><b class="icon-circle"></b> Circle</a></li>
-          </ul>
-        </div>
-        <div class="btn-group has-sub-menu command">
-          <span class="btn menu-btn" data-cmd="zoomIn">
-            <b class="icon-zoom-in"></b> 
-          </span>
-          <ul class="dropdown-menu">
-            <li data-cmd="zoomIn"><a href="#"><b class="icon-zoom-in"></b> Zoom In</a></li>
-            <li data-cmd="zoomOut"><a href="#"><b class="icon-zoom-out"></b> Zoom Out</a></li>
-          </ul>
-        </div>
-      </div>
-      <div class="sub-menu free-draw">
-        <p>
-          <strong>Stroke</strong> <br />
-          <input type="color" class="span1 freeDrawStroke" />
-        </p>
-        <p class="fill">
-          <strong>Fill</strong> <br />
-          <input type="color" class="span1 freeDrawFill" />
-        </p>
-        <p>
-          <strong>Border</strong> <br />
-          <select class="span2 freeDrawStrokeWidth">
-            <option value="1">Small</option>
-            <option value="2">Medium</option>
-            <option value="3">Large</option>
-            <option value="4">Extra Large</option>
-          </select>
-        </p>
-      </div>
+      
       <div class="grid-label">
         <span class="size-label">1 block</span> = <span class="unit-label"></span>
       </div>
@@ -393,6 +339,77 @@
     <script src="assets/scripts/libs/colorpicker/js/utils.js"></script>
     <script src="assets/scripts/app.js"></script>
   </div>
+  <script type="text/template" id="commandMenuTemplate">
+    <div class="commands btn-group btn-group-vertical" data-toggle="buttons-radio">
+      <div class="btn-group command move-pan">
+        <span class="btn menu-btn active" data-cmd="selectCanvas">
+          <b class="icon-hand-up"></b> 
+        </span>
+      </div>
+      <div class="btn-group command has-sub-menu layer-commands">
+        <span class="btn menu-btn" data-cmd="switchLayer" data-cmd-value="map_layer">
+          <b class="icon-picture"></b> 
+        </span>
+        <ul class="dropdown-menu layer-menu">
+          <li data-cmd="switchLayer" data-cmd-value="map_layer"><a href="#"><b class="icon-picture"></b> Map Layer</a></li>
+          <li data-cmd="switchLayer" data-cmd-value="object_layer"><a href="#"><b class="icon-pushpin"></b> Object Layer</a></li>
+          <% if( gmLayer ) { %>
+          <li data-cmd="switchLayer" data-cmd-value="gm_layer"><a href="#"><b class="icon-user"></b> GM Layer</a></li>
+          <% } %>
+        </ul>
+      </div>
+      <div class="btn-group has-sub-menu draw-menu command">
+        <span class="btn menu-btn" data-cmd="draw" data-cmd-value="free">
+          <b class="icon-pencil"></b> 
+        </span>
+        <ul class="dropdown-menu">
+          <li data-cmd="draw" data-cmd-value="free"><a href="#"><b class="icon-pencil"></b> Free Draw</a></li>
+          <li data-cmd="draw" data-cmd-value="rectangle"><a href="#"><b class="icon-sign-blank"></b> Rectangle</a></li>
+          <li data-cmd="draw" data-cmd-value="circle"><a href="#"><b class="icon-circle"></b> Circle</a></li>
+        </ul>
+      </div>
+      <% if( fog ) { %>
+      <div class="btn-group has-sub-menu draw-menu command">
+        <span class="btn menu-btn" data-cmd="fog" data-cmd-value="reveal">
+          <b class="icon-eye-open"></b> 
+        </span>
+        <ul class="dropdown-menu">
+          <li data-cmd="fog" data-cmd-value="reveal"><a href="#"><b class="icon-eye-open"></b> Reveal Area</a></li>
+          <li data-cmd="fog" data-cmd-value="hide"><a href="#"><b class="icon-eye-close"></b> Hide Area</a></li>
+          <li data-cmd="fog" data-cmd-value="reset"><a href="#"><b class="icon-refresh"></b> Reset Fog</a></li>
+        </ul>
+      </div>
+      <% } %>
+      <div class="btn-group has-sub-menu command">
+        <span class="btn menu-btn" data-cmd="zoomIn">
+          <b class="icon-zoom-in"></b> 
+        </span>
+        <ul class="dropdown-menu">
+          <li data-cmd="zoomIn"><a href="#"><b class="icon-zoom-in"></b> Zoom In</a></li>
+          <li data-cmd="zoomOut"><a href="#"><b class="icon-zoom-out"></b> Zoom Out</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="sub-menu free-draw">
+      <p>
+        <strong>Stroke</strong> <br />
+        <input type="color" class="span1 freeDrawStroke" />
+      </p>
+      <p class="fill">
+        <strong>Fill</strong> <br />
+        <input type="color" class="span1 freeDrawFill" />
+      </p>
+      <p>
+        <strong>Border</strong> <br />
+        <select class="span2 freeDrawStrokeWidth">
+          <option value="1">Small</option>
+          <option value="2">Medium</option>
+          <option value="3">Large</option>
+          <option value="4">Extra Large</option>
+        </select>
+      </p>
+    </div>
+  </script>
   <script type="text/template" id="contextMenuTemplate">
   <ul class="context-menu dropdown-menu">
     <% if( menu.copy ) { %>
@@ -426,7 +443,9 @@
       <ul class="dropdown-menu">
         <li data-cmd="switchObjectLayer" data-cmd-value="map_layer"><a href="#"><b class="icon-picture"></b> Map Layer</a></li>
         <li data-cmd="switchObjectLayer" data-cmd-value="object_layer"><a href="#"><b class="icon-pushpin"></b> Object Layer</a></li>
+        <% if( menu.gmLayer ) { %>
         <li data-cmd="switchObjectLayer" data-cmd-value="gm_layer"><a href="#"><b class="icon-user"></b> GM Layer</a></li>
+        <% } %>
       </ul>
     </li>
     <% } %>

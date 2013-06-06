@@ -25,9 +25,10 @@ $(document).ready(function() {
     default: {
       canvasHeight: 3000,
       canvasWidth: 3000,
+      enableFog: false,
       initialLayer: 'object_layer',
       editorColor: '#EAEAEA',
-      grid:true,
+      grid: true,
       gridSize: 100,
       gridUnit: '5 ft',
       gridColor: '#777777',
@@ -42,37 +43,40 @@ $(document).ready(function() {
       this.settings = $.extend(this.default,this.options);
       //Bind everything
       _.bindAll(this, 'render');
-      //Add our event listeners
-      this.addEventListeners();
+      
     },
 
     run: function() {
-      this.Chat = new Chat();
-      this.Commands = new Commands();
-      this.ObjectList = new ObjectList();
-
-      this.CanvasManager = new CanvasManager({
+      //Create our current player
+      this.player = new Player({type:'gm'});
+      //Create chat
+      this.chat = new Chat();
+      //Make sure we have a command list
+      this.commands = new Commands();
+      //Uploaded object/draggable object list
+      this.objects = new ObjectList();
+      //All interactions with the canvas
+      this.canvas = new CanvasManager({
         canvasHeight: this.settings.canvasHeight,
         canvasWidth: this.settings.canvasWidth
       });
+      //Fog
+      this.fog = new Fog({mainCanvas: this.canvas});
+
+      //Add our event listeners
+      this.addEventListeners();
 
       //Run intial layer
-      this.Commands.runInitialCommand();
+      this.commands.runInitialCommand();
       //Set initial layer
-      $body.find('.commands .layer-menu [data-cmd-value="'+this.settings.initialLayer+'"]').trigger('click');
+      this.setInitialLayer();
       //Update our intial settings
       this.updateSettings(this.settings);
       //Update UI
-      this.$editorColor.val(this.settings.editorColor);
-      this.$gridColor.val(this.settings.gridColor);
-      this.$gridSize.val(this.settings.gridSize);
-      this.$freeDrawStroke.val(this.settings.freeDrawColor);
-      this.$freeDrawFill.val(this.settings.freeDrawFill);
-      this.$freeDrawStrokeWidth.find('option[value="'+this.settings.freeDrawWidth+'"]').prop('selected',true);
+      this.setUI();
       //Move canvas to center
-      //FIXME: Doesn't quite work
-      this.$canvasWrapper[0].scrollLeft = this.$canvasWrapper.offset().top + (this.$canvasWrapper.find('.canvas-container').height()/2);
-      this.$canvasWrapper[0].scrollTop = this.$canvasWrapper.offset().left + (this.$canvasWrapper.find('.canvas-container').width()/2);
+      this.canvas.center();
+      //this.canvas.enableFog();
     },
 
     addEventListeners: function() {
@@ -85,6 +89,7 @@ $(document).ready(function() {
       this.$canvasWrapper = $body.find('.canvas-wrapper');
       this.$editorColor = $body.find('.editor-color');
       this.$editor = $body.find('.editor');
+      this.$subMenus = $body.find('.sub-menu');
       this.$freeDrawMenu = $body.find('.sub-menu.free-draw');
       this.$freeDrawStrokeWidth = this.$freeDrawMenu.find('.freeDrawStrokeWidth');
 
@@ -164,7 +169,7 @@ $(document).ready(function() {
           var color = '#' + hex;
           this.$freeDrawStroke.val(color);
           this.settings.freeDrawColor = color;
-          this.CanvasManager.setFreeDraw();
+          this.canvas.setFreeDraw();
         }, this )
       });
       //Free draw fill color
@@ -180,13 +185,13 @@ $(document).ready(function() {
           var color = '#' + hex;
           this.$freeDrawFill.val(color);
           this.settings.freeDrawFill = color;
-          this.CanvasManager.setFreeDraw();
+          this.canvas.setFreeDraw();
         }, this )
       });
       //Free draw stroke width
       $body.on('change','.freeDrawStrokeWidth', _.bind( function() {
         this.settings.freeDrawWidth = parseInt(this.$freeDrawStrokeWidth.val());
-        this.CanvasManager.setFreeDraw();
+        this.canvas.setFreeDraw();
       }, this ) );
 
       //Allows the objects to be droppable on the canvas
@@ -204,7 +209,7 @@ $(document).ready(function() {
           //and trigger a load image on the canvas
           if( url !== '' ) {
             ui.draggable.find(':text').val('');
-            this.CanvasManager.trigger('loadImage',{url:url,type:type},event);
+            this.canvas.trigger('loadImage',{url:url,type:type},event);
           }
           
         }, this )
@@ -259,28 +264,37 @@ $(document).ready(function() {
       }, this ) );
     },
 
+    /**
+     * Updates settings and initiates the proper changes
+     */
     updateSettings: function( settings ) {
       //Turn grid on
       if( settings.hasOwnProperty('grid') && settings.grid ) {
-        this.CanvasManager.setGrid(this.settings.gridSize,this.settings.gridColor);
+        this.canvas.setGrid(this.settings.gridSize,this.settings.gridColor);
       }
       //Turn grid off
       if( settings.hasOwnProperty('grid') && ! settings.grid ) {
-        this.CanvasManager.clearLayer('grid_layer');
+        this.canvas.clearLayer('grid_layer');
       }
       //Change grid color
       if( settings.hasOwnProperty('gridColor') ) {
-        this.CanvasManager.setGridColor(settings.gridColor);
+        this.canvas.setGridColor(settings.gridColor);
       }
       //Change grid size
       if( settings.hasOwnProperty('gridSize') ) {
-        this.CanvasManager.setGrid(settings.gridSize,this.settings.gridColor);
+        this.canvas.setGrid(settings.gridSize,this.settings.gridColor);
       }
-      
       //Change background color
       if( settings.hasOwnProperty('editorColor') ) {
-        this.CanvasManager.canvas.backgroundColor = settings.editorColor;
-        this.CanvasManager.canvas.renderAll();
+        this.canvas.canvas.backgroundColor = settings.editorColor;
+        this.canvas.canvas.renderAll();
+      }
+      if( settings.hasOwnProperty('enableFog') ) {
+        if( settings.enableFog ) {
+          this.fog.enable();
+        } else {
+          this.fog.disable();
+        }
       }
       //Update our settings object
       this.settings = $.extend(this.settings,settings);
@@ -291,19 +305,53 @@ $(document).ready(function() {
       }
     },
 
+    /**
+     * Hides all the sub menus and shows the sub menu with a given
+     * class (or selector). Also sets the data type attribute
+     * with the passed in option
+     */
     showSubMenu: function(menu,option) {
-      $body.find('.sub-menu').hide();
+      this.$subMenus.hide();
       $body.find('.sub-menu'+menu).show().attr('data-type',option);
     },
 
+    //Finds the menu item with the initial layer and triggers a click on it,
+    //which then trigger an action to set the actual canvas
+    setInitialLayer: function() {
+       $body.find('.commands .layer-menu [data-cmd-value="'+this.settings.initialLayer+'"]').trigger('click');
+    },
+
+    /**
+     * Sets UI items with our given settings
+     */
+    setUI: function() {
+      this.$editorColor.val(this.settings.editorColor);
+      this.$gridColor.val(this.settings.gridColor);
+      this.$gridSize.val(this.settings.gridSize);
+      this.$freeDrawStroke.val(this.settings.freeDrawColor);
+      this.$freeDrawFill.val(this.settings.freeDrawFill);
+      this.$freeDrawStrokeWidth.find('option[value="'+this.settings.freeDrawWidth+'"]').prop('selected',true);
+    },
+
+    /**
+     * Updates the grid label with a unit.
+     *
+     * 1 block = unit
+     */
     updateGridLabel: function(unit) {
       this.$gridLabel.find('.unit-label').html(unit);
     },
 
+    /**
+     * Activation helper for UI elements.
+     *
+     * data-activate - what do we want to activate
+     * data-target - what element do we want to affect
+     */
     dataActivate: function( object ) {
       var $object = $(object),
-          activate = $object.data('activate'),
-          target = $object.data('target'),
+          activate = $object.attr('data-activate'),
+          target = $object.attr('data-target'),
           $target = $body.find(target),
           $value = $object.attr('value') ? $object.attr('value') : $object.html();
 
@@ -326,6 +374,91 @@ $(document).ready(function() {
     },
  
   } );
+
+  /**
+   * Fog
+   *
+   * Maintains the fog view.
+   *
+   * At the moment this requires us to create a third canvas with pointer-events: none
+   * over top of the other canvas's. This is because I can't figure out how to cover the 
+   * Fabric canvas (with say a rectangle), and then clip pieces out of it without clipping
+   * down the entire canvas. Probably has something to do with context.save() and context.restore(),
+   * but I can't get it to work.
+   *
+   * TODO: CanvasManager will draw a rectangle on the canvas that will retrieves coordinates/size,
+   * remove the rectangle, and send this view the points. This view will then clip out that rectangle
+   * or reveal that area.
+   *
+   * TODO: Save clipped/revealed points
+   *
+   * TODO: More then rectangles?
+   */
+  Fog = Backbone.View.extend( {
+
+    initialize: function(options) {
+      _.bindAll(this,'render');
+      //Add event listeners
+      //this.addEventListeners();
+      this.$canvasContainer = $body.find('.canvas-container');
+    },
+
+    enable: function() {
+      //If the canvas doesn't already exist, create a third canvas with no pointer events
+      if( ! this.canvas ) {
+        this.$canvasContainer.append($('<canvas id="fogCanvas" style="position:absolute;left:0;top:0;pointer-events:none;"></canvas>'));
+        this.canvas = this.$canvasContainer.find('#fogCanvas');
+        this.canvas.attr( {
+          width: driftwood.engine.settings.canvasWidth,
+          height: driftwood.engine.settings.canvasHeight
+        } );
+        this.context = this.canvas[0].getContext('2d');
+      }
+
+      this.reset();
+      //this.context.save();
+      //TMP
+      this.reveal();
+      //this.reset();
+    },
+
+    //Simply hide the fog canvas
+    disable: function() {
+      if( this.canvas) {
+        this.canvas.hide();
+      }
+    },
+
+    /**
+     * Resets the fog layer to be it's full, unrevealed state.
+     *
+     * FIXME: Doesn't actually reset it at the moment...
+     * @access public
+     * @return {[type]}
+     */
+    reset: function() {
+      //this.context.restore();
+      //Fills the entire canvas with a fog
+      this.context.globalCompositeOperation = 'source-over';
+      this.context.beginPath();
+      this.context.fillStyle = "rgba(0,0,0,"+(driftwood.engine.player.isGM() ? '0.3' : '1')+")";
+      this.context.fillRect(0,0,this.canvas.width(),this.canvas.height());
+      this.context.fill();
+    },
+
+    /**
+     * Reveals an area of the fog.
+     *
+     * FIXME: At the moment this just gets rid of a set rectangle.
+     */
+    reveal: function() {
+      this.context.globalCompositeOperation = 'destination-out';
+      this.context.beginPath();
+      this.context.fillStyle = "rgb(0,0,0)";
+      this.context.fillRect(100,100,150,250);
+      this.context.fill();
+    }
+  });
 
   /**
    * Object List
@@ -514,6 +647,7 @@ $(document).ready(function() {
         this.menuOptions.move_to_front = true;
         this.menuOptions.move_to_back = true;
         this.menuOptions.switch_layer = true;
+        this.menuOptions.gmLayer = driftwood.engine.player.isGM();
       } else if( this.copied ) {
         this.menuOptions.paste = true;
       } else {
@@ -618,7 +752,10 @@ $(document).ready(function() {
    */
   Commands = Backbone.View.extend( {
     // Container element
-    el: $('.editor .commands'),
+    el: $('.editor'),
+
+    //Grab the template from the page
+    template: _.template($('#commandMenuTemplate').html()),
 
     subMenuDelay: 500,
 
@@ -628,7 +765,16 @@ $(document).ready(function() {
       _.bindAll(this,'render');
       //Add event listeners
       this.addEventListeners();
+      //Render our menu
+      this.render();
     },
+    render: function() {
+      $(this.el).prepend(this.template({
+        fog: driftwood.engine.settings.enableFog,
+        gmLayer: driftwood.engine.player.isGM()
+      }));
+    },
+
     addEventListeners: function() {
       var scope = this;
       //Switches the active icon when a dropdown option is selected
@@ -695,7 +841,7 @@ $(document).ready(function() {
      * off an event. The engine controller should be listening for
      * command events and do the routing to the correct subcontroller
      * (decouples this view from everything else. right now it's dependant
-     * on driftwood.engine.CanvasManager)
+     * on driftwood.engine.canvas)
      */
     //controller neds it
     doCommand: function(command,value) {
@@ -703,46 +849,46 @@ $(document).ready(function() {
 
       switch(command) {
         case 'moveCanvas' :
-          driftwood.engine.CanvasManager.trigger('moveCanvas',value);
+          driftwood.engine.canvas.trigger('moveCanvas',value);
           break;
         case 'selectCanvas' :
-          driftwood.engine.CanvasManager.trigger('selectCanvas',value);
+          driftwood.engine.canvas.trigger('selectCanvas',value);
           break;
         case 'draw' :
-          driftwood.engine.CanvasManager.trigger('draw',value);
+          driftwood.engine.canvas.trigger('draw',value);
           break;
         case 'switchLayer' :
-          driftwood.engine.CanvasManager.trigger('switchLayer',value);
+          driftwood.engine.canvas.trigger('switchLayer',value);
           break;
         case 'zoomIn':
-          driftwood.engine.CanvasManager.trigger('zoomIn');
+          driftwood.engine.canvas.trigger('zoomIn');
           break;
         case 'zoomOut':
-          driftwood.engine.CanvasManager.trigger('zoomOut');
+          driftwood.engine.canvas.trigger('zoomOut');
           break;
         case 'copy':
-          driftwood.engine.CanvasManager.trigger('copy');
+          driftwood.engine.canvas.trigger('copy');
           break;
         case 'cut':
-          driftwood.engine.CanvasManager.trigger('cut');
+          driftwood.engine.canvas.trigger('cut');
           break;
         case 'paste':
-          driftwood.engine.CanvasManager.trigger('paste');
+          driftwood.engine.canvas.trigger('paste');
           break;
         case 'delete':
-          driftwood.engine.CanvasManager.trigger('delete');
+          driftwood.engine.canvas.trigger('delete');
           break;
         case 'lock':
-          driftwood.engine.CanvasManager.trigger('lockObject');
+          driftwood.engine.canvas.trigger('lockObject');
           break;
         case 'unlock':
-          driftwood.engine.CanvasManager.trigger('unlockObject');
+          driftwood.engine.canvas.trigger('unlockObject');
           break;
         case 'moveObject':
-          driftwood.engine.CanvasManager.trigger('moveObject',value);
+          driftwood.engine.canvas.trigger('moveObject',value);
           break;
         case 'switchObjectLayer':
-          driftwood.engine.CanvasManager.trigger('switchObjectLayer',value);
+          driftwood.engine.canvas.trigger('switchObjectLayer',value);
           break;
       }
       //Command is not switch layer, so save the last command
@@ -756,7 +902,24 @@ $(document).ready(function() {
       }
     },
   } );
-  
+  /**
+   * A wrapper backbone model for our objects on the canvas. This will allow us to perform
+   * simple functions on canvas objects by simply calling object.Method. Keeps track of 
+   * some information that doesn't necessarily go out to the canvas
+   */
+  var Player = Backbone.Model.extend({
+    //Defaults
+    defaults: {
+      type: 'player'
+    },
+    initialize: function() {
+      
+    },
+
+    isGM: function() {
+      return this.get('type') === 'gm';
+    }
+  });
   /**
    * A wrapper backbone model for our objects on the canvas. This will allow us to perform
    * simple functions on canvas objects by simply calling object.Method. Keeps track of 
@@ -936,7 +1099,8 @@ $(document).ready(function() {
     disable: function(opacity) {
       var object = this.get('object');
       object.selectable = false;
-      if( typeof opacity === 'undefined' || opacity == true ) {
+      //Cannot be an empty layer/undefined
+      if( this.layer && ['fog_layer','grid_layer'].indexOf(this.layer) === -1 && (typeof opacity === 'undefined' || opacity == true) ) {
         object.opacity = 0.7;
       }
     },
@@ -981,6 +1145,9 @@ $(document).ready(function() {
       },
       {
         layer_name: 'gm_layer'
+      },
+      {
+        layer_name: 'fog_layer'
       },
       {
         layer_name: 'grid_layer'
@@ -1624,6 +1791,12 @@ $(document).ready(function() {
       this.$editorOverlay.css({width:width,height:height});
       this.$editorOverlay.show();
     },
+
+    center: function() {
+      //FIXME: Doesn't quite work
+      //this.$canvasWrapper[0].scrollLeft = this.$canvasWrapper.offset().top + (this.$canvasWrapper.find('.canvas-container').height()/2);
+      //this.$canvasWrapper[0].scrollTop = this.$canvasWrapper.offset().left + (this.$canvasWrapper.find('.canvas-container').width()/2);
+    },
     
     /**
      * Utility for zooming the canvas. At the moment it provides a way to 
@@ -1857,7 +2030,7 @@ $(document).ready(function() {
           scope: context,
 
           //Sets variables and adds events to the mouse
-          startDrawing: function(canvas) {
+          startDrawing: function(makeActive) {
             this.canvas.selection = false;
             _.bindAll(this,'startRectangleDraw','stopRectangleDraw','drawRectange');   
             this.canvas.on('mouse:down', this.startRectangleDraw);
@@ -1865,6 +2038,8 @@ $(document).ready(function() {
             this.canvas.on('mouse:move', this.drawRectange);
             this.canvasWrapper = $body.find('.canvas-wrapper')[0];
             this.canvasContainer = $body.find('.canvas-container')[0];
+            //When this is done drawing, should the rectangle be active?
+            this.makeActive = makeActive ? true : false;
           },
           //Disable drawing
           stopDrawing: function() {
@@ -1888,8 +2063,8 @@ $(document).ready(function() {
                 top: this.startY,
                 originX: 'left',
                 originY: 'top',
-                width: 10,
-                height: 10,
+                width: 0,
+                height: 0,
                 selectable: false,
                 stroke: driftwood.engine.settings.freeDrawColor,
                 strokeWidth: driftwood.engine.settings.freeDrawWidth,
@@ -1912,6 +2087,10 @@ $(document).ready(function() {
               
               this.rectangle.selectable = true;
               this.rectangle.setCoords();
+              if( this.makeActive ) {
+                this.canvas.setActiveObject(this.rectangle);
+              }
+              
               this.rectangle = null;
             }
           },
