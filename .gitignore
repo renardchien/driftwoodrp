@@ -1,4 +1,8 @@
+#SECRET FILES
 src/configs/awsConfig.json
 src/config.json
 src/configs/imageConfig.json
 src/secrets.json
+
+#Crap Files
+*.DS_Store
