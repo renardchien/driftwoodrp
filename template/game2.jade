@@ -25,71 +25,6 @@ html(lang='en')
         // Editor
         section.editor
           // Command Pallet
-          .commands.btn-group.btn-group-vertical(data-toggle='buttons-radio')
-            .btn-group.command.move-pan
-              span.btn.menu-btn.active(data-cmd='selectCanvas')
-                b.icon-hand-up
-            .btn-group.command.has-sub-menu.layer-commands
-              span.btn.menu-btn(data-cmd='switchLayer', data-cmd-value='map_layer')
-                b.icon-picture
-              ul.dropdown-menu.layer-menu
-                li(data-cmd='switchLayer', data-cmd-value='map_layer')
-                  a(href='#')
-                    b.icon-picture
-                    | Map Layer
-                li(data-cmd='switchLayer', data-cmd-value='object_layer')
-                  a(href='#')
-                    b.icon-pushpin
-                    | Object Layer
-                li(data-cmd='switchLayer', data-cmd-value='gm_layer')
-                  a(href='#')
-                    b.icon-user
-                    | GM Layer
-            .btn-group.has-sub-menu.draw-menu.command
-              span.btn.menu-btn(data-cmd='draw', data-cmd-value='free')
-                b.icon-pencil
-              ul.dropdown-menu
-                li(data-cmd='draw', data-cmd-value='free')
-                  a(href='#')
-                    b.icon-pencil
-                    | Free Draw
-                li(data-cmd='draw', data-cmd-value='rectangle')
-                  a(href='#')
-                    b.icon-sign-blank
-                    | Rectangle
-                li(data-cmd='draw', data-cmd-value='circle')
-                  a(href='#')
-                    b.icon-circle
-                    | Circle
-            .btn-group.has-sub-menu.command
-              span.btn.menu-btn(data-cmd='zoomIn')
-                b.icon-zoom-in
-              ul.dropdown-menu
-                li(data-cmd='zoomIn')
-                  a(href='#')
-                    b.icon-zoom-in
-                    | Zoom In
-                li(data-cmd='zoomOut')
-                  a(href='#')
-                    b.icon-zoom-out
-                    | Zoom Out
-          .sub-menu.free-draw
-            p
-              strong Stroke
-              br
-              input.span1.freeDrawStroke(type='color')
-            p.fill
-              strong Fill
-              br
-              input.span1.freeDrawFill(type='color')
-            p
-              strong Border
-              br
-              select.span2.freeDrawStrokeWidth
-                option(value='1') Small
-                option(value='2') Medium
-                option(value='3') Large
-                option(value='4') Extra Large
           .grid-label
             span.size-label 1 block
             | =
@@ -116,6 +51,50 @@ html(lang='en')
             .content
               .message-wrapper
                 .messages(data-spy='scroll')
+                  .message
+                    .username Ryan
+                    .text This is a message.
+                  .message
+                    .username Ryan
+                    .text This is a message.
+                  .message
+                    .username Ryan
+                    .text This is a message.
+                  .message
+                    .username Ryan
+                    .text This is a message.
+                  .message
+                    .username Ryan
+                    .text This is a message.
+                  .message
+                    .username Ryan
+                    .text This is a message.
+                  .message
+                    .username Ryan
+                    .text This is a message.
+                  .message
+                    .username Ryan
+                    .text This is a message.
+                  .message
+                    .username Ryan
+                    .text This is a message.
+                  .message
+                    .username Ryan
+                    .text
+                      | This is a message.
+                      br
+                      br
+                      br
+                      | asdfasdfafds fasd fasdf ads fasdf
+                  .message
+                    .username Ryan
+                    .text This is a message.
+                  .message
+                    .username Ryan
+                    .text This is a message.
+                  .message
+                    .username Ryan
+                    .text This is a message.
                   .message
                     .username Ryan
                     .text This is a message.
@@ -209,8 +188,6 @@ html(lang='en')
                     option(value='token') Token
                     option(value='map') Map
                     option(value='item') Item
-                  input(type='hidden', name='_csrf', value='#{session._csrf}')  
-                  input(type='hidden', name='uploadUrl', value='/uploadToken/test/test')
                   .file-upload.select-file.btn.btn-primary
                     | Upload
                     input#object-upload(type='file', name='object', accept='image/*')
@@ -260,9 +237,82 @@ html(lang='en')
         script(src='/scripts/libs/colorpicker/js/colorpicker.js')
         script(src='/scripts/libs/colorpicker/js/eye.js')
         script(src='/scripts/libs/colorpicker/js/utils.js')
+        script(src='/socket.io/socket.io.js')
         script
-          var liveUrl = "http://driftwoodrp.com";
+          var liveUrl = "#{url}";
+          var gamename = "#{game.name}";
+          var owner = "#{game.ownerUsername}";
         script(src='/scripts/app.js')
+      script#commandMenuTemplate(type='text/template')
+        <div class="commands btn-group btn-group-vertical" data-toggle="buttons-radio">
+        <div class="btn-group command move-pan">
+        <span class="btn menu-btn active" data-cmd="selectCanvas">
+        <b class="icon-hand-up"></b>
+        </span>
+        </div>
+        <div class="btn-group command has-sub-menu layer-commands">
+        <span class="btn menu-btn" data-cmd="switchLayer" data-cmd-value="map_layer">
+        <b class="icon-picture"></b>
+        </span>
+        <ul class="dropdown-menu layer-menu">
+        <li data-cmd="switchLayer" data-cmd-value="map_layer"><a href="#"><b class="icon-picture"></b> Map Layer</a></li>
+        <li data-cmd="switchLayer" data-cmd-value="object_layer"><a href="#"><b class="icon-pushpin"></b> Object Layer</a></li>
+        <% if( gmLayer ) { %>
+        <li data-cmd="switchLayer" data-cmd-value="gm_layer"><a href="#"><b class="icon-user"></b> GM Layer</a></li>
+        <% } %>
+        </ul>
+        </div>
+        <div class="btn-group has-sub-menu draw-menu command">
+        <span class="btn menu-btn" data-cmd="draw" data-cmd-value="free">
+        <b class="icon-pencil"></b>
+        </span>
+        <ul class="dropdown-menu">
+        <li data-cmd="draw" data-cmd-value="free"><a href="#"><b class="icon-pencil"></b> Free Draw</a></li>
+        <li data-cmd="draw" data-cmd-value="rectangle"><a href="#"><b class="icon-sign-blank"></b> Rectangle</a></li>
+        <li data-cmd="draw" data-cmd-value="circle"><a href="#"><b class="icon-circle"></b> Circle</a></li>
+        </ul>
+        </div>
+        <% if( fog ) { %>
+        <div class="btn-group has-sub-menu draw-menu command">
+        <span class="btn menu-btn" data-cmd="fog" data-cmd-value="reveal">
+        <b class="icon-eye-open"></b>
+        </span>
+        <ul class="dropdown-menu">
+        <li data-cmd="fog" data-cmd-value="reveal"><a href="#"><b class="icon-eye-open"></b> Reveal Area</a></li>
+        <li data-cmd="fog" data-cmd-value="hide"><a href="#"><b class="icon-eye-close"></b> Hide Area</a></li>
+        <li data-cmd="fog" data-cmd-value="reset"><a href="#"><b class="icon-refresh"></b> Reset Fog</a></li>
+        </ul>
+        </div>
+        <% } %>
+        <div class="btn-group has-sub-menu command">
+        <span class="btn menu-btn" data-cmd="zoomIn">
+        <b class="icon-zoom-in"></b>
+        </span>
+        <ul class="dropdown-menu">
+        <li data-cmd="zoomIn"><a href="#"><b class="icon-zoom-in"></b> Zoom In</a></li>
+        <li data-cmd="zoomOut"><a href="#"><b class="icon-zoom-out"></b> Zoom Out</a></li>
+        </ul>
+        </div>
+        </div>
+        <div class="sub-menu free-draw">
+        <p>
+        <strong>Stroke</strong> <br />
+        <input type="color" class="span1 freeDrawStroke" />
+        </p>
+        <p class="fill">
+        <strong>Fill</strong> <br />
+        <input type="color" class="span1 freeDrawFill" />
+        </p>
+        <p>
+        <strong>Border</strong> <br />
+        <select class="span2 freeDrawStrokeWidth">
+        <option value="1">Small</option>
+        <option value="2">Medium</option>
+        <option value="3">Large</option>
+        <option value="4">Extra Large</option>
+        </select>
+        </p>
+        </div>
       script#contextMenuTemplate(type='text/template')
         <ul class="context-menu dropdown-menu">
         <% if( menu.copy ) { %>
@@ -296,7 +346,9 @@ html(lang='en')
         <ul class="dropdown-menu">
         <li data-cmd="switchObjectLayer" data-cmd-value="map_layer"><a href="#"><b class="icon-picture"></b> Map Layer</a></li>
         <li data-cmd="switchObjectLayer" data-cmd-value="object_layer"><a href="#"><b class="icon-pushpin"></b> Object Layer</a></li>
+        <% if( menu.gmLayer ) { %>
         <li data-cmd="switchObjectLayer" data-cmd-value="gm_layer"><a href="#"><b class="icon-user"></b> GM Layer</a></li>
+        <% } %>
         </ul>
         </li>
         <% } %>
