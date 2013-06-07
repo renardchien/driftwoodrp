@@ -50,19 +50,29 @@ var configureSockets = function(socketio) {
 
 				socket.room = data.gameName + "/" + data.owner;
 
-				socket.emit('joined', 'joined');
+				//FIXME: Don't send the session player, we need to send all player information
+				//that the game will need. Username, player settings, user type (gm|player)
+				socket.emit('joined', socket.handshake.session.player);
 			});
 
 		});
 
-
+		/**
+		 * TODO: Store in database
+		 * TODO: Clean up chat (sanitize html, turn newlines into breaks, etc)
+		 * TODO: Send proper data object, right now the front end is looking
+		 * for username and message. Maybe we change the template on the front
+		 * end to just accept a message and we do the username: message stuff
+		 * with a template on this end. This way we can output messages to the
+		 * chat that DONT have a username: message
+		 */
 		socket.on('chat', function(data) {
 
 			if(!socket.room) {
 				socket.emit('error', 'Not connected to a game');
 			}
-
-			io.sockets.in(socket.room).emit('chat', data);
+			//How do I get the user's name?
+			io.sockets.in(socket.room).emit('chat', {username: socket.handshake.session.player.username,message:data});
 		});
 
 		socket.on('disconnect', function(data) {

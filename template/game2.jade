@@ -51,53 +51,6 @@ html(lang='en')
             .content
               .message-wrapper
                 .messages(data-spy='scroll')
-                  .message
-                    .username Ryan
-                    .text This is a message.
-                  .message
-                    .username Ryan
-                    .text This is a message.
-                  .message
-                    .username Ryan
-                    .text This is a message.
-                  .message
-                    .username Ryan
-                    .text This is a message.
-                  .message
-                    .username Ryan
-                    .text This is a message.
-                  .message
-                    .username Ryan
-                    .text This is a message.
-                  .message
-                    .username Ryan
-                    .text This is a message.
-                  .message
-                    .username Ryan
-                    .text This is a message.
-                  .message
-                    .username Ryan
-                    .text This is a message.
-                  .message
-                    .username Ryan
-                    .text
-                      | This is a message.
-                      br
-                      br
-                      br
-                      | asdfasdfafds fasd fasdf ads fasdf
-                  .message
-                    .username Ryan
-                    .text This is a message.
-                  .message
-                    .username Ryan
-                    .text This is a message.
-                  .message
-                    .username Ryan
-                    .text This is a message.
-                  .message
-                    .username Ryan
-                    .text This is a message.
               .input
                 .textarea
                   textarea.input-block-level(rows='1', data-activate='elastic', data-on='load', placeholder='Chat away...')
@@ -110,78 +63,6 @@ html(lang='en')
                     li.object
                       p.tmp
                         input.input-block-level(type='text', placeholder='http://')
-                    li.object(data-url='/images/tmp/goblin.png', data-type='token')
-                      .preview
-                        img(src='/images/tmp/goblin.png')
-                      p.name Goblin
-                      p.muted Token
-                      .dropdown.menu
-                        .dropdown-toggle(data-toggle='dropdown', href='#')
-                          b.icon-caret-down
-                        // Link or button to toggle dropdown
-                        ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
-                          li
-                            a(tabindex='-1', href='#') Delete
-                    li.object(data-url='/images/tmp/paladin.png', data-type='token')
-                      .preview
-                        img(src='/images/tmp/paladin.png')
-                      p.name Paladin
-                      p.muted Token
-                      .dropdown.menu
-                        .dropdown-toggle(data-toggle='dropdown', href='#')
-                          b.icon-caret-down
-                        // Link or button to toggle dropdown
-                        ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
-                          li
-                            a(tabindex='-1', href='#') Delete
-                    li.object(data-url='/images/tmp/fighter.png', data-type='token')
-                      .preview
-                        img(src='/images/tmp/fighter.png')
-                      p.name Warrior
-                      p.muted Token
-                      .dropdown.menu
-                        .dropdown-toggle(data-toggle='dropdown', href='#')
-                          b.icon-caret-down
-                        // Link or button to toggle dropdown
-                        ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
-                          li
-                            a(tabindex='-1', href='#') Delete
-                    li.object(data-url='/images/tmp/map.jpg', data-type='map')
-                      .preview
-                        img(src='/images/tmp/map.jpg')
-                      p.name Map of Taul
-                      p.muted Map
-                      .dropdown.menu
-                        .dropdown-toggle(data-toggle='dropdown', href='#')
-                          b.icon-caret-down
-                        // Link or button to toggle dropdown
-                        ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
-                          li
-                            a(tabindex='-1', href='#') Delete
-                    li.object(data-url='/images/tmp/mage.png', data-type='token')
-                      .preview
-                        img(src='/images/tmp/mage.png')
-                      p.name Mage
-                      p.muted Token
-                      .dropdown.menu
-                        .dropdown-toggle(data-toggle='dropdown', href='#')
-                          b.icon-caret-down
-                        // Link or button to toggle dropdown
-                        ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
-                          li
-                            a(tabindex='-1', href='#') Delete
-                    li.object(data-url='/images/tmp/treasureChest.png', data-type='item')
-                      .preview
-                        img(src='/images/tmp/treasureChest.png')
-                      p.name Treasure Chest
-                      p.muted Item
-                      .dropdown.menu
-                        .dropdown-toggle(data-toggle='dropdown', href='#')
-                          b.icon-caret-down
-                        // Link or button to toggle dropdown
-                        ul.dropdown-menu.pull-right(role='menu', aria-labelledby='dLabel')
-                          li
-                            a(tabindex='-1', href='#') Delete
               .tr
                 .upload
                   select(name='upload-type')
@@ -280,6 +161,7 @@ html(lang='en')
         <ul class="dropdown-menu">
         <li data-cmd="fog" data-cmd-value="reveal"><a href="#"><b class="icon-eye-open"></b> Reveal Area</a></li>
         <li data-cmd="fog" data-cmd-value="hide"><a href="#"><b class="icon-eye-close"></b> Hide Area</a></li>
+        <li data-cmd="fog" data-cmd-value="clear"><a href="#"><b class="icon-check-empty"></b> Clear All Fog</a></li>
         <li data-cmd="fog" data-cmd-value="reset"><a href="#"><b class="icon-refresh"></b> Reset Fog</a></li>
         </ul>
         </div>
@@ -354,8 +236,8 @@ html(lang='en')
         <% } %>
         </ul>
       script#chatMessageTemplate(type='text/template')
-        <div class="message active">
-        <div class="username">Ryan</div> <div class="text"><%= message %></div>
+        <div class="message <%= active ? 'active' : '' %>">
+        <div class="username"><%= username %></div> <div class="text"><%= message %></div>
         </div>
       script#objectItemTemplate(type='text/template')
         <li class="object ui-draggable" data-url="<%= url %>" data-type="<%= type.toLowerCase() %>">

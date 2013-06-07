@@ -10,43 +10,6 @@ $(document).ready(function() {
       $window = $(window),
       $body = $('body');
 
-    /**
-     * Socket data. This sets up the socket connection and the functions that it handles
-     *
-     */
-   
-    //liveUrl, gamename and owner are all defined dynamically in game2.jade (which is the html you wrote)
-    var socket = io.connect(liveUrl); 
-
-    //tells the socket to connect
-    socket.on('connect', function() {
-      console.log('joining');
-      socket.emit('join', { 'gameName': gamename, 'owner': owner });
-    });
-   
-    socket.on('joined', function() {
-      //What to do after successully joining a game
-      console.log('joined successfully');
-    });
-
-    socket.on('chat', function(data) {
-      //what to do when receiving a chat message
-    });
-
-    socket.on('sessionLibraryUpdate', function(data) {
-      //what to do when receiving a new list of objects to display in the session library
-    });
-
-    //this could actually be any function. They just need to emit to the socket like shown inside of the function
-    function sendMessage(message ) {
-        //emit a chat message
-        socket.emit('chat', message);
-    }
-
-  /********************END SOCKET DATA *****************************/
-  /*****************************************************************/
-   
-
   /**
    * Core engine. Creates instances of all our sub controllers
    * and listens for major events to pass along to the correct
@@ -55,11 +18,40 @@ $(document).ready(function() {
   Driftwood = Backbone.View.extend( {
     /**
      * Container of all our visibile
-     * @type object
+     * 
+     * @type {Object}
      */
     el: $('.main'),
 
+    /**
+     * The current player
+     * 
+     * @type {Object}
+     */
+    player: false,
+
+    /**
+     * All the players that have joined
+     * this game. Should be an object full
+     * of objects, with the players ID as the
+     * main key.
+     * 
+     * @type {Object}
+     */
+    players: false,
+
+    /**
+     * Default settings for the game. Initial game
+     * settings can be sent in when initializing the
+     * driftwood engine and will override these
+     * defaults.
+     * 
+     * @type {Object}
+     */
     default: {
+      gamename: '',
+      owner: false,
+      liveUrl: '',
       canvasHeight: 3000,
       canvasWidth: 3000,
       enableFog: false,
@@ -71,27 +63,71 @@ $(document).ready(function() {
       gridColor: '#777777',
       freeDrawColor: '#333333',
       freeDrawWidth: 1,
-      freeDrawFill: '#ff0000'
+      freeDrawFill: '#ff0000',
+      chatData: [],
+      objects: [],
     },
 
+    /**
+     * Any options sent in are stored in this.options,
+     * and then settings is set by merging default
+     * and options. This way we always have access to
+     * default options, the options they sent in, and
+     * the current active settings
+     */
     initialize: function(options) {
       //Set options
       this.options = options || {};
       this.settings = $.extend(this.default,this.options);
       //Bind everything
       _.bindAll(this, 'render');
-      
+      //Connect
+      this.connect();
+    },
+
+    /**
+     * Connect to the socket. At this point initial player settings should
+     * already have been sent in as options to the driftwood engine. 
+     * Any and all players joining will get adde to the master players object
+     *
+     * TODO: liveURL, gamename, owner should all be information set in as options to the
+     * driftwood engine for initialize (then use: this.settings.gamename, etc)
+     *
+     * TODO: Do we need a disconnect? session timeout?
+     *
+     * TODO: Error?
+     *
+     * TODO: Should probably load the page with a takeover that throws up loading
+     * messages until we have properly connected and joined the game
+     */
+    connect: function() {
+      //liveUrl, gamename and owner are all defined dynamically in game2.jade (which is the html you wrote)
+      this.socket = io.connect(this.settings.liveUrl); 
+
+      //Should all this connect stuff move? Just need to come up with a run order
+      this.socket.on('connect', _.bind( function() {
+        console.log('Joining game');
+        this.socket.emit('join', { 'gameName': this.settings.gamename, 'owner': this.settings.owner });
+      }, this ) );
+      //TODO: Is this for every player that joins? If so how do we know when
+      //the current player is officially joined and connected?
+      this.socket.on('joined', _.bind( function(data) {
+        //What to do after successully joining a game
+        console.log('Joined game successfully');
+        this.addPlayer(data)
+      }, this ) );
     },
 
     run: function() {
       //Create our current player
+      //TODO: More player information?
       this.player = new Player({type:'gm'});
       //Create chat
-      this.chat = new Chat();
+      this.chat = new Chat({load:this.settings.chatData});
       //Make sure we have a command list
       this.commands = new Commands();
       //Uploaded object/draggable object list
-      this.objects = new ObjectList();
+      this.objects = new ObjectList({load:this.settings.objects});
       //All interactions with the canvas
       this.canvas = new CanvasManager({
         canvasHeight: this.settings.canvasHeight,
@@ -99,10 +135,10 @@ $(document).ready(function() {
       });
       //Fog
       this.fog = new Fog({mainCanvas: this.canvas});
-
       //Add our event listeners
       this.addEventListeners();
-
+      //Add socket listeners
+      this.addSocketListeners();
       //Run intial layer
       this.commands.runInitialCommand();
       //Set initial layer
@@ -302,6 +338,29 @@ $(document).ready(function() {
     },
 
     /**
+     * Declare a socket listener here and route it to the correct
+     * object/action or whatever you want. Make sure to bind
+     * the call to the proper scope.
+     */
+    addSocketListeners: function() {
+      //On receiving chat, use our chat object to receive the message
+      //and make sure the scope being used is the chat object itself
+      this.socket.on('chat', _.bind( this.chat.receiveData, this.chat ) );
+    },
+
+    /**
+     * Adds a player into the game
+     */
+    addPlayer: function(data) {
+      //console.log('Joined player data:',data);
+      if( ! this.players ) {
+        this.players = {};
+      }
+      //Create a player
+      this.players[data.id] = new Player(data);
+    },
+
+    /**
      * Updates settings and initiates the proper changes
      */
     updateSettings: function( settings ) {
@@ -314,11 +373,11 @@ $(document).ready(function() {
         this.canvas.clearLayer('grid_layer');
       }
       //Change grid color
-      if( settings.hasOwnProperty('gridColor') ) {
+      if( this.settings.grid && settings.hasOwnProperty('gridColor') ) {
         this.canvas.setGridColor(settings.gridColor);
       }
       //Change grid size
-      if( settings.hasOwnProperty('gridSize') ) {
+      if( this.settings.grid && settings.hasOwnProperty('gridSize') ) {
         this.canvas.setGrid(settings.gridSize,this.settings.gridColor);
       }
       //Change background color
@@ -337,7 +396,7 @@ $(document).ready(function() {
       this.settings = $.extend(this.settings,settings);
 
       //Change grid size
-      if( settings.hasOwnProperty('gridSize') || settings.hasOwnProperty('gridUnit')) {
+      if( this.settings.grid && (settings.hasOwnProperty('gridSize') || settings.hasOwnProperty('gridUnit')) ) {
         this.updateGridLabel(this.settings.gridUnit)
       }
     },
@@ -430,6 +489,8 @@ $(document).ready(function() {
    * TODO: Save clipped/revealed points
    *
    * TODO: More then rectangles?
+   *
+   * TODO: Resize fog layer on main canvas resize
    */
   Fog = Backbone.View.extend( {
 
@@ -511,21 +572,15 @@ $(document).ready(function() {
     //Grab the template from the page
     template: _.template($('#objectItemTemplate').html()),
 
-    testData: [
-      {
-        url: 'assets/images/tmp/goblin.png',
-        thumbnail: 'assets/images/tmp/goblin.png',
-        type: 'token',
-        name: 'Goblin'
-      },
-    ],
-
     initialize: function(options) {
+      this.options = options || {};
       _.bindAll(this,'render');
       //Add event listeners
       this.addEventListeners();
       //Run test data
-      this.addToList(this.testData);
+      if( this.options.load ) {
+        this.addToList(this.options.load);
+      }
     },
 
     addEventListeners: function() {
@@ -599,7 +654,6 @@ $(document).ready(function() {
      * type: token|map|item
      * name: Name of file
      */
-
     addToList: function(objects) {
       
       if( typeof objects !== 'object') {
@@ -716,10 +770,16 @@ $(document).ready(function() {
     //Grab the template from the page
     template: _.template($('#chatMessageTemplate').html()),
 
-    initialize: function() {
+    initialize: function(options) {
+      this.options = options || {};
       _.bindAll(this,'render');
       //Add event listeners
       this.addEventListeners();
+      //Load up any intial chat data
+      if( this.options.load ) {
+        this.loadData(options.load);
+      }
+      //SCroll to bottom
       this.scrollChat(0);
     },
     addEventListeners: function() {
@@ -733,30 +793,53 @@ $(document).ready(function() {
       }, this ) );
     },
 
+    /**
+     * Loads chat messages in without any sort of animation.
+     * Most likely used for preloading chat information
+     */
+    loadData: function(chatData) {
+      _.each( chatData, _.bind( function( data ) {
+        data.active = false;
+        this.receiveData(data);
+      }, this ) );
+    },
+
+    /**
+     * Sends the message off to the server via a socket
+     */
     sendMessage: function(input) {
       var $input = $(input),
           message = $input.val();
-
+      //Clear the input
       $input.val('')
-      //TODO: Send message off to server
-      if( message.replace(/\s+/g, ' ') !== '' ) {
-        console.log(message);
-        this.message = message;
-        this.render();
-
-        //Remove the active class after rendered
-        $(this.el).find('.messages .active').removeClass('active');
-      }
-        
+      //Send chat to server
+      driftwood.engine.socket.emit('chat', message);
     },
 
-    render: function() {
+    /**
+     * Data should be an object with a message and username
+     */
+    receiveData: function(data) {
+      //Render our new message
+      this.render(data);
+      //Remove the active class after rendered
+      $(this.el).find('.messages .active').removeClass('active');
+    },
+
+    /**
+     * Renders a message template and adds it to the messages
+     * container.
+     */
+    render: function(data) {
       var $messages = $(this.el).find('.messages'),
           scrollTop = $messages[0].scrollTop,
           scrollHeight = $messages[0].scrollHeight,
           height = $messages.outerHeight();
 
-      $messages.append(this.template({message: this.message}));
+      //Assume it's an active message
+      data = $.extend({active:true},data);
+      //Append the message to our messages contianer
+      $messages.append(this.template(data));
 
       //Were they at the bottom when we added the message?
       //If so, scroll. If not, don't ruin their scroll position
@@ -1831,8 +1914,8 @@ $(document).ready(function() {
 
     center: function() {
       //FIXME: Doesn't quite work
-      //this.$canvasWrapper[0].scrollLeft = this.$canvasWrapper.offset().top + (this.$canvasWrapper.find('.canvas-container').height()/2);
-      //this.$canvasWrapper[0].scrollTop = this.$canvasWrapper.offset().left + (this.$canvasWrapper.find('.canvas-container').width()/2);
+      this.$canvasWrapper[0].scrollLeft = this.$canvasWrapper.offset().top + (this.$canvasWrapper.find('.canvas-container').height()/2);
+      this.$canvasWrapper[0].scrollTop = this.$canvasWrapper.offset().left + (this.$canvasWrapper.find('.canvas-container').width()/2);
     },
     
     /**
@@ -2157,9 +2240,75 @@ $(document).ready(function() {
     },//ND Drawing UTIL
 
   } );
-
+  
+  /**
+   * Initialize and create the driftwood engine.
+   * After it has been created, kick it off with run().
+   *
+   * TODO: This is where we need to send in initial
+   * options. The current preloaded chat data, players
+   * already in the room, and data that needs to be loaded
+   * in on run when the user joins the game. 
+   *
+   * TODO: Determine what preloaded data gets passed in here 
+   * on page load, and what gets loaded in via sockets
+   * 
+   * @type {Object}
+   */
   var driftwood = {
-    engine: new Driftwood()
+    engine: new Driftwood({
+      liveUrl: liveUrl,
+      gamename: gamename,
+      owner: owner,
+      //Example of preloaded chat data
+      ////TODO: maybe these get loaded in via socket on connect?
+      chatData: [
+        {
+          username: 'Ryan',
+          message: 'Preloaded data'
+        },
+      ],
+      //Example of preloaded upload objects
+      //TODO: maybe these get loaded in via socket on connect?
+      objects: [
+        {
+          url: '/images/tmp/goblin.png',
+          thumbnail: '/images/tmp/goblin.png',
+          type: 'token',
+          name: 'Goblin'
+        },
+        {
+          url: '/images/tmp/paladin.png',
+          thumbnail: '/images/tmp/paladin.png',
+          type: 'token',
+          name: 'Paladin'
+        },
+        {
+          url: '/images/tmp/fighter.png',
+          thumbnail: '/images/tmp/fighter.png',
+          type: 'token',
+          name: 'Warrior'
+        },
+        {
+          url: '/images/tmp/map.jpg',
+          thumbnail: '/images/tmp/map.jpg',
+          type: 'map',
+          name: 'Map of Taul'
+        },
+        {
+          url: '/images/tmp/mage.png',
+          thumbnail: '/images/tmp/mage.png',
+          type: 'token',
+          name: 'Mage'
+        },
+        {
+          url: '/images/tmp/treasureChest.png',
+          thumbnail: '/images/tmp/treasureChest.png',
+          type: 'item',
+          name: 'Treasure Chest'
+        },
+      ],
+    })
   }
   driftwood.engine.run();
 });
