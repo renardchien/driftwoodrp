@@ -19,6 +19,7 @@ under the License.
 
 var middleware = require('./middleware');
 var controllers = require('./controllers');
+var _ = require('underscore');
 
 var io;
 
@@ -72,7 +73,7 @@ var configureSockets = function(socketio) {
 				socket.emit('error', 'Not connected to a game');
 			}
 			//How do I get the user's name?
-			io.sockets.in(socket.room).emit('chat', {username: socket.handshake.session.player.username,message:data});
+			io.sockets.in(socket.room).emit('chat', {username: socket.handshake.session.player.username,message: _.escape(data) });
 		});
 
 		socket.on('disconnect', function(data) {
