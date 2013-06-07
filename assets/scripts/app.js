@@ -595,23 +595,6 @@ $(document).ready(function() {
             uploadUrl = $body.find('[name="uploadUrl"]').val();
         //Insert AJAX call. On success call processServerData,
         //which should in turn call addToList
-
-        /*
-        var file = this.files[0],
-            reader = new FileReader();
-
-        reader.onload = function(evt) {
-          console.log(file);
-          socket.emit('uploadToken', { 'assetFile': evt.target.result, 
-                                       'type': type,
-                                       'name': file.name,
-                                       'fileType': file.type
-                                     });
-        };
-
-        reader.readAsDataURL(file);
-
-        */
         
         var formdata = new FormData();
         formdata.append('assetFile', this.files[0]);

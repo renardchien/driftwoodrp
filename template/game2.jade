@@ -69,6 +69,8 @@ html(lang='en')
                     option(value='token') Token
                     option(value='map') Map
                     option(value='item') Item
+                  input(type='hidden', name='_csrf', value='#{session._csrf}')  
+                  input(type='hidden', name='uploadUrl', value='/uploadToken/test/test')
                   .file-upload.select-file.btn.btn-primary
                     | Upload
                     input#object-upload(type='file', name='object', accept='image/*')

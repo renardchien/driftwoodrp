@@ -161,7 +161,7 @@ var removePlayer = function(req, res) {
 			}
 
 			if(!permission) {
-				return res.fobidden("player does not have permission to this game");
+				return res.forbidden("player does not have permission to this game");
 			}
 
 			permission.remove();
