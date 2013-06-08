@@ -60,12 +60,6 @@ var configureSockets = function(socketio) {
 
 		/**
 		 * TODO: Store in database
-		 * TODO: Clean up chat (sanitize html, turn newlines into breaks, etc)
-		 * TODO: Send proper data object, right now the front end is looking
-		 * for username and message. Maybe we change the template on the front
-		 * end to just accept a message and we do the username: message stuff
-		 * with a template on this end. This way we can output messages to the
-		 * chat that DONT have a username: message
 		 */
 		socket.on('chat', function(data) {
 
@@ -73,7 +67,7 @@ var configureSockets = function(socketio) {
 				socket.emit('error', 'Not connected to a game');
 			}
 			//How do I get the user's name?
-			io.sockets.in(socket.room).emit('chat', {username: socket.handshake.session.player.username,message: _.escape(data) });
+			io.sockets.in(socket.room).emit('chat', {username: socket.handshake.session.player.username,message: data });
 		});
 
 		socket.on('disconnect', function(data) {

@@ -81,6 +81,8 @@ $(document).ready(function() {
       this.settings = $.extend(this.default,this.options);
       //Bind everything
       _.bindAll(this, 'render');
+      //Loading screen
+      this.loading = new LoadingScreen();
       //Connect
       this.connect();
     },
@@ -115,6 +117,7 @@ $(document).ready(function() {
         //What to do after successully joining a game
         console.log('Joined game successfully');
         this.addPlayer(data)
+        this.loading.hide();
       }, this ) );
     },
 
@@ -471,6 +474,96 @@ $(document).ready(function() {
  
   } );
 
+  LoadingScreen = Backbone.View.extend( {
+    el: $('.loading-screen'),
+
+    /**
+     * Collection of all our loading
+     * messages.
+     * @type {Array}
+     */
+    defaultMessages: [
+      'Slaying dragons...',
+      'Rolling dice...',
+      'Picking random citizens pockets...',
+      'Pillaging villages...',
+      'Opening treasure chests...',
+      'Ducking goblins...',
+      'Rolling for save...',
+      'Cursing the GM...',
+      'Looting corpses...'
+    ],
+
+    /**
+     * Min range of message delay
+     * @type {Number}
+     */
+    messageDelayMin: 600,
+
+    /**
+     * Max range of message delay
+     * @type {Number}
+     */
+    messageDelayMax: 1200,
+
+    /**
+     * How long once the hide loading screen
+     * function is called before the loading
+     * screen actually hides.
+     * @type {Number}
+     */
+    hideDelay: 6000,
+
+    initialize: function(options) {
+      //Set messages element
+      this.$message = $(this.el).find('.loading-message');
+      //Set messages
+      this.reloadMessages();
+      //Kick off time out
+      this.setMessageTimeout();
+    },
+
+    /**
+     * Reload messages, shuffles the messages to
+     * create a random order.
+     */
+    reloadMessages: function() {
+      this.messages = _.shuffle(this.defaultMessages);
+    },
+
+    /**
+     * Calls changeMessage in a random
+     * amount of time
+     */
+    setMessageTimeout: function() {
+      //Kick off timeout
+      this.messageTimeout = setTimeout(_.bind(this.changeMessage,this),_.random(this.messageDelayMin,this.messageDelayMax));
+    },
+    /**
+     * Change the loading message
+     */
+    changeMessage: function() {
+      if( ! this.messages.length ) {
+        this.reloadMessages();
+      }
+      //Set the new message
+      this.$message.html(this.messages.pop());
+      this.setMessageTimeout();
+    },
+    /**
+     * Delay the hiding of the loading screen, sometimes
+     * we join and set everything up rather quickly and it's
+     * actually bad UX to flicker a loading screen on and off
+     */
+    hide: function() {
+      setTimeout( _.bind( function() {
+        clearTimeout(this.messageTimeout);
+        $(this.el).hide();
+      }, this ), this.hideDelay );
+      
+    }
+  });
+
   /**
    * Fog
    *
@@ -821,6 +914,7 @@ $(document).ready(function() {
 
       //Assume it's an active message
       data = $.extend({active:true},data);
+      data.message = this.cleanMessage(data.message);
       //Append the message to our messages contianer
       $messages.append(this.template(data));
 
@@ -829,6 +923,25 @@ $(document).ready(function() {
       if( (scrollHeight - scrollTop) == height  ) {
         this.scrollChat(100);
       }
+    },
+
+    /**
+     * Escapes HTML special characters and turns new lines
+     * into break tags. Also auto links 
+     */
+    cleanMessage: function(text) {
+      //special characters and newlines to brs
+      text = _.escape(text).replace(new RegExp('\r?\n', 'g'), '<br />');
+      //Replace URLS. Matches http:// and www.
+      //Since our last cleaning method turned / into characters, use that in the regex instead
+      return text.replace(/((https?\:&#x2F;&#x2F;)|(www\.))(\S+)(\w{2,4})(:[0-9]+)?(&#x2F;|&#x2F;([\w#!:.?+=&%@!\-&#x2F;]))?/gi,
+            function(url){
+                var full_url = url;
+                if (!full_url.match('^https?:\/\/')) {
+                    full_url = 'http://' + full_url;
+                }
+                return '<a href="' + full_url + '">' + url + '</a>';
+            });
     },
 
     //Scrolls the chat window
