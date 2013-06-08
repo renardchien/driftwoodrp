@@ -92,39 +92,37 @@ $(document).ready(function() {
      * already have been sent in as options to the driftwood engine. 
      * Any and all players joining will get adde to the master players object
      *
-     * TODO: liveURL, gamename, owner should all be information set in as options to the
-     * driftwood engine for initialize (then use: this.settings.gamename, etc)
      *
-     * TODO: Do we need a disconnect? session timeout?
+     * TODO: Disconnect and session time out
      *
      * TODO: Error?
-     *
-     * TODO: Should probably load the page with a takeover that throws up loading
-     * messages until we have properly connected and joined the game
      */
     connect: function() {
       //liveUrl, gamename and owner are all defined dynamically in game2.jade (which is the html you wrote)
       this.socket = io.connect(this.settings.liveUrl); 
 
-      //Should all this connect stuff move? Just need to come up with a run order
+      //Connect socket, once that is complete join the game
       this.socket.on('connect', _.bind( function() {
         console.log('Joining game');
         this.socket.emit('join', { 'gameName': this.settings.gamename, 'owner': this.settings.owner });
       }, this ) );
-      //TODO: Is this for every player that joins? If so how do we know when
-      //the current player is officially joined and connected?
+      //This is for the current acting player
+      //TODO: Need the server to send another socket event for
+      //other players joining
       this.socket.on('joined', _.bind( function(data) {
         //What to do after successully joining a game
         console.log('Joined game successfully');
-        this.addPlayer(data)
+        //Create our current player
+        this.player = new Player(data);
+        //Run the game
+        this.run();
+        //Hide the loading screen, we're ready to go!
         this.loading.hide();
       }, this ) );
     },
 
     run: function() {
-      //Create our current player
-      //TODO: More player information?
-      this.player = new Player({type:'gm'});
+      
       //Create chat
       this.chat = new Chat({load:this.settings.chatData});
       //Make sure we have a command list
@@ -512,7 +510,7 @@ $(document).ready(function() {
      * screen actually hides.
      * @type {Number}
      */
-    hideDelay: 6000,
+    hideDelay: 0,
 
     initialize: function(options) {
       //Set messages element
@@ -1433,6 +1431,12 @@ $(document).ready(function() {
         this.addObject(e.target);
       }, this ) );
 
+      //Object(s) have been selected
+      this.canvas.on('object:selected', _.bind( this.setSelectedObjects, this ) );
+      this.canvas.on('selection:created', _.bind( this.setSelectedObjects, this ) );
+      //Objects are no longer selected
+      this.canvas.on('selection:cleared', _.bind( this.removeControl, this ) );
+
       //Creates a context menu
       $body.on('contextmenu','.canvas-wrapper', _.bind(this.openContextMenu, this));
 
@@ -1448,6 +1452,38 @@ $(document).ready(function() {
         console.log(e);
       }, this ) );
       
+    },
+
+    /**
+     * Sets objects as being controlled by the current user.
+     * Will add the in ability to select or modify objects
+     * if they are currently being controlled by someone else
+     */
+    setSelectedObjects: function(e) {
+      //Make sure all objects are no longer being controlled by this player
+      this.removeControl();
+      //Gather selected objects
+      var selected = [];
+      if( ! e.target._objects ) {
+        selected.push(e.target);
+      } else {
+        selected = e.target._objects;
+      }
+      console.log('Take control of objects',selected);
+      //For each object, make it controlled by our current player
+      _.each( selected, _.bind( function(object) {
+        object.set('controlledBy',driftwood.engine.player.get('id'));
+      }, this ) );
+    },
+
+    removeControl: function() {
+      console.log('Remove control of all my objects');
+      var _objects = this.canvas.getObjects();
+      _.each( _objects, function(object) {
+        if( object.get('controlledBy') && object.get('controlledBy') == driftwood.engine.player.get('id') ) {
+          object.set('controlledBy',false);
+        }
+      } );
     },
 
     /**
@@ -1643,7 +1679,7 @@ $(document).ready(function() {
           this.canvas.add(object);
           //this.canvas.setActiveObject(object);
         }, this ) );
-        this.canvas.deactivateAll().renderAll();
+        this.canvas.deactivateAllWithDispatch().renderAll();
       }
     },
 
@@ -1652,7 +1688,7 @@ $(document).ready(function() {
      */
     deleteObject: function() {
       if( this.contextMenu.objects.length ) {
-        this.canvas.deactivateAll()
+        this.canvas.deactivateAllWithDispatch()
         _.each( this.contextMenu.objects, _.bind( function(object) {
           this.canvas.remove(object.get('object'));
         }, this ) );
@@ -1665,7 +1701,7 @@ $(document).ready(function() {
     lockObject: function() {
       if( this.contextMenu.objects.length ) {
         //Need to make sure they're deactivated so the controls change
-        this.canvas.deactivateAll();
+        this.canvas.deactivateAllWithDispatch();
         //Go through each object and lock it
         var selected = [];
         _.each( this.contextMenu.objects, _.bind( function(object) {
@@ -1679,7 +1715,7 @@ $(document).ready(function() {
      */
     unlockObject: function() {
       if( this.contextMenu.objects.length ) {
-        this.canvas.deactivateAll();
+        this.canvas.deactivateAllWithDispatch();
         var selected = [];
         _.each( this.contextMenu.objects, _.bind( function(object) {
           object.unlock();
@@ -1734,7 +1770,7 @@ $(document).ready(function() {
           }
           object.sendToFront();
         }, this ) );
-        this.canvas.deactivateAll().renderAll();
+        this.canvas.deactivateAllWithDispatch().renderAll();
       }
     },
 
@@ -1757,7 +1793,7 @@ $(document).ready(function() {
           this.canvas.add(oImg);
           //Unset
           this.addedObjectType = null;
-          this.canvas.deactivateAll().setActiveObject(oImg);
+          this.canvas.deactivateAllWithDispatch().setActiveObject(oImg);
         }, this ) );
       } catch( err ) {
         //TODO: Indicate something on the UI alerting user that we failed
@@ -1831,6 +1867,7 @@ $(document).ready(function() {
               layer: this.layer,
               objectType: this.objectType,
               locked: this.locked,
+              controlledBy: this.controlledBy
             });
           };
         })(activeObject.toObject);
@@ -1838,8 +1875,8 @@ $(document).ready(function() {
           layer: this.currentLayer,
           objectType: this.addedObjectType,
           locked: false,
+          controlledBy: false
         });
-
       }
       //Move the object to the front of it's layer
       var object = this.toObject(activeObject);
@@ -1877,7 +1914,7 @@ $(document).ready(function() {
 
     //Disables all our different canvas interactions
     disableAll: function() {
-      this.canvas.deactivateAll();
+      this.canvas.deactivateAllWithDispatch();
       this.disableCanvasMove();
       this.drawing.circle.stopDrawing();
       this.drawing.rectangle.stopDrawing();
@@ -1930,7 +1967,7 @@ $(document).ready(function() {
       }, this ) );
       
       //Make sure everything is rendered
-      this.canvas.deactivateAll().renderAll();
+      this.canvas.deactivateAllWithDispatch().renderAll();
     },
 
     //Allows items on the canvas to be selected
@@ -2038,7 +2075,7 @@ $(document).ready(function() {
         canvasScale = 1;
         return {
           activateZoomIn: function() {
-            this.canvas.deactivateAll();
+            this.canvas.deactivateAllWithDispatch();
             this.zoom.deactivateZoom();
             //Show overlay so they're not clicking on the canvas
             this.$editorOverlay.show().addClass('zoom-in');
@@ -2047,7 +2084,7 @@ $(document).ready(function() {
             this.setOverlaySize();
           },
           activateZoomOut: function() {
-            this.canvas.deactivateAll();
+            this.canvas.deactivateAllWithDispatch();
             this.zoom.deactivateZoom();
             //Show overlay so they're not clicking on the canvas
             this.$editorOverlay.show().addClass('zoom-out');
@@ -2406,5 +2443,4 @@ $(document).ready(function() {
       ],
     })
   }
-  driftwood.engine.run();
 });
