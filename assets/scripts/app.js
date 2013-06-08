@@ -1436,6 +1436,10 @@ $(document).ready(function() {
       this.canvas.on('selection:created', _.bind( this.setSelectedObjects, this ) );
       //Objects are no longer selected
       this.canvas.on('selection:cleared', _.bind( this.removeControl, this ) );
+      //Object modified
+      this.canvas.on('object:modified', _.bind( function(e) {
+        console.log(e);
+      }, this ) );
 
       //Creates a context menu
       $body.on('contextmenu','.canvas-wrapper', _.bind(this.openContextMenu, this));
