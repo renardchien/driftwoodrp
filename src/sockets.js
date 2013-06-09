@@ -57,7 +57,7 @@ var configureSockets = function(socketio) {
 
 				models.Session.sessionChatModel.find({
 					sessionId: game.id
-				}, { _id: 0, __v: 0, sessionId: 0, playerId: 0 }).sort({'_id': -1}).find(function(err, doc){
+				}, { _id: 0, __v: 0, sessionId: 0, playerId: 0 }).sort({'_id': 1}).find(function(err, doc){
 					var chatSession;
 
                                         if(err) {
