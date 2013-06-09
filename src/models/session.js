@@ -183,6 +183,20 @@ SessionLibrarySchema.statics.findByPublicPath = function(publicPath, callback) {
 	}, callback );      
 };
 
+SessionLibrarySchema.statics.findLibrary = function(sessionId, callback) {
+	return SessionLibraryModel.find(
+	{
+		sessionId: sessionId
+	}, { _id: 0, __v: 0, sessionId: 0, playerId: 0 } ).find(callback);      
+};
+
+SessionChatSchema.statics.findHistory = function(sessionId, callback) {
+	return SessionChatModel.find(
+	{
+		sessionId: sessionId
+	}, { _id: 0, __v: 0, sessionId: 0, playerId: 0 }).sort({'_id': 1}).find(callback);
+};
+
 var SessionModel = mongoose.model('Session', SessionSchema);
 var SessionPlayerModel = mongoose.model('SessionPlayers', SessionPlayerSchema);
 var SessionLibraryModel = mongoose.model('SessionLibrary', SessionLibrarySchema);

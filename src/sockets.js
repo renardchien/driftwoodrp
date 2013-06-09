@@ -20,6 +20,7 @@ under the License.
 var middleware = require('./middleware');
 var models = require('./models');
 var _ = require('underscore');
+var async = require('async');
 var config = require('./config.js');
 var log = config.getLogger();
 
@@ -47,31 +48,50 @@ var configureSockets = function(socketio) {
 					if(!doc) {
 						return socket.disconnect('Not authorized');
 					}
-				});
 
-				socket.join(data.gameName + "/" + data.owner);
 
-				socket.room = data.gameName + "/" + data.owner;
+					socket.join(data.gameName + "/" + data.owner);
 
-                                socket.game = game;
+					socket.room = data.gameName + "/" + data.owner;
 
-				models.Session.sessionChatModel.find({
-					sessionId: game.id
-				}, { _id: 0, __v: 0, sessionId: 0, playerId: 0 }).sort({'_id': 1}).find(function(err, doc){
-					var chatSession;
+		                        socket.game = game;
 
-                                        if(err) {
-                                          chatSession = [{ displayName: "System", message: "Previous chats could not be loaded" }];
-                                        } else {
-                                          chatSession = doc;
-                                        }
+                                        if(doc.isGM === true) {
+						socket.handshake.session.player.type = "gm";
+					} else {
+						socket.handshake.session.player.type = "player";
+					}
 
-		                        //FIXME: Don't send the session player, we need to send all player information
-					//that the game will need. Username, player settings, user type (gm|player)
+					var player = socket.handshake.session.player;
+					var chatHistory = [{}];
+					var objectLibrary = [{}];
 
-					var player = socket.handshake.session.player.username;
-					socket.emit('joined', { username: player.username, displayName: player.displayName, chatSession: chatSession } );
-                                });     
+					async.parallel({
+						chat: function(asyncCallback) {
+							models.Session.sessionChatModel.findHistory(game.id, function(err, chats){
+				                	        if(err) {
+				                	          chatHistory = [{ displayName: "System", message: "Previous chats could not be loaded" }];
+				                	        } else {
+				                	          chatHistory = chats;
+				                        	}	
+
+								return asyncCallback(err, chatHistory);
+		                        		});   
+						},
+						library: function(asyncCallback) {
+							models.Session.sessionLibraryModel.findLibrary(game.id, function(err, libraryData) {
+				                	        if(!err) {
+				                	          objectLibrary = libraryData;
+				                        	}	
+
+								return asyncCallback(err, objectLibrary);						  		
+							});
+						}}, function(err, doc) {
+							socket.emit('joined', { username: player.username, displayName: player.displayName, type: player.type ,chatSession: chatHistory, objectLibrary: objectLibrary } );
+						}
+					);
+					
+				});  
 
 			});
 
