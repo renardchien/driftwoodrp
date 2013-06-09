@@ -25,7 +25,7 @@ var config = require('../config.js');
 var utils = require('../utils');
 var log = config.getLogger();
 
-var createPlayer = function(newUser, pass, firstNm, lastNm, emailAddr, callback) 
+var createPlayer = function(newUser, pass, displayName, emailAddr, callback) 
 {
 	log.info('creating player ' + newUser);
 	// Creating one user.
@@ -33,8 +33,7 @@ var createPlayer = function(newUser, pass, firstNm, lastNm, emailAddr, callback)
 	  username: newUser,
 	  password: pass,
 	  name: 	{
-				first: firstNm,
-				last: lastNm
+				displayName: displayName
 			},
 	  email:   	emailAddr
 	});
@@ -83,10 +82,9 @@ var createAccount = function(req, res){
 	var username = req.body.registerUsername;
 	var password = req.body.registerPassword;
 	var emailAddr = req.body.registerEmailAddr;
-	var firstNm = req.body.registerFirstname;
-	var lastNm = req.body.registerLastname;
+	var displayName = req.body.displayName;
 	
-	if(!username || !password || !emailAddr || !firstNm || !lastNm) {
+	if(!username || !password || !emailAddr || !displayName) {
 		return res.badRequest("All fields required");
 	}
 
@@ -106,8 +104,7 @@ var createAccount = function(req, res){
 		  username: username,
 		  password: password,
 		  name: 	{
-					first: firstNm,
-					last: lastNm
+					displayName: displayName
 				},
 		  email:   	emailAddr
 		});

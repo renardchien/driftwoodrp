@@ -114,6 +114,33 @@ var SessionLibrarySchema = new mongoose.Schema({
 });
 SessionLibrarySchema.index({ publicPath: 1 }, { unique: true });
 
+var SessionChatSchema = new mongoose.Schema({
+  sessionId:	{
+			type: Schema.ObjectId,
+			required: true,
+			ref: 'Session'
+		},
+  playerId:	{
+			type: Schema.ObjectId,
+			required: true,
+			ref: 'Player'
+		},
+  displayName:  {
+                        type: String,
+			required: true,
+			trim: true
+                },
+  time: 	{	
+                        type: Date,
+                        'default': Date.now
+		},
+  message:      {
+                        type: String,
+                        required: true
+                }
+  
+});
+
 var SessionLogSchema = new mongoose.Schema({
   sessionId:	{
 			type: Schema.ObjectId,
@@ -159,13 +186,16 @@ SessionLibrarySchema.statics.findByPublicPath = function(publicPath, callback) {
 var SessionModel = mongoose.model('Session', SessionSchema);
 var SessionPlayerModel = mongoose.model('SessionPlayers', SessionPlayerSchema);
 var SessionLibraryModel = mongoose.model('SessionLibrary', SessionLibrarySchema);
+var SessionChatModel = mongoose.model('SessionChat', SessionChatSchema);
 var SessionLogModel = mongoose.model('SessionLog', SessionLogSchema);
 module.exports.sessionModel = SessionModel;
 module.exports.sessionPlayerModel = SessionPlayerModel;
 module.exports.sessionLibraryModel = SessionLibraryModel;
+module.exports.sessionChatModel = SessionChatModel;
 module.exports.sessionLogModel = SessionLogModel;
 module.exports.sessionSchema = SessionSchema;
 module.exports.sessionPlayerSchema = SessionPlayerSchema;
 module.exports.sessionLibrarySchema = SessionLibrarySchema;
+module.exports.sessionChatSchema = SessionChatSchema;
 module.exports.sessionLogSchema = SessionLogSchema;
 

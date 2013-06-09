@@ -100,7 +100,7 @@ var createSession = function(req, res){
 var loadSession = function(req, res) {
 	var game = res.locals.game;
 
-	res.render('game', {url: config.getConfig().liveUrl, title: game.name, game: game});
+	res.render('game2', {url: config.getConfig().liveUrl, title: game.name, game: game});
 };
 
 var addPlayer = function(req, res) {
