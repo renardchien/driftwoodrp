@@ -75,6 +75,10 @@ var logout = function(req, res){
 };
 
 var loginPage = function(req, res){
+	if(req.session && req.session.player) {
+		return res.redirect('/joinGame/' + req.session.player.username);
+	}
+
 	res.render('login', {title: 'Driftwood Login'});
 };
 
