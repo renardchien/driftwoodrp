@@ -113,7 +113,14 @@ $(document).ready(function() {
         //What to do after successully joining a game
         console.log('Joined game successfully');
         //Create our current player
-        this.player = new Player(data);
+        console.log(data);
+        this.player = new Player(data.user);
+        if( data.chatSession ) {
+          this.settings.chatData = data.chatSession;
+        }
+        if( data.objectLibrary.length ) {
+          this.settings.objects = data.objectLibrary;
+        }
         //Run the game
         this.run();
         //Hide the loading screen, we're ready to go!
@@ -347,6 +354,18 @@ $(document).ready(function() {
       //On receiving chat, use our chat object to receive the message
       //and make sure the scope being used is the chat object itself
       this.socket.on('chat', _.bind( this.chat.receiveData, this.chat ) );
+      //Receiving a new object
+      this.socket.on('objectAdded', _.bind( this.canvas.loadFromJSON, this.canvas ) );
+      //Receiving a new object
+      this.socket.on('objectModified', _.bind( function(data) {
+        this.canvas.loadFromJSON(data,'replace');
+      }, this ) );
+      this.socket.on('objectRemoved', _.bind( function(data) {
+        _.each(data.objects, _.bind( function(object) {
+          this.canvas.removeObjectById(object.id,true);
+        }, this ) );
+        
+      }, this ) );
     },
 
     /**
@@ -1124,6 +1143,8 @@ $(document).ready(function() {
   var Player = Backbone.Model.extend({
     //Defaults
     defaults: {
+      username: '',
+      displayName: '',
       type: 'player'
     },
     initialize: function() {
@@ -1314,7 +1335,7 @@ $(document).ready(function() {
       var object = this.get('object');
       object.selectable = false;
       //Cannot be an empty layer/undefined
-      if( this.layer && ['fog_layer','grid_layer'].indexOf(this.layer) === -1 && (typeof opacity === 'undefined' || opacity == true) ) {
+      if( this.get('layer') && ['fog_layer','grid_layer'].indexOf(this.get('layer')) === -1 && (typeof opacity === 'undefined' || opacity == true) ) {
         object.opacity = 0.7;
       }
     },
@@ -1326,6 +1347,17 @@ $(document).ready(function() {
       var object = this.get('object');
       object.selectable = true;
       object.opacity = 1;
+    },
+
+    getIndex: function() {
+      var _objects = this.canvas.getObjects();
+      return _objects.indexOf(this.get('object'));
+    },
+
+    isBeingControlled: function() {
+      var controlledBy = this.get('object').get('controlledBy'),
+          me = driftwood.engine.player.get('username');
+      return ( controlledBy && controlledBy !== me );
     }
    
   });
@@ -1438,7 +1470,24 @@ $(document).ready(function() {
       this.canvas.on('selection:cleared', _.bind( this.removeControl, this ) );
       //Object modified
       this.canvas.on('object:modified', _.bind( function(e) {
-        console.log(e);
+        this.trigger('object:modified', e.target);
+      }, this ) );
+      //Object moving
+      this.canvas.on('object:moving', _.bind( function(e) {
+        this.trigger('object:modified', e.target);
+      }, this ) );
+
+      this.on('object:added', _.bind( function(object) {
+        var json = this.toDataJSON(object);
+        driftwood.engine.socket.emit('objectAdded',{objects:json});
+      }, this ) );
+      this.on('object:modified', _.bind( function(object) {
+        var json = this.toDataJSON(object);
+        driftwood.engine.socket.emit('objectModified',{objects:json});
+      }, this ) );
+      this.on('object:removed', _.bind( function(object) {
+        var json = this.toDataJSON(object);
+        driftwood.engine.socket.emit('objectRemoved',{objects:json});
       }, this ) );
 
       //Creates a context menu
@@ -1456,6 +1505,33 @@ $(document).ready(function() {
         console.log(e);
       }, this ) );
       
+    },
+
+    toDataJSON: function(object) {
+      var objects = [],
+          jsonObjects = [];
+      //Might have multiple objects
+      if( object._objects ) {
+        //This is a group, we need to restore each
+        //object so the properties are not relative to
+        //the group
+        _.each(object._objects, function( o ) {
+          var _o = fabric.util.object.clone(o);
+          _o.group._restoreObjectState(_o);
+          objects.push(_o);
+        });
+      } else {
+        objects.push(object);
+      }
+      //Go through each one and get their index
+      objects.forEach( _.bind(function( object ) {
+        var o = this.toObject(object),
+            json = object.toJSON();
+        //Add index into json data
+        json['index'] = o.getIndex();
+        jsonObjects.push(json);
+      }, this ) );
+      return jsonObjects;
     },
 
     /**
@@ -1476,18 +1552,23 @@ $(document).ready(function() {
       console.log('Take control of objects',selected);
       //For each object, make it controlled by our current player
       _.each( selected, _.bind( function(object) {
-        object.set('controlledBy',driftwood.engine.player.get('id'));
+        object.set('controlledBy',driftwood.engine.player.get('username'));
       }, this ) );
+      if( selected.length) {
+        this.trigger('object:modified',e.target);
+      }
+      
     },
 
     removeControl: function() {
       console.log('Remove control of all my objects');
       var _objects = this.canvas.getObjects();
-      _.each( _objects, function(object) {
-        if( object.get('controlledBy') && object.get('controlledBy') == driftwood.engine.player.get('id') ) {
+      _.each( _objects, _.bind( function(object) {
+        if( object.get('layer') !== 'grid_layer' && object.get('controlledBy') && object.get('controlledBy') == driftwood.engine.player.get('username') ) {
           object.set('controlledBy',false);
+          this.trigger('object:modified',object)
         }
-      } );
+      }, this ) );
     },
 
     /**
@@ -1595,7 +1676,7 @@ $(document).ready(function() {
        var _objects = this.getObjects();
       _.each( _objects, _.bind( function(object) {
         if( object.get('layer') === layer ) {
-          this.canvas.remove(object.get('object'));
+          this.removeObject(object.get('object'));
         }
       }, this ) );
     },
@@ -1673,6 +1754,7 @@ $(document).ready(function() {
         _.each( this._cloned, _.bind(function(object) {
           object = fabric.util.object.clone(object);
           object.set({
+            id: _.uniqueId(driftwood.engine.player.get('username')+'_'),
             layer: this.currentLayer,
             //Group objects take mouse position + object position since it's a number
             //relative to the group
@@ -1681,6 +1763,7 @@ $(document).ready(function() {
             hasControls: true
           });
           this.canvas.add(object);
+          this.trigger('object:added', object);
           //this.canvas.setActiveObject(object);
         }, this ) );
         this.canvas.deactivateAllWithDispatch().renderAll();
@@ -1694,7 +1777,7 @@ $(document).ready(function() {
       if( this.contextMenu.objects.length ) {
         this.canvas.deactivateAllWithDispatch()
         _.each( this.contextMenu.objects, _.bind( function(object) {
-          this.canvas.remove(object.get('object'));
+          this.removeObject(object.get('object'));
         }, this ) );
         this.canvas.renderAll();
       }
@@ -1710,6 +1793,7 @@ $(document).ready(function() {
         var selected = [];
         _.each( this.contextMenu.objects, _.bind( function(object) {
           object.lock();
+          this.canvas.trigger('object:modified',{target: object.get('object')});
         }, this ) );
         this.canvas.renderAll();
       }
@@ -1726,6 +1810,7 @@ $(document).ready(function() {
           //We're going to reselect these objects
           object.get('object').set('active',true);
           selected.push(object.get('object'));
+          this.canvas.trigger('object:modified',{target: object.get('object')});
         }, this ) );
         this.canvas.setActiveGroup(new fabric.Group(selected)).renderAll();
       }
@@ -1752,6 +1837,7 @@ $(document).ready(function() {
               object.sendToBack();
               break;
           }
+          this.canvas.trigger('object:modified',{target: object.get('object')});
         }, this ) );
       }
     },
@@ -1773,8 +1859,42 @@ $(document).ready(function() {
             object.disable(opacity);
           }
           object.sendToFront();
+          this.canvas.trigger('object:modified',{target: object.get('object')});
         }, this ) );
         this.canvas.deactivateAllWithDispatch().renderAll();
+      }
+    },
+
+    updateObjectForPlayer: function(object) {
+      var object = this.toObject(object);
+      //Make sure it's selectable and does not have a shadow
+      object.get('object').set('selectable',true);
+      //object.get('object').shadow = null;
+      if( object.get('layer') !== this.currentLayer ) {
+        var opacity = object.get('layerIndex') > this.getLayerIndex(this.currentLayer);
+        object.disable(opacity);
+      } else {
+        object.enable();
+      }
+
+      if( object.isLocked() ) {
+        object.lock();
+      } else {
+        object.unlock();
+      }
+      if( object.isBeingControlled() ) {
+        object.get('object').set('selectable',false);
+        /*object.get('object').setShadow({
+          color: 'rgba(70,58,153,0.3)',
+          blur: 5,
+          offsetX: 5,
+          offsetY: 5
+        });*/
+      }
+
+      //Object is on the gm layer and the player is not a gm
+      if( object.get('layer') === 'gm_layer' && ! driftwood.engine.player.isGM() ) {
+        object.get('object').set('opacity',0);
       }
     },
 
@@ -1803,6 +1923,16 @@ $(document).ready(function() {
         //TODO: Indicate something on the UI alerting user that we failed
         //to fetch the image
       }
+    },
+
+    getObjectById: function(id) {
+      var _objects = this.canvas.getObjects();
+      for( var i=0; i<_objects.length; i++) {
+        if( _objects[i].get('id') == id ) {
+          return _objects[i];
+        }
+      }
+      return false;
     },
 
     /**
@@ -1863,37 +1993,59 @@ $(document).ready(function() {
      * and throws it into a backbone model.
      */
     addObject: function(activeObject) {
-      if( ! activeObject.get('layer') ) {
+      var newObject = activeObject.get('id') ? false : true;
+      activeObject.toObject = (function(toObject) {
+        return function() {
+          return fabric.util.object.extend(toObject.call(this), {
+            id: this.id,
+            layer: this.layer,
+            objectType: this.objectType,
+            locked: this.locked,
+            controlledBy: this.controlledBy
+          });
+        };
+      })(activeObject.toObject);
+      if( newObject ) {
         var currentLayer = this.currentLayer;
-        activeObject.toObject = (function(toObject) {
-          return function() {
-            return fabric.util.object.extend(toObject.call(this), {
-              layer: this.layer,
-              objectType: this.objectType,
-              locked: this.locked,
-              controlledBy: this.controlledBy
-            });
-          };
-        })(activeObject.toObject);
+        //Set all our intial attributes
         activeObject.set({
+          id: _.uniqueId(driftwood.engine.player.get('username')+'_'),
           layer: this.currentLayer,
           objectType: this.addedObjectType,
           locked: false,
-          controlledBy: false
+          controlledBy: driftwood.engine.player.get('username')
         });
-      }
-      //Move the object to the front of it's layer
-      var object = this.toObject(activeObject);
-      //If this is a token or item AND it was just added, scale it
-      if( this.addedObjectType && ['token','item'].indexOf(object.get('objectType')) !== -1 ) {
-        object.fitTo('grid',this.canvasScale);
-      //Its a map, fit it to the canvas
-      } else if( this.addedObjectType && ['map'].indexOf(object.get('objectType')) !== -1) {
-        object.fitTo('canvas',this.canvasScale);
+
+        //Move the object to the front of it's layer
+        var object = this.toObject(activeObject);
+        //If this is a token or item AND it was just added, scale it
+        if( this.addedObjectType && ['token','item'].indexOf(object.get('objectType')) !== -1 ) {
+          object.fitTo('grid',this.canvasScale);
+        //Its a map, fit it to the canvas
+        } else if( this.addedObjectType && ['map'].indexOf(object.get('objectType')) !== -1) {
+          object.fitTo('canvas',this.canvasScale);
+        }
+
+        //Make sure the object is at the front of its layer
+        object.sendToFront(true);
+        //As long as this isn't something on the grid layer,
+        //make sure the server knows an object has been added
+        if( object.get('layer') !== 'grid_layer' ) {
+          this.trigger('object:added', object.get('object'));
+        }
       }
 
-      //Make sure the object is at the front of its layer
-      object.sendToFront(true);
+    },
+
+    removeObject: function(object,noDispatch) {
+      this.canvas.remove(object);
+      if( noDispatch !== true ) {
+        this.trigger('object:removed',object);
+      }
+    },
+
+    removeObjectById: function(id,noDispatch) {
+      this.removeObject(this.getObjectById(id),noDispatch);
     },
 
     /**
@@ -1923,6 +2075,7 @@ $(document).ready(function() {
       this.drawing.circle.stopDrawing();
       this.drawing.rectangle.stopDrawing();
       this.canvas.isDrawingMode = false;
+      this.canvas.deactivateAll();
       this.canvas.selection = false;
       this.zoom.deactivateZoom();
     },
@@ -2270,6 +2423,7 @@ $(document).ready(function() {
               }).adjustPosition(originX); //Set our origin point
               //Render everything
               this.canvas.renderAll();
+              this.scope.trigger('object:modified', this.circle);
             }
           },
         }//END return
@@ -2370,11 +2524,161 @@ $(document).ready(function() {
               }).adjustPosition(originX); //Set our origin point
               //Render everything
               this.canvas.renderAll();
+              this.scope.trigger('object:modified', this.rectangle);
             }
           },
         }//END return
       }//END Circle UTIL
     },//ND Drawing UTIL
+
+    /**
+     * Alis for Fabric's native _enlivenDatalessObjects method.
+     * Instead of completely clearing the canvas, this looks
+     * for an index attribute in the object and will insert
+     * the object at that position
+     * 
+     * @private
+     * @param {Array} objects
+     * @param {Function} callback
+     */
+    _enlivenObjects: function (objects, callback) {
+      var _this = this,
+          numLoadedObjects = 0,
+          numTotalObjects = objects.length,
+          _objects = [];
+
+      /** @ignore */
+      function onObjectLoaded(object, index) {
+        object.index = index;
+        _objects.push(object);
+        object.setCoords();
+        if (++numLoadedObjects === numTotalObjects) {
+          callback && callback(_objects);
+        }
+      }
+
+      /** @ignore */
+      function loadObject(obj) {
+
+        var pathProp = obj.paths ? 'paths' : 'path';
+        var path = obj[pathProp];
+        index = obj.index;
+
+        delete obj[pathProp];
+
+        if (typeof path !== 'string') {
+          if (obj.type === 'image' || obj.type === 'group') {
+            fabric[fabric.util.string.capitalize(obj.type)].fromObject(obj, function (o) {
+              onObjectLoaded(o, index);
+            });
+          }
+          else {
+            var klass = fabric[fabric.util.string.camelize(fabric.util.string.capitalize(obj.type))];
+            if (!klass || !klass.fromObject) return;
+
+            // restore path
+            if (path) {
+              obj[pathProp] = path;
+            }
+            onObjectLoaded(klass.fromObject(obj), index);
+          }
+        }
+        else {
+          if (obj.type === 'image') {
+            fabric.util.loadImage(path, function (image) {
+              var oImg = new fabric.Image(image);
+
+              oImg.setSourcePath(path);
+
+              fabric.util.object.extend(oImg, obj);
+              oImg.setAngle(obj.angle);
+
+              onObjectLoaded(oImg, index);
+            });
+          }
+          else if (obj.type === 'text') {
+
+            if (obj.useNative) {
+              onObjectLoaded(fabric.Text.fromObject(obj), index);
+            }
+            else {
+              obj.path = path;
+              var object = fabric.Text.fromObject(obj);
+              /** @ignore */
+              var onscriptload = function () {
+                // TODO (kangax): find out why Opera refuses to work without this timeout
+                if (Object.prototype.toString.call(fabric.window.opera) === '[object Opera]') {
+                  setTimeout(function () {
+                    onObjectLoaded(object, index);
+                  }, 500);
+                }
+                else {
+                  onObjectLoaded(object, index);
+                }
+              };
+
+              fabric.util.getScript(path, onscriptload);
+            }
+          }
+          else {
+            fabric.loadSVGFromURL(path, function (elements) {
+              var object = fabric.util.groupSVGElements(elements, obj, path);
+
+              // copy parameters from serialied json to object (left, top, scaleX, scaleY, etc.)
+              // skip this step if an object is a PathGroup, since we already passed it options object before
+              if (!(object instanceof fabric.PathGroup)) {
+                fabric.util.object.extend(object, obj);
+                if (typeof obj.angle !== 'undefined') {
+                  object.setAngle(obj.angle);
+                }
+              }
+
+              onObjectLoaded(object, index);
+            });
+          }
+        }
+      }
+
+      if (numTotalObjects === 0 && callback) {
+        callback();
+      }
+
+      try {
+        objects.forEach(loadObject, this);
+      }
+      catch(e) {
+        fabric.log(e);
+      }
+    },
+
+    loadFromJSON: function(json,mode) {
+      if (!json) return;
+
+      // serialize if it wasn't already
+      var serialized = (typeof json === 'string')
+        ? JSON.parse(json)
+        : json;
+
+      var mode = (typeof mode === 'undefined' )
+        ? 'insert'
+        : mode;
+
+      this._enlivenObjects(serialized.objects, _.bind( function (objects) {
+        _objects = this.canvas.getObjects();
+        objects.forEach( _.bind( function(object) {
+          if( existingObject = this.getObjectById(object.get('id')) ) {
+            this.canvas.remove(existingObject);
+          }
+          this.updateObjectForPlayer(object);
+          this.canvas.insertAt(object,object.index);
+          //var o = this.toObject(object);
+          //o.switchLayer(o.get('layer'));
+        }, this ) );
+          
+      }, this ) );
+
+      return this;
+    }
 
   } );
   

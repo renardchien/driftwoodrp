@@ -244,7 +244,7 @@ html(lang='en')
         </ul>
       script#chatMessageTemplate(type='text/template')
         <div class="message <%= active ? 'active' : '' %>">
-        <div class="username"><%= username %></div> <div class="text"><%= message %></div>
+        <div class="username"><%= displayName %></div> <div class="text"><%= message %></div>
         </div>
       script#objectItemTemplate(type='text/template')
         <li class="object ui-draggable" data-url="<%= url %>" data-type="<%= type.toLowerCase() %>">

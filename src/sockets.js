@@ -87,7 +87,7 @@ var configureSockets = function(socketio) {
 								return asyncCallback(err, objectLibrary);						  		
 							});
 						}}, function(err, doc) {
-							socket.emit('joined', { username: player.username, displayName: player.displayName, type: player.type ,chatSession: chatHistory, objectLibrary: objectLibrary } );
+							socket.emit('joined', { user: {username: player.username, displayName: player.displayName, type: player.type} ,chatSession: chatHistory, objectLibrary: objectLibrary } );
 						}
 					);
 					
@@ -125,8 +125,29 @@ var configureSockets = function(socketio) {
 					socket.emit('error', 'An error occurred while saving chat');
 				}
 
-				io.sockets.in(socket.room).emit('chat', {username: socket.handshake.session.player.displayName,message: message });
+				io.sockets.in(socket.room).emit('chat', {displayName: socket.handshake.session.player.displayName,message: message });
 			});
+		});
+
+		socket.on('objectAdded', function(data) {
+			if(!socket.room) {
+				socket.emit('error', 'Not connected to a game');
+			}
+			io.sockets.in(socket.room).except(socket.id).emit('objectAdded',data);
+		});
+
+		socket.on('objectModified', function(data) {
+			if(!socket.room) {
+				socket.emit('error', 'Not connected to a game');
+			}
+			io.sockets.in(socket.room).except(socket.id).emit('objectModified',data);
+		});
+
+		socket.on('objectRemoved', function(data) {
+			if(!socket.room) {
+				socket.emit('error', 'Not connected to a game');
+			}
+			io.sockets.in(socket.room).except(socket.id).emit('objectRemoved',data);
 		});
 
 		socket.on('disconnect', function(data) {
