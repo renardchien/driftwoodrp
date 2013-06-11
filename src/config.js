@@ -116,6 +116,7 @@ var getConfig = function(){
                 secretKey: secretKey,
 		port: port,
                 url: url,
+		liveUrl: liveUrl,
 		databaseURI: databaseURI,
                 specialConfigs: specialConfigs
 	};

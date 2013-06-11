@@ -29,6 +29,7 @@ var xxhash = require('xxhash');
 var log = config.getLogger();
 var utils = require('../utils');
 var sockets = require('../sockets.js');
+var url = config.getConfig().liveUrl
 
 var joinSessionPage = function(req, res) {
 	var player = res.locals.player;
@@ -100,7 +101,7 @@ var createSession = function(req, res){
 var loadSession = function(req, res) {
 	var game = res.locals.game;
 
-	res.render('game2', {url: config.getConfig().liveUrl, title: game.name, game: game});
+	res.render('game2', {url: url, title: game.name, game: game});
 };
 
 var addPlayer = function(req, res) {
@@ -407,7 +408,7 @@ var test = function(req, res) {
 				return res.json('game was not found');
 			}
 
-			res.render('game2', { url: config.getConfig().liveUrl, game: doc });
+			res.render('game2', { url: url, game: doc });
 		});
 	});
 };
