@@ -1476,6 +1476,12 @@ $(document).ready(function() {
       this.canvas.on('object:moving', _.bind( function(e) {
         this.trigger('object:modified', e.target);
       }, this ) );
+      this.canvas.on('object:scaling', _.bind( function(e) {
+        this.trigger('object:modified', e.target);
+      }, this ) );
+      this.canvas.on('object:rotating', _.bind( function(e) {
+        this.trigger('object:modified', e.target);
+      }, this ) );
 
       this.on('object:added', _.bind( function(object) {
         var json = this.toDataJSON(object);
@@ -1523,14 +1529,16 @@ $(document).ready(function() {
       } else {
         objects.push(object);
       }
+
       //Go through each one and get their index
-      objects.forEach( _.bind(function( object ) {
+      this.orderByIndex(objects).forEach( _.bind(function( object ) {
         var o = this.toObject(object),
             json = object.toJSON();
         //Add index into json data
         json['index'] = o.getIndex();
         jsonObjects.push(json);
       }, this ) );
+      console.log('To JSON',objects);
       return jsonObjects;
     },
 
@@ -1636,6 +1644,25 @@ $(document).ready(function() {
         this.switchLayer(layer);
       }
       this.canvas.renderAll();
+    },
+
+    orderByIndex: function(objects) {
+      if( ! objects || ! objects.length ) {
+        return objects;
+      }
+      var _objects = this.canvas.getObjects();
+      
+      return _.sortBy(objects, function(object) {
+        return _objects.indexOf(object);
+      });
+    },
+
+    toCanvasObjects: function(objects) {
+      var canvasObjects = [];
+      _.each( objects, function(object) {
+        canvasObjects.push(object.get('object'));
+      });
+      return canvasObjects;
     },
 
     /**
@@ -1956,10 +1983,12 @@ $(document).ready(function() {
       if( _objects ) {
         activeGroup = [];
         _objects.forEachObject( _.bind( function(object) {
-          activeGroup.push(this.toObject(object));
+          activeGroup.push(object);
         }, this ) );
+        activeGroup = this.toObjects(this.orderByIndex(activeGroup));
       }
-      return activeGroup
+
+      return activeGroup;
     },
 
      /**
@@ -1986,6 +2015,19 @@ $(document).ready(function() {
         canvas: this.canvas,
         layers: this.layers
       });
+    },
+
+    toObjects: function(objects) {
+      var converted = []
+      _.each( objects, function(object) {
+        converted.push(new CanvasObj({
+          object: object,
+          canvas: this.canvas,
+          layers: this.layers
+        }));
+      });
+      console.log('Converted',converted);
+      return converted;
     },
 
     /**
@@ -2662,6 +2704,7 @@ $(document).ready(function() {
       var mode = (typeof mode === 'undefined' )
         ? 'insert'
         : mode;
+
 
       this._enlivenObjects(serialized.objects, _.bind( function (objects) {
         _objects = this.canvas.getObjects();
