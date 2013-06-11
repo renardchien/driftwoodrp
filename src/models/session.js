@@ -176,6 +176,15 @@ SessionPlayerSchema.statics.findPlayerGamePermission = function(playerId, sessio
 	}, callback );
 };
 
+SessionLibrarySchema.virtual('clientObject').get(function() {
+	return {
+		'url': config.getConfig().specialConfigs.awsUrl + this.publicPath,
+		'thumbnail': config.getConfig().specialConfigs.awsUrl + this.publicPath + config.getConfig().specialConfigs.imageSize.thumb.type,
+		'type': this.type,
+		'name': this.name
+        }
+});
+
 SessionLibrarySchema.statics.findByPublicPath = function(publicPath, callback) {
 	return SessionLibraryModel.findOne(
 	{
@@ -187,14 +196,14 @@ SessionLibrarySchema.statics.findLibrary = function(sessionId, callback) {
 	return SessionLibraryModel.find(
 	{
 		sessionId: sessionId
-	}, { _id: 0, __v: 0, sessionId: 0, playerId: 0 } ).find(callback);      
+	}, { _id: 0, __v: 0, sessionId: 0, playerId: 0 }).find(callback);      
 };
 
 SessionChatSchema.statics.findHistory = function(sessionId, callback) {
 	return SessionChatModel.find(
 	{
 		sessionId: sessionId
-	}, { _id: 0, __v: 0, sessionId: 0, playerId: 0 }).sort({'_id': 1}).find(callback);
+	}, { _id: 0, __v: 0, sessionId: 0, playerId: 0  } ).sort({'_id': 1}).find(callback);
 };
 
 var SessionModel = mongoose.model('Session', SessionSchema);

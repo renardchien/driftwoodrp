@@ -81,10 +81,10 @@ var configureSockets = function(socketio) {
 						library: function(asyncCallback) {
 							models.Session.sessionLibraryModel.findLibrary(game.id, function(err, libraryData) {
 				                	        if(!err) {
-				                	          objectLibrary = libraryData;
+				                	          objectLibrary = _.pluck(libraryData, 'clientObject');
 				                        	}	
 
-								return asyncCallback(err, objectLibrary);						  		
+								return asyncCallback(err, _.pluck(objectLibrary));						  		
 							});
 						}}, function(err, doc) {
 							socket.emit('joined', { user: {username: player.username, displayName: player.displayName, type: player.type} ,chatSession: chatHistory, objectLibrary: objectLibrary } );
