@@ -52,6 +52,7 @@ $(document).ready(function() {
       gamename: '',
       owner: false,
       liveUrl: '',
+      canvas: false,
       canvasHeight: 3000,
       canvasWidth: 3000,
       enableFog: false,
@@ -121,6 +122,9 @@ $(document).ready(function() {
         if( data.objectLibrary.length ) {
           this.settings.objects = data.objectLibrary;
         }
+        if( data.canvas ) {
+          this.settings.canvas = data.canvas;
+        }
         //Run the game
         this.run();
         //Hide the loading screen, we're ready to go!
@@ -138,6 +142,7 @@ $(document).ready(function() {
       this.objects = new ObjectList({load:this.settings.objects});
       //All interactions with the canvas
       this.canvas = new CanvasManager({
+        loadCanvas: this.settings.canvas,
         canvasHeight: this.settings.canvasHeight,
         canvasWidth: this.settings.canvasWidth
       });
@@ -357,9 +362,8 @@ $(document).ready(function() {
       //Receiving a new object
       this.socket.on('objectAdded', _.bind( this.canvas.loadFromJSON, this.canvas ) );
       //Receiving a new object
-      this.socket.on('objectModified', _.bind( function(data) {
-        this.canvas.loadFromJSON(data,'replace');
-      }, this ) );
+      this.socket.on('objectModified', _.bind( this.canvas.loadFromJSON, this.canvas ) );
+      //Removing old objects
       this.socket.on('objectRemoved', _.bind( function(data) {
         _.each(data.objects, _.bind( function(object) {
           this.canvas.removeObjectById(object.id,true);
@@ -482,6 +486,23 @@ $(document).ready(function() {
           $target.html($value);
           break;
       }
+    },
+
+    generateUid: function(separator) {
+        /// <summary>
+        ///    Creates a unique id for identification purposes.
+        /// </summary>
+        /// <param name="separator" type="String" optional="true">
+        /// The optional separator for grouping the generated segmants: default "-".    
+        /// </param>
+
+        var delim = separator || "-";
+
+        function S4() {
+            return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+        }
+
+        return (S4() + S4() + delim + S4() + delim + S4() + delim + S4() + delim + S4() + S4() + S4());
     },
 
     //Makes a textarea elastic
@@ -1164,8 +1185,8 @@ $(document).ready(function() {
 
     initialize: function() {
       //Set local references
-      this.canvas = this.get('canvas');
-      this.layers = this.get('layers');
+      this.canvas = driftwood.engine.canvas.canvas;
+      this.layers = driftwood.engine.canvas.layers;
       //Set attributes for easier .get() calls
       this.set({
         layer: this.get('object').get('layer'),
@@ -1238,7 +1259,6 @@ $(document).ready(function() {
       var _objects = this.canvas.getObjects(),
           _index = _objects.indexOf(this.get('object')), //This objects index
           _layerIndex = this.get('layerIndex') //This object's layer index
-      console.log(_index,this.getLayerIndex(_objects[_index-1].get('layer')),_layerIndex);
       if( _index > 0 && this.getLayerIndex(_objects[_index-1].get('layer')) === _layerIndex ) {
         console.log('Actually moving backwards');
         this.canvas.moveTo(this.get('object'),(_index-1));
@@ -1250,7 +1270,6 @@ $(document).ready(function() {
       var _objects = this.canvas.getObjects(),
           _index = _objects.indexOf(this.get('object')), //This objects index
           _layerIndex = this.get('layerIndex') //This object's layer index
-      console.log(_index,this.getLayerIndex(_objects[_index+1].get('layer')),_layerIndex);
       if( _index < (_objects.length - 1) && this.getLayerIndex(_objects[_index+1].get('layer')) === _layerIndex ) {
         console.log('Actually moving forward');
         this.canvas.moveTo(this.get('object'),(_index+1));
@@ -1266,15 +1285,7 @@ $(document).ready(function() {
      * Given a layer string, figures out what index the layer is at.
      */
     getLayerIndex: function(layer) {
-      var layerIndex;
-      //Go through the layers until we find a matching name.
-      //FIXME: Is there better way to do this? 
-      _.each( this.layers, function(layerObj,index) {
-        if( layerObj.layer_name == layer ) {
-          layerIndex = index;
-        }
-      } );
-      return layerIndex;
+      return driftwood.engine.canvas.getLayerIndex(layer);
     },
     /**
      * Fits the object to a given size. If canvas is passed in,
@@ -1400,11 +1411,13 @@ $(document).ready(function() {
       },
     ],
 
+    enlivening: {},
+
     initialize: function(options) {
       _.bindAll(this,'render');
-
-      this.CANVAS_WIDTH = options.canvasWidth || this.CANVAS_WIDTH;
-      this.CANVAS_HEIGHT = options.canvasHeight || this.CANVAS_HEIGHT;
+      this.options = options || {};
+      this.CANVAS_WIDTH = this.options.canvasWidth || this.CANVAS_WIDTH;
+      this.CANVAS_HEIGHT = this.options.canvasHeight || this.CANVAS_HEIGHT;
       
       //Store reference to our canvas object
       this.canvas = new fabric.Canvas('c',{margin: '100px'});
@@ -1424,7 +1437,10 @@ $(document).ready(function() {
       this.zoom = this.zoomUtil.init(this);
 
       this.canvas.freeDrawingBrush = new fabric['PencilBrush'](this.canvas);
-
+      //Preload canvas options
+      if( this.options.loadCanvas ) {
+        this.loadCanvas(this.options.loadCanvas);
+      }
       //Add event listeners
       this.addEventListeners();
       
@@ -1496,6 +1512,10 @@ $(document).ready(function() {
         driftwood.engine.socket.emit('objectRemoved',{objects:json});
       }, this ) );
 
+      this.on('object:added object:removed object:modified', _.bind( function() {
+        //driftwood.engine.socket.emit('saveCanvas',JSON.stringify(this.canvas));
+      }, this ) );
+
       //Creates a context menu
       $body.on('contextmenu','.canvas-wrapper', _.bind(this.openContextMenu, this));
 
@@ -1513,32 +1533,47 @@ $(document).ready(function() {
       
     },
 
+    loadCanvas: function(data) {
+      /*this.canvas.loadFromJSON(data);
+      var _objects = this.canvas.getObjects();
+      _.each( objects, _.bind( function(object) {
+        //this.updateObjectForPlayer(object);
+      }, this ) );
+      this.canvas.renderAll();*/
+    },
+
     toDataJSON: function(object) {
       var objects = [],
-          jsonObjects = [];
+          jsonObjects = [],
+          canvasObjects = this.canvas.getObjects();
       //Might have multiple objects
       if( object._objects ) {
-        //This is a group, we need to restore each
-        //object so the properties are not relative to
-        //the group
+        //Order them by their position
+        object._objects = this.orderByIndex(object._objects);
+        //This is a group, we need to restore each object so the 
+        //properties are not relative to the group
         _.each(object._objects, function( o ) {
-          var _o = fabric.util.object.clone(o);
-          _o.group._restoreObjectState(_o);
+          var index = canvasObjects.indexOf(o),
+              _o = o;
+          if( _o.group ) {
+            var _o = fabric.util.object.clone(o);
+            _o.group._restoreObjectState(_o);
+          }
+          _o.index = index;
           objects.push(_o);
         });
       } else {
+        object.index = canvasObjects.indexOf(object);
         objects.push(object);
       }
 
       //Go through each one and get their index
-      this.orderByIndex(objects).forEach( _.bind(function( object ) {
-        var o = this.toObject(object),
-            json = object.toJSON();
+      objects.forEach( _.bind(function( object ) {
+        var json = object.toJSON();
         //Add index into json data
-        json['index'] = o.getIndex();
+        json['index'] = object.index;
         jsonObjects.push(json);
       }, this ) );
-      console.log('To JSON',objects);
       return jsonObjects;
     },
 
@@ -1570,13 +1605,18 @@ $(document).ready(function() {
 
     removeControl: function() {
       console.log('Remove control of all my objects');
-      var _objects = this.canvas.getObjects();
+      var _objects = this.canvas.getObjects(),
+          modified = [];
       _.each( _objects, _.bind( function(object) {
-        if( object.get('layer') !== 'grid_layer' && object.get('controlledBy') && object.get('controlledBy') == driftwood.engine.player.get('username') ) {
+        //Not a grid, is already controlled by me, and is not active ( if it is active, it's being controlled by me)
+        if( object.get('layer') !== 'grid_layer' && object.get('controlledBy') && object.get('controlledBy') == driftwood.engine.player.get('username') && ! object.get('active')) {
           object.set('controlledBy',false);
-          this.trigger('object:modified',object)
+          modified.push(object);
         }
       }, this ) );
+      if( modified.length ) {
+        this.trigger('object:modified',{_objects:modified})
+      }
     },
 
     /**
@@ -1778,10 +1818,11 @@ $(document).ready(function() {
     paste: function() {
       if( this._cloned.length ) {
         var canvasWrapper = $body.find('.canvas-wrapper')[0];
+        this.canvas.deactivateAllWithDispatch();
         _.each( this._cloned, _.bind(function(object) {
           object = fabric.util.object.clone(object);
           object.set({
-            id: _.uniqueId(driftwood.engine.player.get('username')+'_'),
+            id: driftwood.engine.generateUid(),
             layer: this.currentLayer,
             //Group objects take mouse position + object position since it's a number
             //relative to the group
@@ -1793,7 +1834,7 @@ $(document).ready(function() {
           this.trigger('object:added', object);
           //this.canvas.setActiveObject(object);
         }, this ) );
-        this.canvas.deactivateAllWithDispatch().renderAll();
+        this.canvas.renderAll();
       }
     },
 
@@ -1817,11 +1858,10 @@ $(document).ready(function() {
         //Need to make sure they're deactivated so the controls change
         this.canvas.deactivateAllWithDispatch();
         //Go through each object and lock it
-        var selected = [];
         _.each( this.contextMenu.objects, _.bind( function(object) {
           object.lock();
-          this.canvas.trigger('object:modified',{target: object.get('object')});
         }, this ) );
+        this.trigger('object:modified',{_objects: this.toCanvasObjects(this.contextMenu.objects)});
         this.canvas.renderAll();
       }
     },
@@ -1837,9 +1877,10 @@ $(document).ready(function() {
           //We're going to reselect these objects
           object.get('object').set('active',true);
           selected.push(object.get('object'));
-          this.canvas.trigger('object:modified',{target: object.get('object')});
         }, this ) );
-        this.canvas.setActiveGroup(new fabric.Group(selected)).renderAll();
+        var group = new fabric.Group(selected);
+        this.canvas.setActiveGroup(group).renderAll();
+        this.trigger('object:selected',group);
       }
     },
 
@@ -1864,8 +1905,9 @@ $(document).ready(function() {
               object.sendToBack();
               break;
           }
-          this.canvas.trigger('object:modified',{target: object.get('object')});
+          
         }, this ) );
+        this.trigger('object:modified',{_objects: this.toCanvasObjects(this.contextMenu.objects)});
       }
     },
 
@@ -1879,6 +1921,7 @@ $(document).ready(function() {
      */
     switchObjectLayer: function(layer) {
       if( this.contextMenu.objects.length ) {
+        this.canvas.deactivateAllWithDispatch()
         _.each( this.contextMenu.objects, _.bind( function(object) {
           object.switchLayer(layer);
           if( object.get('layer') !== this.currentLayer ) {
@@ -1886,43 +1929,37 @@ $(document).ready(function() {
             object.disable(opacity);
           }
           object.sendToFront();
-          this.canvas.trigger('object:modified',{target: object.get('object')});
+          this.trigger('object:modified',object.get('object'));
         }, this ) );
-        this.canvas.deactivateAllWithDispatch().renderAll();
+        this.canvas.renderAll();
       }
     },
 
     updateObjectForPlayer: function(object) {
-      var object = this.toObject(object);
-      //Make sure it's selectable and does not have a shadow
-      object.get('object').set('selectable',true);
-      //object.get('object').shadow = null;
+      var object = this.toObject(object),
+          isLocked = object.isLocked();
+      //Enable and unlock it to start
+      object.enable();
+      object.unlock()
+      //Object should be disabled, it's on another layer
       if( object.get('layer') !== this.currentLayer ) {
         var opacity = object.get('layerIndex') > this.getLayerIndex(this.currentLayer);
         object.disable(opacity);
-      } else {
-        object.enable();
       }
-
-      if( object.isLocked() ) {
+      //Object is suppose to be locked
+      if( isLocked ) {
         object.lock();
-      } else {
-        object.unlock();
       }
+      //Object is being controlled, don't let it be selected
       if( object.isBeingControlled() ) {
         object.get('object').set('selectable',false);
-        /*object.get('object').setShadow({
-          color: 'rgba(70,58,153,0.3)',
-          blur: 5,
-          offsetX: 5,
-          offsetY: 5
-        });*/
       }
-
       //Object is on the gm layer and the player is not a gm
       if( object.get('layer') === 'gm_layer' && ! driftwood.engine.player.isGM() ) {
         object.get('object').set('opacity',0);
       }
+      //Make sure coordinates are updated
+      object.get('object').setCoords();
     },
 
     /**
@@ -1933,6 +1970,7 @@ $(document).ready(function() {
     loadImage: function(data,event) {
       try {
         fabric.Image.fromURL(data.url,  _.bind( function(oImg) {
+          this.canvas.deactivateAll();
           var canvasWrapper = $body.find('.canvas-wrapper')[0];
           oImg.set({
             top: this.offsetTop() + event.clientY,
@@ -1944,7 +1982,7 @@ $(document).ready(function() {
           this.canvas.add(oImg);
           //Unset
           this.addedObjectType = null;
-          this.canvas.deactivateAllWithDispatch().setActiveObject(oImg);
+          this.canvas.setActiveObject(oImg);
         }, this ) );
       } catch( err ) {
         //TODO: Indicate something on the UI alerting user that we failed
@@ -2010,21 +2048,13 @@ $(document).ready(function() {
      * Turn canvas object into a local backbone model object
      */
     toObject: function(object) {
-      return new CanvasObj({
-        object: object,
-        canvas: this.canvas,
-        layers: this.layers
-      });
+      return new CanvasObj({object: object});
     },
 
     toObjects: function(objects) {
       var converted = []
       _.each( objects, function(object) {
-        converted.push(new CanvasObj({
-          object: object,
-          canvas: this.canvas,
-          layers: this.layers
-        }));
+        converted.push(new CanvasObj({object: object}));
       });
       console.log('Converted',converted);
       return converted;
@@ -2048,10 +2078,11 @@ $(document).ready(function() {
         };
       })(activeObject.toObject);
       if( newObject ) {
+        console.log('Added object');
         var currentLayer = this.currentLayer;
         //Set all our intial attributes
         activeObject.set({
-          id: _.uniqueId(driftwood.engine.player.get('username')+'_'),
+          id: driftwood.engine.generateUid(),
           layer: this.currentLayer,
           objectType: this.addedObjectType,
           locked: false,
@@ -2117,7 +2148,6 @@ $(document).ready(function() {
       this.drawing.circle.stopDrawing();
       this.drawing.rectangle.stopDrawing();
       this.canvas.isDrawingMode = false;
-      this.canvas.deactivateAll();
       this.canvas.selection = false;
       this.zoom.deactivateZoom();
     },
@@ -2274,7 +2304,6 @@ $(document).ready(function() {
         canvasScale = 1;
         return {
           activateZoomIn: function() {
-            this.canvas.deactivateAllWithDispatch();
             this.zoom.deactivateZoom();
             //Show overlay so they're not clicking on the canvas
             this.$editorOverlay.show().addClass('zoom-in');
@@ -2283,7 +2312,6 @@ $(document).ready(function() {
             this.setOverlaySize();
           },
           activateZoomOut: function() {
-            this.canvas.deactivateAllWithDispatch();
             this.zoom.deactivateZoom();
             //Show overlay so they're not clicking on the canvas
             this.$editorOverlay.show().addClass('zoom-out');
@@ -2693,7 +2721,7 @@ $(document).ready(function() {
       }
     },
 
-    loadFromJSON: function(json,mode) {
+    loadFromJSON: function(json) {
       if (!json) return;
 
       // serialize if it wasn't already
@@ -2701,25 +2729,42 @@ $(document).ready(function() {
         ? JSON.parse(json)
         : json;
 
-      var mode = (typeof mode === 'undefined' )
-        ? 'insert'
-        : mode;
-
-
-      this._enlivenObjects(serialized.objects, _.bind( function (objects) {
-        _objects = this.canvas.getObjects();
-        objects.forEach( _.bind( function(object) {
-          if( existingObject = this.getObjectById(object.get('id')) ) {
-            this.canvas.remove(existingObject);
-          }
-          this.updateObjectForPlayer(object);
-          this.canvas.insertAt(object,object.index);
-          //var o = this.toObject(object);
-          //o.switchLayer(o.get('layer'));
-        }, this ) );
-          
+      //Filter out any existing objects
+      _.each( serialized.objects, _.bind( function( data ) {
+        //Object exists
+        var existingObject = this.getObjectById(data.id);
+        if( existingObject ) {
+          //console.log('Object exists');
+          existingObject.set(data);
+          this.canvas.moveTo(existingObject,data.index);
+          this.updateObjectForPlayer(existingObject);
+        //This object isn't currently in the process of being enlivened
+        } else if( ! this.enlivening[data.id] ) {
+          //console.log('Object does not exist');
+          //We're going to enliven this data
+          this.enlivening[data.id] = data;
+          //Make all of our objects into actual fabric canvas objects
+          this._enlivenObjects([data], _.bind( function (objects) {
+            //Go through each enlivened object and update it for the player,
+            //and since it's new, add it in at the proper index
+            objects.forEach( _.bind( function(object) {
+              //Even though we just enlivened with this data,
+              //use the most current set (in case another socket event
+              //triggered for this object while we were creating the object)
+              object.set(this.enlivening[data.id]);
+              this.updateObjectForPlayer(object);
+              this.canvas.add(object);
+              this.canvas.moveTo(object,object.index);
+              //We're done enlivening this object
+              delete this.enlivening[data.id];
+            }, this ) );
+          }, this ) );
+        //Object is being elivened, update the data for when it's done
+        } else {
+          this.enlivening[data.id] = data;
+        }
       }, this ) );
-
+      this.canvas.renderAll();
       return this;
     }
 
