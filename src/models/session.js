@@ -47,18 +47,9 @@ var SessionSchema = new mongoose.Schema({
 			required: true,
 			trim: true
 		},
-  background:   {
-			image:  String,
-			x: Number,
-			y: Number
-		},
-  layers: 	[
-			{
-				layerId: String,
-                                layerZ: Number,
-				data: String
-			}
-		]
+  canvas:       {
+			type: String
+		}
 
 });
 

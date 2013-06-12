@@ -27,139 +27,163 @@ var log = config.getLogger();
 var io;
 
 var configureSockets = function(socketio) {
-        io = socketio;
-        io.sockets.on('connection', function(socket) {
+  io = socketio;
+  io.sockets.on('connection', function(socket) {
 
-		socket.on('join', function(data) {
+    socket.on('join', function(data) {
 
-			middleware.findGame(data.gameName, data.owner, function(err, game) {
-				if(err) {
-					return socket.disconnect(err);
-				}
+      middleware.findGame(data.gameName, data.owner, function(err, game) {
+        if(err) {
+          return socket.disconnect(err);
+        }
 
-				if(!game) {
-					return socket.disconnect('game was not found');
-				}
+        if(!game) {
+          return socket.disconnect('game was not found');
+        }
 
-				middleware.getPermission(socket.handshake.session.player.id, game.id, function(err, doc) {
-					if(err) {
-						return socket.disconnect(err);
-					}
-					if(!doc) {
-						return socket.disconnect('Not authorized');
-					}
+        middleware.getPermission(socket.handshake.session.player.id, game.id, function(err, doc) {
+          if(err) {
+            return socket.disconnect(err);
+          }
+          if(!doc) {
+            return socket.disconnect('Not authorized');
+          }
 
 
-					socket.join(data.gameName + "/" + data.owner);
+				  socket.join(data.gameName + "/" + data.owner);
 
-					socket.room = data.gameName + "/" + data.owner;
+				  socket.room = data.gameName + "/" + data.owner;
 
-		                        socket.game = game;
+          socket.game = game;
 
-                                        if(doc.isGM === true) {
-						socket.handshake.session.player.type = "gm";
-					} else {
-						socket.handshake.session.player.type = "player";
-					}
+          if(doc.isGM === true) {
+					  socket.handshake.session.player.type = "gm";
+				  } else {
+					  socket.handshake.session.player.type = "player";
+				  }
 
-					var player = socket.handshake.session.player;
-					var chatHistory = [{}];
-					var objectLibrary = [{}];
+				  var player = socket.handshake.session.player;
+				  var chatHistory = [{}];
+				  var objectLibrary = [{}];
 
-					async.parallel({
-						chat: function(asyncCallback) {
-							models.Session.sessionChatModel.findHistory(game.id, function(err, chats){
-				                	        if(err) {
-				                	          chatHistory = [{ displayName: "System", message: "Previous chats could not be loaded" }];
-				                	        } else {
-				                	          chatHistory = chats;
-				                        	}	
+				  async.parallel({
+					  chat: function(asyncCallback) {
+						  models.Session.sessionChatModel.findHistory(game.id, function(err, chats){
+      	        if(err) {
+      	          chatHistory = [{ displayName: "System", message: "Previous chats could not be loaded" }];
+      	        } else {
+      	          chatHistory = chats;
+              	}	
 
-								return asyncCallback(err, chatHistory);
-		                        		});   
-						},
-						library: function(asyncCallback) {
-							models.Session.sessionLibraryModel.findLibrary(game.id, function(err, libraryData) {
-				                	        if(!err) {
-				                	          objectLibrary = _.pluck(libraryData, 'clientObject');
-				                        	}	
+							  return asyncCallback(err, chatHistory);
+          		});   
+					  },
+					  library: function(asyncCallback) {
+						  models.Session.sessionLibraryModel.findLibrary(game.id, function(err, libraryData) {
+      	        if(!err) {
+      	          objectLibrary = _.pluck(libraryData, 'clientObject');
+              	}	
 
-								return asyncCallback(err, _.pluck(objectLibrary));						  		
-							});
-						}}, function(err, doc) {
-							socket.emit('joined', { user: {username: player.username, displayName: player.displayName, type: player.type} ,chatSession: chatHistory, objectLibrary: objectLibrary } );
-						}
-					);
+							  return asyncCallback(err, _.pluck(objectLibrary));						  		
+						  });
+					  }}, function(err, doc) {
+						  socket.emit('joined', { user: {username: player.username, displayName: player.displayName, type: player.type}, 
+                                      chatSession: chatHistory, 
+                                      objectLibrary: objectLibrary, 
+                                      canvas: game.canvas } );
+					  }
+				  );
 					
-				});  
+			  });  
 
-			});
+		  });
 
-		});
+	  });
 
-		/**
-		 * TODO: Store in database
-		 */
-		socket.on('chat', function(data) {
+	  /**
+	   * TODO: Store in database
+	   */
+	  socket.on('chat', function(data) {
 
-			if(!socket.room) {
-				socket.emit('error', 'Not connected to a game');
-			}
+		  if(!socket.room) {
+			  return socket.emit('error', 'Not connected to a game');
+		  }
 
-                        if(!data) {
-                         	socket.emit('error', 'A message is required');
-                        }
+      if(!data) {
+       	return socket.emit('error', 'A message is required');
+      }
 
-			var message = _.escape(data); 
+		  var message = _.escape(data); 
 
 
-			var newChatMessage = new models.Session.sessionChatModel({
-				sessionId: socket.game.id,
-				playerId: socket.handshake.session.player.id,
-				displayName: socket.handshake.session.player.displayName,
-                                message: message
-			});
+		  var newChatMessage = new models.Session.sessionChatModel({
+			  sessionId: socket.game.id,
+			  playerId: socket.handshake.session.player.id,
+			  displayName: socket.handshake.session.player.displayName,
+        message: message
+		  });
 
-			newChatMessage.save(function(err) {
-				if(err) {
-					socket.emit('error', 'An error occurred while saving chat');
-				}
+		  newChatMessage.save(function(err) {
+			  if(err) {
+				  return socket.emit('error', 'An error occurred while saving chat');
+			  }
 
-				io.sockets.in(socket.room).emit('chat', {displayName: socket.handshake.session.player.displayName,message: message });
-			});
-		});
+			  io.sockets.in(socket.room).emit('chat', {displayName: socket.handshake.session.player.displayName,message: message });
+		  });
+	  });
 
-		socket.on('objectAdded', function(data) {
-			if(!socket.room) {
-				socket.emit('error', 'Not connected to a game');
-			}
-			io.sockets.in(socket.room).except(socket.id).emit('objectAdded',data);
-		});
+	  socket.on('saveCanvas', function(data) {
+		  if(!socket.room) {
+			  return socket.emit('error', 'Not connected to a game');
+		  }
 
-		socket.on('objectModified', function(data) {
-			if(!socket.room) {
-				socket.emit('error', 'Not connected to a game');
-			}
-			io.sockets.in(socket.room).except(socket.id).emit('objectModified',data);
-		});
+		  if(!data) {
+			  return socket.emit('error', 'Could not access canvas data');
+		  }
 
-		socket.on('objectRemoved', function(data) {
-			if(!socket.room) {
-				socket.emit('error', 'Not connected to a game');
-			}
-			io.sockets.in(socket.room).except(socket.id).emit('objectRemoved',data);
-		});
+		  socket.game.canvas = data;
 
-		socket.on('disconnect', function(data) {
-			socket.leave(socket.room);
-		});
-     });
+		  socket.game.save(function(err) {
+			  if(err) {
+				  socket.game.save(function(err) {
+					  if(err) {
+						  log.error('Failed to save canvas for ' + socket.room);
+					  }
+				  });
+			  }
+		  });
+	  });
+
+	  socket.on('objectAdded', function(data) {
+		  if(!socket.room) {
+			  return socket.emit('error', 'Not connected to a game');
+		  }
+		  io.sockets.in(socket.room).except(socket.id).emit('objectAdded',data);
+    });
+
+	  socket.on('objectModified', function(data) {
+		  if(!socket.room) {
+			  return socket.emit('error', 'Not connected to a game');
+		  }
+		  io.sockets.in(socket.room).except(socket.id).emit('objectModified',data);
+	  });
+
+	  socket.on('objectRemoved', function(data) {
+		  if(!socket.room) {
+			  return socket.emit('error', 'Not connected to a game');
+		  }
+		  io.sockets.in(socket.room).except(socket.id).emit('objectRemoved',data);
+	  });
+
+	  socket.on('disconnect', function(data) {
+		  socket.leave(socket.room);
+    });
+ });
 };
 
 var updateSessionLibrary = function(room, message) {
   io.sockets.in(room).emit('sessionLibraryUpdate', message);
 }
-
 
 module.exports.configureSockets = configureSockets;
 module.exports.updateSessionLibrary = updateSessionLibrary;
