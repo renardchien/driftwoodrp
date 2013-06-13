@@ -142,10 +142,10 @@ $(document).ready(function() {
       this.objects = new ObjectList({load:this.settings.objects});
       //All interactions with the canvas
       this.canvas = new CanvasManager({
-        loadCanvas: this.settings.canvas,
         canvasHeight: this.settings.canvasHeight,
         canvasWidth: this.settings.canvasWidth
       });
+      this.canvas.loadCanvas(this.settings.canvas);
       //Fog
       this.fog = new Fog({mainCanvas: this.canvas});
       //Add our event listeners
@@ -1513,7 +1513,8 @@ $(document).ready(function() {
       }, this ) );
 
       this.on('object:added object:removed object:modified', _.bind( function() {
-        //driftwood.engine.socket.emit('saveCanvas',JSON.stringify(this.canvas));
+        //console.log('Saving canvas',JSON.stringify(this.canvas),this.canvas.getObjects());
+        driftwood.engine.socket.emit('saveCanvas',JSON.stringify(this.canvas));
       }, this ) );
 
       //Creates a context menu
@@ -1534,12 +1535,16 @@ $(document).ready(function() {
     },
 
     loadCanvas: function(data) {
-      /*this.canvas.loadFromJSON(data);
+      //console.log('Loading Data',data);
+      this.canvas.loadFromJSON(data);
       var _objects = this.canvas.getObjects();
-      _.each( objects, _.bind( function(object) {
-        //this.updateObjectForPlayer(object);
-      }, this ) );
-      this.canvas.renderAll();*/
+      if( _objects.length ) {
+         _.each( objects, _.bind( function(object) {
+          this.updateObjectForPlayer(object);
+        }, this ) );
+        this.canvas.renderAll();
+      }
+       
     },
 
     toDataJSON: function(object) {
