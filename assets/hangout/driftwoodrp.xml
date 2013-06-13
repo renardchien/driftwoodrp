@@ -12,7 +12,7 @@
           <script src="https://hangoutsapi.talkgadget.google.com/hangouts/api/hangout.js?v=1.0"> </script>
         </head>
         <body>
-          <iframe src="http://driftwoodrp.com/test/test" style="height: 100%; width: 100%; min-width: inherit;" border="0" frameborder="0"></iframe>
+          <iframe src="http://driftwoodrp.com" style="height: 100%; width: 100%; min-width: inherit;" border="0" frameborder="0"></iframe>
         </body>
       </html>
     ]]>
