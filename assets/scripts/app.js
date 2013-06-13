@@ -145,7 +145,7 @@ $(document).ready(function() {
         canvasHeight: this.settings.canvasHeight,
         canvasWidth: this.settings.canvasWidth
       });
-      this.canvas.loadCanvas(this.settings.canvas);
+      
       //Fog
       this.fog = new Fog({mainCanvas: this.canvas});
       //Add our event listeners
@@ -158,6 +158,8 @@ $(document).ready(function() {
       this.setInitialLayer();
       //Update our intial settings
       this.updateSettings(this.settings);
+      //Load the canvas
+      this.canvas.loadCanvas(this.settings.canvas);
       //Update UI
       this.setUI();
       //Move canvas to center
@@ -1514,7 +1516,7 @@ $(document).ready(function() {
 
       this.on('object:added object:removed object:modified', _.bind( function() {
         //console.log('Saving canvas',JSON.stringify(this.canvas),this.canvas.getObjects());
-        driftwood.engine.socket.emit('saveCanvas',JSON.stringify(this.canvas));
+        //driftwood.engine.socket.emit('saveCanvas',JSON.stringify(this.canvas));
       }, this ) );
 
       //Creates a context menu
@@ -1536,14 +1538,16 @@ $(document).ready(function() {
 
     loadCanvas: function(data) {
       //console.log('Loading Data',data);
-      this.canvas.loadFromJSON(data);
+      /*this.canvas.loadFromJSON(data);
       var _objects = this.canvas.getObjects();
       if( _objects.length ) {
-         _.each( objects, _.bind( function(object) {
+        console.log(_objects);
+         _objects.forEach(_.bind( function(object) {
+          console.log(object);
           this.updateObjectForPlayer(object);
         }, this ) );
         this.canvas.renderAll();
-      }
+      }*/
        
     },
 
@@ -1943,6 +1947,7 @@ $(document).ready(function() {
     updateObjectForPlayer: function(object) {
       var object = this.toObject(object),
           isLocked = object.isLocked();
+      //console.log(object);
       //Enable and unlock it to start
       object.enable();
       object.unlock()
@@ -1959,6 +1964,7 @@ $(document).ready(function() {
       if( object.isBeingControlled() ) {
         object.get('object').set('selectable',false);
       }
+      //console.log(object.get('layer'));
       //Object is on the gm layer and the player is not a gm
       if( object.get('layer') === 'gm_layer' && ! driftwood.engine.player.isGM() ) {
         object.get('object').set('opacity',0);
@@ -2734,40 +2740,18 @@ $(document).ready(function() {
         ? JSON.parse(json)
         : json;
 
-      //Filter out any existing objects
-      _.each( serialized.objects, _.bind( function( data ) {
-        //Object exists
-        var existingObject = this.getObjectById(data.id);
-        if( existingObject ) {
-          //console.log('Object exists');
-          existingObject.set(data);
-          this.canvas.moveTo(existingObject,data.index);
-          this.updateObjectForPlayer(existingObject);
-        //This object isn't currently in the process of being enlivened
-        } else if( ! this.enlivening[data.id] ) {
-          //console.log('Object does not exist');
-          //We're going to enliven this data
-          this.enlivening[data.id] = data;
-          //Make all of our objects into actual fabric canvas objects
-          this._enlivenObjects([data], _.bind( function (objects) {
-            //Go through each enlivened object and update it for the player,
-            //and since it's new, add it in at the proper index
-            objects.forEach( _.bind( function(object) {
-              //Even though we just enlivened with this data,
-              //use the most current set (in case another socket event
-              //triggered for this object while we were creating the object)
-              object.set(this.enlivening[data.id]);
-              this.updateObjectForPlayer(object);
-              this.canvas.add(object);
-              this.canvas.moveTo(object,object.index);
-              //We're done enlivening this object
-              delete this.enlivening[data.id];
-            }, this ) );
-          }, this ) );
-        //Object is being elivened, update the data for when it's done
-        } else {
-          this.enlivening[data.id] = data;
-        }
+      this._enlivenObjects(serialized.objects, _.bind( function (objects) {
+        _objects = this.canvas.getObjects();
+        objects.forEach( _.bind( function(object) {
+          if( existingObject = this.getObjectById(object.get('id')) ) {
+            this.canvas.remove(existingObject);
+          }
+          this.updateObjectForPlayer(object);
+          this.canvas.insertAt(object,object.index);
+          //var o = this.toObject(object);
+          //o.switchLayer(o.get('layer'));
+        }, this ) );
+          
       }, this ) );
       this.canvas.renderAll();
       return this;
