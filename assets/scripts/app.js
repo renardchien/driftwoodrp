@@ -2747,6 +2747,7 @@ $(document).ready(function() {
             this.canvas.remove(existingObject);
           }
           this.updateObjectForPlayer(object);
+          console.log('Inserting at',object.index);
           this.canvas.insertAt(object,object.index);
           //var o = this.toObject(object);
           //o.switchLayer(o.get('layer'));
