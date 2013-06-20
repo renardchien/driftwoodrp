@@ -48,11 +48,42 @@ select {
 .main {
   display: table;
 }
+.login-page .main,.register-page .main, .reset-pass-page .main {
+  display: block;
+}
 //Make sure everything we want gets the correct box sizing
 .main, .editor, .panel {
   @include box-sizing(border-box);
 }
-
+//
+//
+// Login Styling
+//------------------------------
+.login,
+.register,
+.reset-password {
+  @include box-sizing(border-box);
+  width: 300px;
+  margin: 5% auto;
+  padding: 30px;
+  background-color: #f1f1f1;
+  border: 1px solid #e5e5e5;
+  img {
+    margin-bottom: 20px;
+  }
+  .control-label {
+    font-weight: bold;
+    a {
+      font-weight: inherit;
+    }
+  }
+  input[type="submit"] {
+    margin-right: 10px;
+  }
+}
+.register {
+  width: 400px;
+}
 //
 //
 // Loading screen
