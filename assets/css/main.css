@@ -38,52 +38,55 @@ select {
 
 /* line 51, ../scss/main.scss */
 .login-page .main, .register-page .main, .reset-pass-page .main {
-  display: block; }
+  display: block;
+  background: #e5c199 url("../images/beach.png") repeat-x 0 0; }
 
-/* line 55, ../scss/main.scss */
+/* line 56, ../scss/main.scss */
 .main, .editor, .panel {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box; }
 
-/* line 64, ../scss/main.scss */
+/* line 65, ../scss/main.scss */
 .login,
 .register,
 .reset-password {
+  position: relative;
+  top: 5%;
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
   width: 300px;
-  margin: 5% auto;
+  margin: 0 auto;
   padding: 30px;
   background-color: #f1f1f1;
   border: 1px solid #e5e5e5; }
-  /* line 71, ../scss/main.scss */
+  /* line 74, ../scss/main.scss */
   .login img,
   .register img,
   .reset-password img {
     margin-bottom: 20px; }
-  /* line 74, ../scss/main.scss */
+  /* line 77, ../scss/main.scss */
   .login .control-label,
   .register .control-label,
   .reset-password .control-label {
     font-weight: bold; }
-    /* line 76, ../scss/main.scss */
+    /* line 79, ../scss/main.scss */
     .login .control-label a,
     .register .control-label a,
     .reset-password .control-label a {
       font-weight: inherit; }
-  /* line 80, ../scss/main.scss */
+  /* line 83, ../scss/main.scss */
   .login input[type="submit"],
   .register input[type="submit"],
   .reset-password input[type="submit"] {
     margin-right: 10px; }
 
-/* line 84, ../scss/main.scss */
+/* line 87, ../scss/main.scss */
 .register {
-  width: 400px; }
+  width: 500px; }
 
-/* line 91, ../scss/main.scss */
+/* line 94, ../scss/main.scss */
 .loading-screen {
   position: fixed;
   top: 0;
@@ -93,14 +96,14 @@ select {
   background-color: #eaeaea;
   z-index: 5;
   text-align: center; }
-  /* line 100, ../scss/main.scss */
+  /* line 103, ../scss/main.scss */
   .loading-screen h1 {
     margin-top: 20%; }
-  /* line 103, ../scss/main.scss */
+  /* line 106, ../scss/main.scss */
   .loading-screen .loading-message {
     margin-top: 20px; }
 
-/* line 111, ../scss/main.scss */
+/* line 114, ../scss/main.scss */
 .btn-group > .btn-group > .btn.menu-btn {
   margin-left: 0;
   -webkit-border-radius: 0;
@@ -109,16 +112,16 @@ select {
   -o-border-radius: 0;
   border-radius: 0; }
 
-/* line 115, ../scss/main.scss */
+/* line 118, ../scss/main.scss */
 .btn-group > .btn-group + .btn-group {
   margin-left: 0;
   display: block; }
 
-/* line 119, ../scss/main.scss */
+/* line 122, ../scss/main.scss */
 .btn-group > .btn-group:not(:last-child) > .btn.menu-btn {
   border-bottom: 0; }
 
-/* line 122, ../scss/main.scss */
+/* line 125, ../scss/main.scss */
 .btn-group > .btn-group:last-child > .btn.menu-btn {
   -moz-border-radius-bottomright: 4px;
   -webkit-border-bottom-right-radius: 4px;
@@ -127,7 +130,7 @@ select {
   -webkit-border-bottom-left-radius: 4px;
   border-bottom-left-radius: 4px; }
 
-/* line 126, ../scss/main.scss */
+/* line 129, ../scss/main.scss */
 .btn-group > .btn-group:first-child > .btn.menu-btn {
   -moz-border-radius-topright: 4px;
   -webkit-border-top-right-radius: 4px;
@@ -136,20 +139,20 @@ select {
   -webkit-border-top-left-radius: 4px;
   border-top-left-radius: 4px; }
 
-/* line 136, ../scss/main.scss */
+/* line 139, ../scss/main.scss */
 .form-horizontal .control-label {
   text-align: left;
   width: auto;
   margin-right: 10px; }
-/* line 141, ../scss/main.scss */
+/* line 144, ../scss/main.scss */
 .form-horizontal .controls {
   margin-left: 0; }
 
-/* line 150, ../scss/main.scss */
+/* line 153, ../scss/main.scss */
 .file-upload {
   position: relative;
   overflow: hidden; }
-  /* line 153, ../scss/main.scss */
+  /* line 156, ../scss/main.scss */
   .file-upload input[type="file"] {
     position: absolute;
     top: 0;
@@ -160,12 +163,12 @@ select {
     opacity: 0;
     cursor: pointer; }
 
-/* line 173, ../scss/main.scss */
+/* line 176, ../scss/main.scss */
 .canvas-container {
   margin: 100px;
   padding-right: 100px; }
 
-/* line 177, ../scss/main.scss */
+/* line 180, ../scss/main.scss */
 .editor {
   position: relative;
   display: table-cell;
@@ -175,7 +178,7 @@ select {
   width: 100%;
   overflow: hidden;
   background: transparent url("../images/mooning.png"); }
-  /* line 186, ../scss/main.scss */
+  /* line 189, ../scss/main.scss */
   .editor .canvas-wrapper {
     position: relative;
     z-index: 1;
@@ -183,32 +186,32 @@ select {
     max-height: 100%;
     max-width: 100%;
     overflow: auto; }
-    /* line 193, ../scss/main.scss */
+    /* line 196, ../scss/main.scss */
     .editor .canvas-wrapper .overlay {
       position: absolute;
       left: 0;
       top: 0;
       width: 100%;
       height: 100%; }
-      /* line 199, ../scss/main.scss */
+      /* line 202, ../scss/main.scss */
       .editor .canvas-wrapper .overlay.zoom-in {
         cursor: url("../images/zoomIn.png"), auto; }
-      /* line 202, ../scss/main.scss */
+      /* line 205, ../scss/main.scss */
       .editor .canvas-wrapper .overlay.zoom-out {
         cursor: url("../images/zoomOut.png"), auto; }
-  /* line 207, ../scss/main.scss */
+  /* line 210, ../scss/main.scss */
   .editor .commands {
     position: absolute;
     z-index: 2;
     top: 30px;
     left: 30px; }
-    /* line 212, ../scss/main.scss */
+    /* line 215, ../scss/main.scss */
     .editor .commands .btn-group {
       position: relative; }
-      /* line 213, ../scss/main.scss */
+      /* line 216, ../scss/main.scss */
       .editor .commands .btn-group > .btn {
         width: 15px; }
-      /* line 217, ../scss/main.scss */
+      /* line 220, ../scss/main.scss */
       .editor .commands .btn-group.has-sub-menu:after {
         content: "";
         position: absolute;
@@ -220,11 +223,11 @@ select {
         border-width: 0 0 7px 7px;
         border-color: transparent transparent #666666 transparent;
         z-index: 400; }
-    /* line 230, ../scss/main.scss */
+    /* line 233, ../scss/main.scss */
     .editor .commands .dropdown-menu {
       top: 0;
       left: 100%; }
-  /* line 235, ../scss/main.scss */
+  /* line 238, ../scss/main.scss */
   .editor .sub-menu {
     -webkit-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
     -moz-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
@@ -241,19 +244,19 @@ select {
     background-color: white;
     padding: 5px;
     display: none; }
-    /* line 245, ../scss/main.scss */
+    /* line 248, ../scss/main.scss */
     .editor .sub-menu > p {
       float: left;
       margin: 0px 3px; }
-    /* line 249, ../scss/main.scss */
+    /* line 252, ../scss/main.scss */
     .editor .sub-menu[data-type="free"] .fill {
       display: none; }
-    /* line 252, ../scss/main.scss */
+    /* line 255, ../scss/main.scss */
     .editor .sub-menu.open {
       display: block;
       filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=100);
       opacity: 1; }
-  /* line 257, ../scss/main.scss */
+  /* line 260, ../scss/main.scss */
   .editor .grid-label {
     -webkit-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
     -moz-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
@@ -276,37 +279,37 @@ select {
     padding: 10px;
     background-color: white;
     cursor: default; }
-    /* line 269, ../scss/main.scss */
+    /* line 272, ../scss/main.scss */
     .editor .grid-label:hover {
       filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=100);
       opacity: 1; }
 
-/* line 280, ../scss/main.scss */
+/* line 283, ../scss/main.scss */
 .nav, .chat, .message-wrapper, .input, .objects, .settings, .tr {
   display: table-row;
   border-collapse: collapse;
   width: 100%;
   height: 100%; }
 
-/* line 286, ../scss/main.scss */
+/* line 289, ../scss/main.scss */
 .panel, .content {
   display: table;
   width: 100%;
   height: 100%; }
 
-/* line 291, ../scss/main.scss */
+/* line 294, ../scss/main.scss */
 .content {
   max-height: 100%; }
 
-/* line 294, ../scss/main.scss */
+/* line 297, ../scss/main.scss */
 .tr-flow {
   height: auto; }
 
-/* line 297, ../scss/main.scss */
+/* line 300, ../scss/main.scss */
 .clear {
   cursor: pointer; }
 
-/* line 300, ../scss/main.scss */
+/* line 303, ../scss/main.scss */
 .panel {
   -webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   -moz-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
@@ -316,10 +319,10 @@ select {
   width: 340px;
   float: right;
   z-index: 1; }
-  /* line 307, ../scss/main.scss */
+  /* line 310, ../scss/main.scss */
   .panel .nav {
     height: auto; }
-    /* line 309, ../scss/main.scss */
+    /* line 312, ../scss/main.scss */
     .panel .nav ol {
       -webkit-box-sizing: border-box;
       -moz-box-sizing: border-box;
@@ -328,7 +331,7 @@ select {
       padding: 10px;
       background-color: #eaeaea;
       border-bottom: 1px solid #cccccc; }
-      /* line 315, ../scss/main.scss */
+      /* line 318, ../scss/main.scss */
       .panel .nav ol li {
         -webkit-box-sizing: border-box;
         -moz-box-sizing: border-box;
@@ -337,18 +340,18 @@ select {
         cursor: pointer;
         text-align: center;
         width: 32%; }
-        /* line 321, ../scss/main.scss */
+        /* line 324, ../scss/main.scss */
         .panel .nav ol li b {
           margin-right: 4px; }
-  /* line 328, ../scss/main.scss */
+  /* line 331, ../scss/main.scss */
   .panel .chat {
     background-color: #eaeaea; }
-    /* line 330, ../scss/main.scss */
+    /* line 333, ../scss/main.scss */
     .panel .chat .messages {
       height: 100%;
       overflow-y: auto;
       overflow-x: hidden; }
-    /* line 335, ../scss/main.scss */
+    /* line 338, ../scss/main.scss */
     .panel .chat .message {
       -webkit-box-sizing: border-box;
       -moz-box-sizing: border-box;
@@ -375,32 +378,32 @@ select {
       word-wrap: break-word;
       word-break: break-word;
       max-width: 100%; }
-      /* line 349, ../scss/main.scss */
+      /* line 352, ../scss/main.scss */
       .panel .chat .message.active {
         left: -120%; }
-      /* line 352, ../scss/main.scss */
+      /* line 355, ../scss/main.scss */
       .panel .chat .message .username, .panel .chat .message .text {
         display: inline-block; }
-      /* line 355, ../scss/main.scss */
+      /* line 358, ../scss/main.scss */
       .panel .chat .message .username {
         float: left;
         font-weight: bold;
         margin-right: 4px; }
-        /* line 359, ../scss/main.scss */
+        /* line 362, ../scss/main.scss */
         .panel .chat .message .username:after {
           content: ":"; }
-    /* line 364, ../scss/main.scss */
+    /* line 367, ../scss/main.scss */
     .panel .chat .input {
       background-color: #FFF;
       border-top: 1px solid #cccccc; }
-      /* line 367, ../scss/main.scss */
+      /* line 370, ../scss/main.scss */
       .panel .chat .input .textarea {
         -webkit-box-sizing: border-box;
         -moz-box-sizing: border-box;
         box-sizing: border-box;
         padding: 10px;
         width: 100%; }
-        /* line 371, ../scss/main.scss */
+        /* line 374, ../scss/main.scss */
         .panel .chat .input .textarea textarea {
           -webkit-box-shadow: none;
           -moz-box-shadow: none;
@@ -409,15 +412,15 @@ select {
           max-height: 85px;
           border: none;
           resize: none; }
-  /* line 384, ../scss/main.scss */
+  /* line 387, ../scss/main.scss */
   .panel .objects {
     display: none; }
-    /* line 386, ../scss/main.scss */
+    /* line 389, ../scss/main.scss */
     .panel .objects .object-wrapper {
       height: 100%;
       max-height: 100%;
       overflow: auto; }
-    /* line 391, ../scss/main.scss */
+    /* line 394, ../scss/main.scss */
     .panel .objects .search {
       -webkit-transition: padding 0.3s ease;
       -moz-transition: padding 0.3s ease;
@@ -426,16 +429,16 @@ select {
       position: relative;
       padding: 5px 10px 5px 35px;
       border-bottom: 1px solid #cccccc; }
-      /* line 396, ../scss/main.scss */
+      /* line 399, ../scss/main.scss */
       .panel .objects .search.focus {
         padding-left: 10px; }
-        /* line 398, ../scss/main.scss */
+        /* line 401, ../scss/main.scss */
         .panel .objects .search.focus label {
           left: -18px; }
-        /* line 401, ../scss/main.scss */
+        /* line 404, ../scss/main.scss */
         .panel .objects .search.focus .target {
           right: -50%; }
-        /* line 404, ../scss/main.scss */
+        /* line 407, ../scss/main.scss */
         .panel .objects .search.focus .clear {
           filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=100);
           opacity: 1;
@@ -444,14 +447,14 @@ select {
           -moz-transition: opacity 0.3s ease 0.3s;
           -o-transition: opacity 0.3s ease 0.3s;
           transition: opacity 0.3s ease 0.3s; }
-      /* line 409, ../scss/main.scss */
+      /* line 412, ../scss/main.scss */
       .panel .objects .search .input {
         border: none;
         -webkit-box-shadow: none;
         -moz-box-shadow: none;
         box-shadow: none;
         margin-bottom: 0; }
-      /* line 414, ../scss/main.scss */
+      /* line 417, ../scss/main.scss */
       .panel .objects .search label {
         -webkit-transition: left 0.3s ease;
         -moz-transition: left 0.3s ease;
@@ -461,7 +464,7 @@ select {
         top: 9px;
         left: 12px;
         font-size: 17px; }
-      /* line 421, ../scss/main.scss */
+      /* line 424, ../scss/main.scss */
       .panel .objects .search .clear {
         filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=0);
         opacity: 0;
@@ -475,7 +478,7 @@ select {
         top: 0;
         line-height: 40px;
         cursor: pointer; }
-      /* line 430, ../scss/main.scss */
+      /* line 433, ../scss/main.scss */
       .panel .objects .search .target {
         -webkit-transition: right 0.3s ease;
         -moz-transition: right 0.3s ease;
@@ -486,13 +489,13 @@ select {
         right: 0;
         height: 100%;
         padding: 10px; }
-        /* line 437, ../scss/main.scss */
+        /* line 440, ../scss/main.scss */
         .panel .objects .search .target .dropdown-toggle {
           cursor: pointer; }
-    /* line 443, ../scss/main.scss */
+    /* line 446, ../scss/main.scss */
     .panel .objects .object-list ol {
       margin-bottom: 0; }
-    /* line 448, ../scss/main.scss */
+    /* line 451, ../scss/main.scss */
     .panel .objects .upload {
       -webkit-box-sizing: border-box;
       -moz-box-sizing: border-box;
@@ -504,22 +507,22 @@ select {
       width: 100%;
       line-height: 28px;
       overflow: visible; }
-      /* line 456, ../scss/main.scss */
+      /* line 459, ../scss/main.scss */
       .panel .objects .upload .select-file {
         -webkit-transition: margin-top 0.3s ease;
         -moz-transition: margin-top 0.3s ease;
         -o-transition: margin-top 0.3s ease;
         transition: margin-top 0.3s ease; }
-        /* line 458, ../scss/main.scss */
+        /* line 461, ../scss/main.scss */
         .panel .objects .upload .select-file.selected {
           display: none; }
-          /* line 460, ../scss/main.scss */
+          /* line 463, ../scss/main.scss */
           .panel .objects .upload .select-file.selected ~ div {
             display: block; }
-      /* line 465, ../scss/main.scss */
+      /* line 468, ../scss/main.scss */
       .panel .objects .upload .file-selected {
         display: none; }
-      /* line 468, ../scss/main.scss */
+      /* line 471, ../scss/main.scss */
       .panel .objects .upload .filename {
         white-space: pre;
         white-space: pre-wrap;
@@ -529,20 +532,20 @@ select {
         white-space: -moz-pre-wrap;
         white-space: -hp-pre-wrap;
         word-wrap: break-word; }
-      /* line 471, ../scss/main.scss */
+      /* line 474, ../scss/main.scss */
       .panel .objects .upload .dropdown-toggle {
         cursor: pointer; }
-      /* line 474, ../scss/main.scss */
+      /* line 477, ../scss/main.scss */
       .panel .objects .upload .dropdown-menu {
         bottom: 100%;
         top: auto; }
-  /* line 480, ../scss/main.scss */
+  /* line 483, ../scss/main.scss */
   .panel .settings {
     display: none; }
-    /* line 482, ../scss/main.scss */
+    /* line 485, ../scss/main.scss */
     .panel .settings .control-pane {
       padding: 10px; }
-    /* line 485, ../scss/main.scss */
+    /* line 488, ../scss/main.scss */
     .panel .settings .actions {
       -webkit-box-sizing: border-box;
       -moz-box-sizing: border-box;
@@ -550,14 +553,14 @@ select {
       padding: 15px 10px;
       background-color: #eaeaea;
       border-top: 1px solid #cccccc; }
-      /* line 490, ../scss/main.scss */
+      /* line 493, ../scss/main.scss */
       .panel .settings .actions .btn {
         width: 49%; }
-        /* line 492, ../scss/main.scss */
+        /* line 495, ../scss/main.scss */
         .panel .settings .actions .btn.btn-primary {
           width: 50%; }
 
-/* line 499, ../scss/main.scss */
+/* line 502, ../scss/main.scss */
 .object {
   overflow: hidden;
   *zoom: 1;
@@ -572,7 +575,7 @@ select {
   background-color: #FFF;
   border-bottom: 1px solid #cccccc;
   overflow: visible; }
-  /* line 509, ../scss/main.scss */
+  /* line 512, ../scss/main.scss */
   .object .preview {
     height: 50px;
     width: 50px;
@@ -580,46 +583,46 @@ select {
     border: 1px solid #cccccc;
     margin-right: 10px;
     text-align: center; }
-    /* line 516, ../scss/main.scss */
+    /* line 519, ../scss/main.scss */
     .object .preview img {
       max-height: 100%; }
-  /* line 520, ../scss/main.scss */
+  /* line 523, ../scss/main.scss */
   .object p {
     margin-bottom: 5px; }
-  /* line 523, ../scss/main.scss */
+  /* line 526, ../scss/main.scss */
   .object:hover {
     background-color: #f7f7f7; }
-    /* line 525, ../scss/main.scss */
+    /* line 528, ../scss/main.scss */
     .object:hover .menu {
       display: block; }
-  /* line 529, ../scss/main.scss */
+  /* line 532, ../scss/main.scss */
   .object .menu {
     position: absolute;
     top: 10px;
     right: 10px;
     cursor: auto;
     display: none; }
-    /* line 535, ../scss/main.scss */
+    /* line 538, ../scss/main.scss */
     .object .menu .dropdown-toggle {
       cursor: pointer;
       color: #cccccc; }
-      /* line 538, ../scss/main.scss */
+      /* line 541, ../scss/main.scss */
       .object .menu .dropdown-toggle:hover {
         color: inherit; }
-  /* line 543, ../scss/main.scss */
+  /* line 546, ../scss/main.scss */
   .object .tmp {
     clear: both;
     margin: 15px 0 0 0; }
-  /* line 547, ../scss/main.scss */
+  /* line 550, ../scss/main.scss */
   .object.ui-draggable-dragging {
     width: 340px;
     border: 1px solid #cccccc;
     z-index: 10; }
-    /* line 551, ../scss/main.scss */
+    /* line 554, ../scss/main.scss */
     .object.ui-draggable-dragging .menu {
       display: none; }
 
-/* line 561, ../scss/main.scss */
+/* line 564, ../scss/main.scss */
 .context-menu {
   display: block;
   position: absolute;
@@ -627,6 +630,6 @@ select {
   left: 0; }
 
 @media (max-width: 767px) {
-  /* line 573, ../scss/main.scss */
+  /* line 576, ../scss/main.scss */
   body {
     padding: 0; } }

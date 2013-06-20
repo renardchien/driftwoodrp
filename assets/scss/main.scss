@@ -50,6 +50,7 @@ select {
 }
 .login-page .main,.register-page .main, .reset-pass-page .main {
   display: block;
+  background: #e5c199 url('../images/beach.png') repeat-x 0 0;
 }
 //Make sure everything we want gets the correct box sizing
 .main, .editor, .panel {
@@ -62,9 +63,11 @@ select {
 .login,
 .register,
 .reset-password {
+  position: relative;
+  top: 5%;
   @include box-sizing(border-box);
   width: 300px;
-  margin: 5% auto;
+  margin: 0 auto;
   padding: 30px;
   background-color: #f1f1f1;
   border: 1px solid #e5e5e5;
@@ -82,7 +85,7 @@ select {
   }
 }
 .register {
-  width: 400px;
+  width: 500px;
 }
 //
 //
