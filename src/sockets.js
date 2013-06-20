@@ -177,6 +177,7 @@ var configureSockets = function(socketio) {
 
 	  socket.on('disconnect', function(data) {
 		  socket.leave(socket.room);
+      io.sockets.in(socket.room).emit('playerLeft', socket.handshake.session.player.username);
     });
  });
 };
