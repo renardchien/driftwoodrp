@@ -52,16 +52,16 @@ var login = function(req, res){
 	var username = req.body.loginUsername;
 	var password = req.body.loginPassword;
 	if(!username || !password) {
-		return res.badRequest("all fields required");
+		return res.badRequest("All Fields Required");
 	}
 	
 	models.Player.playerModel.authenticate(username, password, function(err, player) {
 		if(err) {
-			return res.json("failed to login");
+			return res.badRequest("Failed to login. Please try again");
 		}
 
 		if(!player) {
-			return res.json("bad credentials");
+			return res.badRequest("Bad Username or Password");
 		}
 
 		req.session.player = player.api();
@@ -75,34 +75,47 @@ var logout = function(req, res){
 };
 
 var loginPage = function(req, res){
-	if(req.session && req.session.player) {
-		return res.redirect('/joinGame/' + req.session.player.username);
-	}
+	res.render('signin', {title: 'Driftwood Login'});
+};
 
-	res.render('login', {title: 'Driftwood Login'});
+var registerPage = function(req, res){
+	res.render('register', {title: 'Driftwood Registration'});
+};
+
+var resetPasswordPage = function(req, res){
+	res.render('reset-password', {title: 'Driftwood Password Reset'});
 };
 
 var createAccount = function(req, res){
-	var username = req.body.registerUsername;
-	var password = req.body.registerPassword;
-	var emailAddr = req.body.registerEmailAddr;
+	var username = req.body.username;
+	var password = req.body.password;
+  var confirmPassword = req.body.confirmPassword;
+	var emailAddr = req.body.email;
+  var confirmEmail = req.body.confirmEmail;
 	var displayName = req.body.displayName;
 	
-	if(!username || !password || !emailAddr || !displayName) {
+	if(!username || !password || !confirmPassword || !emailAddr || !confirmEmail || !displayName) {
 		return res.badRequest("All fields required");
 	}
+  
+  if(password !== confirmPassword) {
+    return res.badRequest("Passwords must match");
+  }
+
+  if(emailAddr !== confirmEmail) {
+    return res.badRequest("Email addresses must match");
+  }
 
 	models.Player.playerModel.findByUsername(username, function(err, doc) {
 		if(err) {
-			return res.err('an error occurred creating a user');
+			return res.err('An error occurred creating the account. Please try again.');
 		}
 
 		if(doc)
 		{
-			return res.conflict('username is taken');
+			return res.conflict('Username is taken');
 		}
 
-		log.info('creating player ' + username);
 		// Creating one user.
 		var newPlayer = new models.Player.playerModel({
 		  username: username,
@@ -116,12 +129,13 @@ var createAccount = function(req, res){
 		// Saving it to the database.  
 		newPlayer.save(function(err) {
 			if(err) {
-				return res.err('an error occurred creating a user');
+				return res.err('An error occurred creating the account. Please try again.');
 			}
 
-                        utils.mailHandler.sendMail(emailAddr, 'Welcome to DriftwoodRP', 'Your account has successfully be created. Thank you for joining!');
+      utils.mailHandler.sendMail(emailAddr, 'Welcome to DriftwoodRP', 'Your account has successfully been created. Thank you for joining!');
 
-			res.created('user created');
+		  req.session.player = newPlayer.api();
+			res.created('User was created successfully!');
 		});
 		
 	});
@@ -130,7 +144,7 @@ var createAccount = function(req, res){
 var resetPassword = function(req, res){
 	var email = req.body.email;
 	if(!email) {
-	  return res.badRequest('email required');
+	  return res.badRequest('Email is required');
   	}
 
         models.Player.playerModel.findByEmail(email, function(err, player) {
@@ -164,28 +178,28 @@ var changePassword = function(req, res) {
 	  return res.badRequest("Current and new passwords are required");
 	}
 
-        models.Player.playerModel.findByUsername(req.session.player.username, function(err, player) {
+  models.Player.playerModel.findByUsername(req.session.player.username, function(err, player) {
 	  if(err) {
-	    return res.err(err);
-          }
+      return res.err(err);
+    }
 
-          if(!player) {
-	    return res.notFound("Player was not found");
-          }
+    if(!player) {
+      return res.notFound("");
+    }
 
-          if(!player.validatePassword(currentPass)) {
-            return res.unauthorized("Bad credentials");
-          }
+    if(!player.validatePassword(currentPass)) {
+      return res.unauthorized("Current Password was Invalid");
+    }
 
-          player.password = newPass;
-	  player.save(function(err) {
-            if(err) {
-              return res.err(err);
-            }
-            
-            res.updated("Password was updated");
-          });
-          
+    player.password = newPass;
+
+    player.save(function(err) {
+      if(err) {
+        return res.err(err);
+      }
+      
+      res.updated("Password was updated successfully!");
+    });      
 	});
 };
 
@@ -197,3 +211,5 @@ module.exports.logout = logout;
 module.exports.createAccount = createAccount;
 module.exports.changePassword = changePassword;
 module.exports.resetPassword = resetPassword;
+module.exports.resetPasswordPage = resetPasswordPage;
+module.exports.registerPage = registerPage;

@@ -25,33 +25,29 @@ var router = function(app, controllers, mid) {
 		app.use(express.csrf());
 	}
  
-        app.use(mid.requests);
+  app.use(mid.requests);
 	app.use(mid.responses);
 
 	app.get('/test/test', controllers.Sessions.test);
-	app.get('/', controllers.Players.loginPage);
-	app.get('/login', controllers.Players.loginPage);
-	app.post('/login', controllers.Players.login);
-  	app.get('/logout', controllers.Players.logout);
-  	app.post('/logout', controllers.Players.logout);
-	app.post('/createAccount', controllers.Players.createAccount);
-        app.post('/resetPassword',  controllers.Players.resetPassword);
+	app.get('/', mid.requiresNoAuth, controllers.Players.loginPage);
+	app.get('/login', mid.requiresNoAuth, controllers.Players.loginPage);
+	app.post('/login', mid.requiresNoAuth, controllers.Players.login);
+  app.get('/logout', controllers.Players.logout);
+  app.post('/logout', controllers.Players.logout);
+  app.get('/createAccount', mid.requiresNoAuth, controllers.Players.registerPage);
+	app.post('/createAccount', mid.requiresNoAuth, controllers.Players.createAccount);
+  app.get('/resetPassword', controllers.Players.resetPasswordPage);
+  app.post('/resetPassword',  controllers.Players.resetPassword);
 	app.post('/changePassword', mid.requiresAuth, controllers.Players.changePassword);	
 	app.get('/joinGame/:player', mid.requiresAuth, mid.requiresOwnership, controllers.Sessions.joinSessionPage);
 	app.post('/createGame/:player', mid.requiresAuth, mid.requiresOwnership, controllers.Sessions.createSession);
 	app.get('/game/:player/:gameName', mid.requiresAuth, mid.attachGame, controllers.Sessions.loadSession);
 	app.post('/addPlayer/:player/:gameName', mid.requiresAuth, mid.requiresOwnership, mid.attachGame, controllers.Sessions.addPlayer);
 	app.post('/removePlayer/:player/:gameName', mid.requiresAuth, mid.requiresOwnership, mid.attachGame, controllers.Sessions.removePlayer);
-        app.post('/addGM/:player/:gameName', mid.requiresAuth, mid.requiresOwnership, mid.attachGame, controllers.Sessions.addGM);
+  app.post('/addGM/:player/:gameName', mid.requiresAuth, mid.requiresOwnership, mid.attachGame, controllers.Sessions.addGM);
 	app.post('/removeGM/:player/:gameName', mid.requiresAuth, mid.requiresOwnership, mid.attachGame, controllers.Sessions.removeGM);
-	app.post('/uploadBackground/:player/:gameName', mid.requiresAuth, mid.attachGame, controllers.Sessions.uploadBackground);
-	app.post('/removeBackground/:player/:gameName', mid.requiresAuth, mid.attachGame, controllers.Sessions.removeBackground);
 	app.post('/uploadToken/:player/:gameName', mid.requiresAuth, mid.attachGame, controllers.Sessions.uploadToken);
 	app.post('/removeToken/:player/:gameName', mid.requiresAuth, mid.attachGame, controllers.Sessions.removeToken);
-	app.post('/saveDrawing/:player/:gameName', mid.requiresAuth, mid.attachGame, controllers.Sessions.saveDrawing);
-	app.post('/saveEvent/:player/:gameName', mid.requiresAuth, mid.attachGame, controllers.Sessions.saveEvent);
-	app.get('/loadEvents/:player/:gameName', mid.requiresAuth, mid.attachGame, controllers.Sessions.loadEvents);
-
 };
 
 module.exports = router;

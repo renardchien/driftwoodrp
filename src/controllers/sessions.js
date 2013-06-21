@@ -51,17 +51,17 @@ var createSession = function(req, res){
 	var gameName = req.body.name;
 	
 	if(!gameName || !player) {
-		return res.badRequest("Game name is required");
+		return res.badRequest("Game Name is required");
 	}
 
 	models.Session.sessionModel.findByNameOwner(gameName, player.id, function(err, doc) {
 		if(err) {
-			return res.err('an error occurred creating a game');
+			return res.err('An error occurred creating the game. Please try again.');
 		}
 
 		if(doc)
 		{
-			return res.conflict('a game with the same name already exists');
+			return res.conflict('You already have a game with the same name');
 		}
 
 		log.info('creating game ' + gameName + ' for player ' + player.username);
@@ -75,7 +75,7 @@ var createSession = function(req, res){
 		// Saving it to the database.  
 		newGame.save(function(err) {
 			if(err) {
-				return res.err('an error occurred creating a game');
+			  return res.err('An error occurred creating the game. Please try again.');
 			}
 
 			var gameId = newGame.id;	
@@ -83,12 +83,12 @@ var createSession = function(req, res){
 			var newGamePlayer = new models.Session.sessionPlayerModel({
 				sessionId: gameId,
 				playerId: player.id,
-                                isGM: true
+        isGM: true
 			});
 
 			newGamePlayer.save(function(err) {
 				if(err) {
-					return res.err('an error occurred adding the player to the game');
+					return res.err('An error occurred adding the you to the game. Please try again');
 				}
 
 				res.redirect('/joinGame/' + player.username);
@@ -119,7 +119,7 @@ var addPlayer = function(req, res) {
 	models.Player.playerModel.findByUsername(playerUsername, function(err, newPlayer){
 
 		if(err || !newPlayer){
-			return res.notFound("player could not be found");
+			return res.notFound("Player could not be found");
 		}
 
 		var newGamePlayer = new models.Session.sessionPlayerModel({
@@ -129,7 +129,7 @@ var addPlayer = function(req, res) {
 
 		newGamePlayer.save(function(err) {
 			if(err) {
-				return res.err('an error occurred adding the player to the game');
+				return res.err('An error occurred adding the player to the game. Please try again.');
 			}
 
 			res.created(newPlayer.username + " was added to the game");
@@ -152,17 +152,17 @@ var removePlayer = function(req, res) {
 	models.Player.playerModel.findByUsername(playerUsername, function(err, existingPlayer){
 
 		if(err || !existingPlayer){
-			return res.notFound("player could not be found");
+			return res.notFound("Player could not be found");
 		}
 
 		models.Session.sessionPlayerModel.findPlayerGamePermission(existingPlayer.id, game.id, function(err, permission){
 			if(err) {
 				log.error(err);
-				return res.forbidden("player does not have permission to this game");
+				return res.forbidden("Player does not have permission to this game");
 			}
 
 			if(!permission) {
-				return res.forbidden("player does not have permission to this game");
+				return res.forbidden("Player does not have permission to this game");
 			}
 
 			permission.remove();
@@ -187,17 +187,17 @@ var addGM = function(req, res) {
 	models.Player.playerModel.findByUsername(playerUsername, function(err, newPlayer){
 
 		if(err || !newPlayer){
-			return res.notFound("player could not be found");
+			return res.notFound("Player could not be found");
 		}
 
 		models.Session.sessionPlayerModel.findPlayerGamePermission(newPlayer.id, game.id, function(err, player) {
 
 			if(err) {
-				return res.err('an error occurred adding the GM to the game');
+				return res.err('An error occurred adding the GM to the game. Please try again.');
 			}
 
 			if(!player) {
-				return res.err('Player could not be found in this game. Please add them to the game first');
+				return res.err('Player could not be found in this game. Please add them to the game first.');
 			}
 
 			if(player.isGM === true) {
@@ -208,7 +208,7 @@ var addGM = function(req, res) {
 
 			player.save(function(err) {
 				if(err) {
-					return res.err('an error occurred adding the GM to the game');
+					return res.err('An error occurred adding the GM to the game. Please try again.');
 				}
 
 				res.created(newPlayer.username + " has been promoted to a GM");
@@ -232,28 +232,28 @@ var removeGM = function(req, res) {
 	models.Player.playerModel.findByUsername(playerUsername, function(err, newPlayer){
 
 		if(err || !newPlayer){
-			return res.notFound("player could not be found");
+			return res.notFound("Player could not be found");
 		}
 
 		models.Session.sessionPlayerModel.findPlayerGamePermission(newPlayer.id, game.id, function(err, player) {
 
 			if(err) {
-				return res.err('an error occurred adding the GM to the game');
+				return res.err('An error occurred removing the GM from the game');
 			}
 
 			if(!player) {
 				return res.err('Player could not be found in this game. Please add them to the game first');
 			}
 
-                        if(player.isGM === false) {
+      if(player.isGM === false) {
 			  	return res.err('Player is not currently a GM');
-                        }
+      }
 
 			player.isGM = false;
 
 			player.save(function(err) {
 				if(err) {
-					return res.err('an error occurred removing the GM from the game');
+					return res.err('An error occurred removing the GM from the game. Please try again');
 				}
 
 				res.created(newPlayer.username + " has been made into a normal player");
@@ -261,15 +261,6 @@ var removeGM = function(req, res) {
 		});
 	});
 };
-
-var uploadBackground = function(req, res) {
-	res.json('request to upload a background image');
-};
-
-var removeBackground = function(req, res) {
-	res.json('request to remove a background image');
-};
-
 
 var uploadToken = function(req, res) {
 
@@ -373,18 +364,6 @@ var removeToken = function(req, res) {
 
 };
 
-var saveDrawing = function(req, res) {
-	res.json('request to save the current drawing');
-};
-
-var saveEvent = function(req, res) {
-	res.json('request to save an event');
-};
-
-var loadEvents = function(req, res) {
-	res.json('request to load an event');
-};
-
 var test = function(req, res) {	
 	models.Player.playerModel.findByUsername('test', function(err, player) {
 		if(err) {
@@ -421,11 +400,6 @@ module.exports.addPlayer = addPlayer;
 module.exports.removePlayer = removePlayer;
 module.exports.addGM = addGM;
 module.exports.removeGM = removeGM;
-module.exports.uploadBackground = uploadBackground;
-module.exports.removeBackground = removeBackground;
 module.exports.uploadToken = uploadToken;
 module.exports.removeToken = removeToken;
-module.exports.saveDrawing = saveDrawing;
-module.exports.saveEvent = saveEvent;
-module.exports.loadEvents = loadEvents;
 

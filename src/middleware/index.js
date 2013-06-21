@@ -33,20 +33,6 @@ var authPrompt = function(req, res) {
   res.redirect('/login?redirect=' + encodeURIComponent(req.url));
 };
 
-//var authOwner = function(req, res) {
-//  var title = 'Requires ownership';
-//  var message = 'Only ' + req.params.player + ' can do that';
-//  if (req.xhr) {
-//    return res.forbidden(message);
-//  }
-//  req.flash('message', {
-//    name: title,
-//    message: message,
-//    alert: 'alert'
-//  });
-//  res.redirect('/');
-//};
-
 var getPermission = function(playerId, gameId, callback) { 
 	models.Session.sessionPlayerModel.findPlayerGamePermission(playerId, gameId, function(err, doc) {
 		callback(err, doc);
@@ -62,16 +48,6 @@ var findGame = function(gameName, player, callback) {
 //////////////////////////////////////////////////////////////////////////////
 var attachHandlers = function(config) {
 
-//  var notFound = function(req, res, next) {
-//    res.err(new Error('Resource not found'), 404);
-//  };
-
-//  var serverError = function(err, req, res, next) {
-//    log.error(util.formatErr(err));
-//    res.err(err, 500);
-//  };
-
-
   var csrf = function(req, res, next) {
     if(config.getConfig().environment !== 'test') {
       res.locals.token = req.session._csrf;
@@ -85,21 +61,21 @@ var attachHandlers = function(config) {
 	var isOwner = req.params.player.toLowerCase() === req.session.player.username.toLowerCase();
 	
 	if(!isOwner) {
-		return res.json("forbidden");
+		return res.json("Forbidden");
 	}
 	attachPlayer(req, res, next);
   };
 
   var requiresPermission = function(req, res, next) {
-	getPermission(req.session.player.id, res.locals.game.id, function(err, doc) {
-		if(err) {
-			return next(err);
-		}
-		if(!doc) {
-			return res.json("document was not found");
-		}
-		next();
-	});
+	  getPermission(req.session.player.id, res.locals.game.id, function(err, doc) {
+		  if(err) {
+			  return next(err);
+		  }
+		  if(!doc) {
+			  return res.json("User did not have permission for this game");
+		  }
+		  next();
+	  });
   };
 
   var attachPlayer = function(req, res, next) {
@@ -116,18 +92,18 @@ var attachHandlers = function(config) {
   };
 
   var attachGame = function(req, res, next) {
-	findGame(req.params.gameName, req.params.player, function(err, doc) {
-		if(err) {
-			return next(err);
-		}
+	  findGame(req.params.gameName, req.params.player, function(err, doc) {
+		  if(err) {
+			  return next(err);
+		  }
 
-		if(!doc) {
-			return res.json('game was not found');
-		}
+		  if(!doc) {
+			  return res.json('Game was not found');
+		  }
 
-		res.locals.game = doc;
-		requiresPermission(req, res, next);
-	});
+		  res.locals.game = doc;
+		  requiresPermission(req, res, next);
+	  });
   };
 
 
@@ -139,12 +115,12 @@ var attachHandlers = function(config) {
   };
 
 
-//  var requiresNoAuth = function(req, res, next) {
-//    if (req.session && req.session.player) {
-//      return noAuthPrompt(req, res);
-//    }
-//    next();
-//  };
+  var requiresNoAuth = function(req, res, next) {
+    if (req.session && req.session.player) {
+      return res.redirect('/joinGame/' + req.session.player.username);
+    }
+    next();
+  };
 
   var requests = function(req, res, next) {
     req.isAuthenticated = !!(req.session && req.session.player);
@@ -211,8 +187,7 @@ var attachHandlers = function(config) {
       }, 409);
     };
 
-    res.created = function(entity) {
-      var message = entity + ' created';
+    res.created = function(message) {
       if (req.xhr) {
         return res.json(201, {
           response: message
@@ -221,8 +196,7 @@ var attachHandlers = function(config) {
       res.send(message, 201);
     };
 
-    res.updated = function(entity) {
-      var message = entity + ' updated';
+    res.updated = function(message) {
       if (req.xhr) {
         return res.json(200, {
           response: message
@@ -234,27 +208,17 @@ var attachHandlers = function(config) {
     next();
   };
 
-//  return {
-//    requests: requests,
-//    responses: responses,
-//    notFound: notFound,
-//    serverError: serverError,
-//    csrf: csrf,
-//    requiresAuth: requiresAuth,
-//    requiresNoAuth: requiresNoAuth,
-//    attachUser: attachUser
-//  };
-
-    return {
-	requests: requests,
-        responses: responses,
-        csrf: csrf,
-	requiresOwnership: requiresOwnership,
-	requiresPermission: requiresPermission,
-        requiresAuth: requiresAuth,
-	attachPlayer: attachPlayer,
-	attachGame: attachGame
-    };
+  return {
+	  requests: requests,
+    responses: responses,
+    csrf: csrf,
+	  requiresOwnership: requiresOwnership,
+	  requiresPermission: requiresPermission,
+    requiresNoAuth: requiresNoAuth,
+    requiresAuth: requiresAuth,
+	  attachPlayer: attachPlayer,
+	  attachGame: attachGame
+  };
 };
 
 module.exports.attachHandlers = attachHandlers;

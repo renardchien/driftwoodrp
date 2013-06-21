@@ -64,7 +64,7 @@ $(document).ready(function() {
       gridColor: '#777777',
       freeDrawColor: '#333333',
       freeDrawWidth: 1,
-      freeDrawFill: '#ff0000',
+      freeDrawFill: '#ffffff',
       chatData: [],
       objects: [],
     },
