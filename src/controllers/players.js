@@ -203,7 +203,6 @@ var changePassword = function(req, res) {
 	});
 };
 
-
 module.exports.createPlayer = createPlayer;
 module.exports.loginPage = loginPage;
 module.exports.login = login;
