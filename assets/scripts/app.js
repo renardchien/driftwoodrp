@@ -1672,7 +1672,10 @@ $(document).ready(function() {
         }
       }, this ) );
       if( modified.length ) {
-        this.trigger('object:modified',{_objects:modified})
+        /*Commenting out this line removes the deleting problem
+         *Everything then deletes instantly without problems
+         *Do we need this line?
+        //this.trigger('object:modified',{_objects:modified})
       }
     },
 
@@ -2192,12 +2195,12 @@ $(document).ready(function() {
 
     removeObject: function(object,noDispatch) {
       this.canvas.remove(object);
-      if( noDispatch !== true ) {
+      if( noDispatch !== true ) { 
         this.trigger('object:removed',object);
       }
     },
 
-    removeObjectById: function(id,noDispatch) {
+    removeObjectById: function(id,noDispatch) { 
       this.removeObject(this.getObjectById(id),noDispatch);
     },
 
