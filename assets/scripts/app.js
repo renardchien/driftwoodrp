@@ -393,10 +393,12 @@ $(document).ready(function() {
       //Turn grid on
       if( settings.hasOwnProperty('grid') && settings.grid ) {
         this.canvas.setGrid(this.settings.gridSize,this.settings.gridColor);
+        this.toggleGridLabel('show');
       }
       //Turn grid off
       if( settings.hasOwnProperty('grid') && ! settings.grid ) {
         this.canvas.clearLayer('grid_layer');
+        this.toggleGridLabel('hide');
       }
       //Change grid color
       if( this.settings.grid && settings.hasOwnProperty('gridColor') ) {
@@ -463,6 +465,22 @@ $(document).ready(function() {
     updateGridLabel: function(unit) {
       this.$gridLabel.find('.unit-label').html(unit);
     },
+
+    /**
+     * Hides or shows the grid label
+     *
+     * 1 block = unit
+     */
+    toggleGridLabel: function(type) {
+      switch(type) {
+        case 'show':
+          this.$gridLabel.show();
+          break;
+        case 'hide':
+          this.$gridLabel.hide();
+          break;
+      }
+    },    
 
     /**
      * Activation helper for UI elements.
@@ -1507,6 +1525,23 @@ $(document).ready(function() {
       }, this ) );
       this.on('object:modified', _.bind( function(object) {
         var json = this.toDataJSON(object);
+        
+        /**
+         *Fix me: Position and scaling object to a scale of 1 
+         *All clients will need to expect a client scale of 1
+         *updateObjectForPlayer then receives a scale of 1 and multiplies it by it's canvas scale
+         *PROBLEM WITH THE CODE BELOW: 
+         *  The math should add up to 100%, but it loses 3% per level of zoom
+         *  For example, zooming out once gives a scale of 97.2ish% instead of 100%, twice gives about 94.2ish%
+         *  maybe a rounding issue. Please see if you see any problems with the math and refer to the code in 
+         * updateObjectForPlayer
+
+        json[0].left = json[0].left + (json[0].left * (1 - canvasScale));
+        json[0].top = json[0].top + (json[0].top * (1 - canvasScale));
+        json[0].width = json[0].width + (json[0].width * (1 - canvasScale));
+        json[0].height = json[0].height + (json[0].height * (1 - canvasScale));
+        console.log(json[0]);
+        **/
         driftwood.engine.socket.emit('objectModified',{objects:json});
       }, this ) );
       this.on('object:removed', _.bind( function(object) {
@@ -1969,6 +2004,27 @@ $(document).ready(function() {
       if( object.get('layer') === 'gm_layer' && ! driftwood.engine.player.isGM() ) {
         object.get('object').set('opacity',0);
       }
+
+      /**
+       *Fix me: Code is supposed to assume an object receiving a positioning and scale of 1.0
+       *This code would then just modify the values for the zoom level of this client
+       *If zoomed in to 1.2, this should receive everything at 1 and multiply it to 1.2
+       *I think this code actually works correctly, but the modified emit is sending the wrong values
+       *Refer to the object modified code for my broken math
+       
+      if( object.get('type') === 'token' || object.get('type') === 'item') {
+        object.fitTo('grid',this.canvasScale);
+        object.left = object.left * canvasScale;
+        object.top = object.top * canvasScale;
+      //Its a map, fit it to the canvas
+      } else if( object.get('type') === 'map') {
+        object.fitTo('canvas',this.canvasScale);
+        object.left = object.left * canvasScale;
+        object.top = object.top * canvasScale;
+      }
+
+      **/
+
       //Make sure coordinates are updated
       object.get('object').setCoords();
     },
@@ -2586,7 +2642,7 @@ $(document).ready(function() {
               this.rectangle = null;
             }
           },
-          //Technically the circle is already drawn. Here we are just
+          //Technically the rectangle is already drawn. Here we are just
           //making it bigger
           drawRectange: function(event) {
             
