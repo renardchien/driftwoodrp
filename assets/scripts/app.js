@@ -873,6 +873,10 @@ $(document).ready(function() {
         this.menuOptions.move_to_back = true;
         this.menuOptions.switch_layer = true;
         this.menuOptions.gmLayer = driftwood.engine.player.isGM();
+        
+        if(this.copied) {
+          this.menuOptions.paste = true;
+        }
       } else if( this.copied ) {
         this.menuOptions.paste = true;
       } else {
