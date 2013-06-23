@@ -130,6 +130,10 @@ $(document).ready(function() {
         //Hide the loading screen, we're ready to go!
         this.loading.hide();
       }, this ) );
+      this.socket.on('disconnect', _.bind( function() {
+        console.log('disconnected');
+        this.loading.show('Disconnected from Server. Trying to reestablish connection');
+      }, this));
     },
 
     run: function() {
@@ -619,6 +623,11 @@ $(document).ready(function() {
         $(this.el).hide();
       }, this ), this.hideDelay );
       
+    },
+
+    show: function(message) {
+        this.$message.html(message);
+        $(this.el).show(); 
     }
   });
 
