@@ -1674,7 +1674,8 @@ $(document).ready(function() {
       if( modified.length ) {
         /*Commenting out this line removes the deleting problem
          *Everything then deletes instantly without problems
-         *Do we need this line?
+         *Do we need this line? 
+         */
         //this.trigger('object:modified',{_objects:modified})
       }
     },
