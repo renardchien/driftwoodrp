@@ -55,6 +55,7 @@ select {
   -moz-background-size: cover;
   -o-background-size: cover;
   background-size: cover;
+  overflow: auto;
 }
 //Make sure everything we want gets the correct box sizing
 .main, .editor, .panel {
