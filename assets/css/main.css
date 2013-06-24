@@ -39,7 +39,7 @@ select {
 /* line 51, ../scss/main.scss */
 .login-page .main, .register-page .main, .reset-pass-page .main {
   display: block;
-  background: white url("../images/driftwoodimage.png") no-repeat top left fixed;
+  background: white url("../images/driftwoodimage.jpg") no-repeat top left fixed;
   -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;
