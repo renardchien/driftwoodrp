@@ -130,6 +130,15 @@ $(document).ready(function() {
         //Hide the loading screen, we're ready to go!
         this.loading.hide();
       }, this ) );
+
+      this.socket.on('playerLeft', _.bind( function() {
+        console.log('player left');
+      }, this));
+
+      this.socket.on('playerJoined', _.bind( function() {
+        console.log('player joined');
+      }, this));
+
       this.socket.on('disconnect', _.bind( function() {
         console.log('disconnected');
         this.loading.show('Disconnected from Server. Trying to reestablish connection');
