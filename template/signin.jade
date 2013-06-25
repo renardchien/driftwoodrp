@@ -28,19 +28,19 @@ html(lang='en')
           .control-group
             label.control-label(for='username') Username
             .controls
-              input#username.input-block-level(type='text', name='loginUsername')
+              input#username.input-block-level(type='text', name='loginUsername',tabindex='1')
           .control-group
             label.control-label(for='password')
               | Password
               small.pull-right.muted
-                a(href='/resetPassword') Forgot Password?
+                a(href='/resetPassword', tabindex='5') Forgot Password?
             .controls
-              input#password.input-block-level(type='password', name='loginPassword')
+              input#password.input-block-level(type='password', name='loginPassword',tabindex='2')
           .control-group
             .controls
-              input.btn.btn-primary(type='submit', value='Sign in')
-              a(href='/createAccount') Not registered?
-          a(href='/policy/tos.txt') Terms of Service, Privacy Policy & Contact
+              input.btn.btn-primary(type='submit', value='Sign in',tabindex='3')
+              a(href='/createAccount',tabindex='4') Not registered?
+          a(href='/policy/tos.txt',tabindex='6') Terms of Service, Privacy Policy & Contact
       // END: main container
       // BEGIN: footer
       footer.footer
