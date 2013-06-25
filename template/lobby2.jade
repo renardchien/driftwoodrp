@@ -23,24 +23,25 @@ html(lang='en')
       // BEGIN: Main container
       section.main(role='main')
         form.lobby(id='createGameForm', action='/createGame/#{player.username}', method='post')
-          input(type='hidden', name='_csrf', value='#{session._csrf}')    
-          img(id="logo", src='/images/driftwoodlogo.png')
-          .control-group
-            label.control-label(for='name') New Game
-            .controls
-              input#username.input-block-level(id='createGameName',type='text',placeholder='',name='name')
-          .control-group
-            .controls
-              input.btn.btn-primary(type='submit', value='Create Game')
-          div.games
-           .content
-              .tr.object-list
-                .object-wrapper
-                  ol.unstyled
-                    each game in games
-                      li.object: a(href="/game/#{game.ownerUsername}/#{game.name}") #{game.name}
-          br
-          a(href='/policy/tos.txt') Terms of Service, Privacy Policy & Contact
+          section
+            input(type='hidden', name='_csrf', value='#{session._csrf}')    
+            img(id="logo", src='/images/driftwoodlogo.png')
+            .control-group
+              label.control-label(for='name') New Game
+              .controls
+                input#username.input-block-level(id='createGameName',type='text',placeholder='',name='name')
+            .control-group
+              .controls
+                input.btn.btn-primary(type='submit', value='Create Game')
+          section
+            .control-group
+              label.control-label(for='name') Games
+              .controls.games
+                ol.unstyled
+                  each game in games
+                    li: a(href="/game/#{game.ownerUsername}/#{game.name}") #{game.name}
+          section
+            a(href='/policy/tos.txt') Terms of Service, Privacy Policy & Contact
       // END: main container
       // BEGIN: footer
       footer.footer
