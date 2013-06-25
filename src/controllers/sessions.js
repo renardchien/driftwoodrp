@@ -41,7 +41,7 @@ var joinSessionPage = function(req, res) {
 		var ids = docs.map(function(doc) { return doc.sessionId; });
 
 		models.Session.sessionModel.find({_id: {$in: ids}}).exec(function(err, games) {
-			res.render('lobby', {title: 'Lobby', games: games});
+			res.render('lobby2', {title: 'Lobby', games: games});
 		});
 	});
 };
@@ -54,7 +54,7 @@ var createSession = function(req, res){
 		return res.badRequest("Game Name is required");
 	}
 
-	models.Session.sessionModel.findByNameOwner(gameName, player.id, function(err, doc) {
+	models.Session.sessionModel.findByNameOwner(gameName, player.username, function(err, doc) {
 		if(err) {
 			return res.err('An error occurred creating the game. Please try again.');
 		}

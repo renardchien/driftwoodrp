@@ -48,7 +48,7 @@ select {
 .main {
   display: table;
 }
-.login-page .main,.register-page .main, .reset-pass-page .main {
+.login-page .main,.register-page .main, .reset-pass-page .main, .lobby-page .main {
   display: block;
   background: #ffffff url('../images/driftwoodimage.jpg') no-repeat top left fixed;
   -webkit-background-size: cover;
@@ -67,7 +67,8 @@ select {
 //------------------------------
 .login,
 .register,
-.reset-password {
+.reset-password,
+.lobby {
   position: relative;
   top: 22%;
   @include box-sizing(border-box);
@@ -92,6 +93,15 @@ select {
 .register {
   width: 500px;
   top: 15%;
+}
+
+.lobby {
+  width: 400px;
+}
+
+.games {
+  max-height: 300px;
+  overflow: auto;
 }
 //
 //
