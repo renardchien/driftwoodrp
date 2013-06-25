@@ -1445,6 +1445,7 @@ $(document).ready(function() {
     ],
 
     enlivening: {},
+    canvasScale: 1,
 
     initialize: function(options) {
       _.bindAll(this,'render');
@@ -1523,13 +1524,13 @@ $(document).ready(function() {
       }, this ) );
       //Object moving
       this.canvas.on('object:moving', _.bind( function(e) {
-        this.trigger('object:modified', e.target);
+        //this.trigger('object:modified', e.target);
       }, this ) );
       this.canvas.on('object:scaling', _.bind( function(e) {
-        this.trigger('object:modified', e.target);
+        //this.trigger('object:modified', e.target);
       }, this ) );
       this.canvas.on('object:rotating', _.bind( function(e) {
-        this.trigger('object:modified', e.target);
+        //this.trigger('object:modified', e.target);
       }, this ) );
 
       this.on('object:added', _.bind( function(object) {
@@ -1538,23 +1539,6 @@ $(document).ready(function() {
       }, this ) );
       this.on('object:modified', _.bind( function(object) {
         var json = this.toDataJSON(object);
-        
-        /**
-         *Fix me: Position and scaling object to a scale of 1 
-         *All clients will need to expect a client scale of 1
-         *updateObjectForPlayer then receives a scale of 1 and multiplies it by it's canvas scale
-         *PROBLEM WITH THE CODE BELOW: 
-         *  The math should add up to 100%, but it loses 3% per level of zoom
-         *  For example, zooming out once gives a scale of 97.2ish% instead of 100%, twice gives about 94.2ish%
-         *  maybe a rounding issue. Please see if you see any problems with the math and refer to the code in 
-         * updateObjectForPlayer
-
-        json[0].left = json[0].left + (json[0].left * (1 - canvasScale));
-        json[0].top = json[0].top + (json[0].top * (1 - canvasScale));
-        json[0].width = json[0].width + (json[0].width * (1 - canvasScale));
-        json[0].height = json[0].height + (json[0].height * (1 - canvasScale));
-        console.log(json[0]);
-        **/
         driftwood.engine.socket.emit('objectModified',{objects:json});
       }, this ) );
       this.on('object:removed', _.bind( function(object) {
@@ -1629,6 +1613,13 @@ $(document).ready(function() {
         var json = object.toJSON();
         //Add index into json data
         json['index'] = object.index;
+        //Normalize scale/position
+        if( this.canvasScale ) {
+          json.scaleX = json.scaleX / this.canvasScale;
+          json.scaleY = json.scaleY / this.canvasScale;
+          json.left = json.left / this.canvasScale;
+          json.top = json.top / this.canvasScale;
+        }
         jsonObjects.push(json);
       }, this ) );
       return jsonObjects;
@@ -1649,7 +1640,7 @@ $(document).ready(function() {
       } else {
         selected = e.target._objects;
       }
-      console.log('Take control of objects',selected);
+      //console.log('Take control of objects',selected);
       //For each object, make it controlled by our current player
       _.each( selected, _.bind( function(object) {
         object.set('controlledBy',driftwood.engine.player.get('username'));
@@ -1661,22 +1652,18 @@ $(document).ready(function() {
     },
 
     removeControl: function() {
-      console.log('Remove control of all my objects');
+      //console.log('Remove control of all my objects');
       var _objects = this.canvas.getObjects(),
           modified = [];
       _.each( _objects, _.bind( function(object) {
         //Not a grid, is already controlled by me, and is not active ( if it is active, it's being controlled by me)
-        if( object.get('layer') !== 'grid_layer' && object.get('controlledBy') && object.get('controlledBy') == driftwood.engine.player.get('username') && ! object.get('active')) {
+        if( object.get('layer') !== 'grid_layer' && object.get('controlledBy') == driftwood.engine.player.get('username') && ! object.get('active')) {
           object.set('controlledBy',false);
           modified.push(object);
         }
       }, this ) );
       if( modified.length ) {
-        /*Commenting out this line removes the deleting problem
-         *Everything then deletes instantly without problems
-         *Do we need this line? 
-         */
-        //this.trigger('object:modified',{_objects:modified})
+        this.trigger('object:modified',{_objects:modified})
       }
     },
 
@@ -1904,7 +1891,7 @@ $(document).ready(function() {
      */
     deleteObject: function() {
       if( this.contextMenu.objects.length ) {
-        this.canvas.deactivateAllWithDispatch()
+        this.canvas.deactivateAll()
         _.each( this.contextMenu.objects, _.bind( function(object) {
           this.removeObject(object.get('object'));
         }, this ) );
@@ -1998,11 +1985,12 @@ $(document).ready(function() {
 
     updateObjectForPlayer: function(object) {
       var object = this.toObject(object),
+          canvasObject = object.get('object'),
           isLocked = object.isLocked();
       //console.log(object);
       //Enable and unlock it to start
       object.enable();
-      object.unlock()
+      object.unlock();
       //Object should be disabled, it's on another layer
       if( object.get('layer') !== this.currentLayer ) {
         var opacity = object.get('layerIndex') > this.getLayerIndex(this.currentLayer);
@@ -2014,36 +2002,25 @@ $(document).ready(function() {
       }
       //Object is being controlled, don't let it be selected
       if( object.isBeingControlled() ) {
-        object.get('object').set('selectable',false);
+        canvasObject.set('selectable',false);
       }
       //console.log(object.get('layer'));
       //Object is on the gm layer and the player is not a gm
       if( object.get('layer') === 'gm_layer' && ! driftwood.engine.player.isGM() ) {
-        object.get('object').set('opacity',0);
+        canvasObject.set('opacity',0);
       }
 
-      /**
-       *Fix me: Code is supposed to assume an object receiving a positioning and scale of 1.0
-       *This code would then just modify the values for the zoom level of this client
-       *If zoomed in to 1.2, this should receive everything at 1 and multiply it to 1.2
-       *I think this code actually works correctly, but the modified emit is sending the wrong values
-       *Refer to the object modified code for my broken math
-       
-      if( object.get('type') === 'token' || object.get('type') === 'item') {
-        object.fitTo('grid',this.canvasScale);
-        object.left = object.left * canvasScale;
-        object.top = object.top * canvasScale;
-      //Its a map, fit it to the canvas
-      } else if( object.get('type') === 'map') {
-        object.fitTo('canvas',this.canvasScale);
-        object.left = object.left * canvasScale;
-        object.top = object.top * canvasScale;
+      //This player is zoomed, so we need to adjust the size/position of the incoming
+      //object to match the zoom level
+      if( this.canvasScale ) {
+        canvasObject.set('scaleX',canvasObject.get('scaleX') * this.canvasScale);
+        canvasObject.set('scaleY',canvasObject.get('scaleY') * this.canvasScale);
+        canvasObject.set('left',canvasObject.left * this.canvasScale);
+        canvasObject.set('top',canvasObject.top * this.canvasScale);
       }
-
-      **/
 
       //Make sure coordinates are updated
-      object.get('object').setCoords();
+      canvasObject.setCoords();
     },
 
     /**
@@ -2140,7 +2117,7 @@ $(document).ready(function() {
       _.each( objects, function(object) {
         converted.push(new CanvasObj({object: object}));
       });
-      console.log('Converted',converted);
+      //console.log('Converted',converted);
       return converted;
     },
 
@@ -2813,6 +2790,10 @@ $(document).ready(function() {
         ? JSON.parse(json)
         : json;
 
+      /**
+       * This code enlivens and creates/replaces all objects,
+       * regardless of whether or not they already exist
+       *
       this._enlivenObjects(serialized.objects, _.bind( function (objects) {
         _objects = this.canvas.getObjects();
         objects.forEach( _.bind( function(object) {
@@ -2820,12 +2801,69 @@ $(document).ready(function() {
             this.canvas.remove(existingObject);
           }
           this.updateObjectForPlayer(object);
-          console.log('Inserting at',object.index);
+         // console.log('Inserting at',object.index);
           this.canvas.insertAt(object,object.index);
           //var o = this.toObject(object);
           //o.switchLayer(o.get('layer'));
         }, this ) );
           
+      }, this ) );
+      this.canvas.renderAll();
+      return this;
+      */
+     
+     //-------------------------------------------------
+
+     /**
+      * This code only enlivens objects that don't yet exist
+      * on the game board. If it does exist, it simply sets the
+      * data and updates it.
+      *
+      * If it needs to be enlivened, it makes sure it isn't
+      * already in the process of being elivened. If it is,
+      * it updates the data (replacing older data with new)
+      * and moves on. Once that object is enlivened, the object
+      * is updated with the most recent data and updated.
+      */
+      //Filter out any existing objects
+      _.each( serialized.objects, _.bind( function( data ) {
+        //Object exists
+        var existingObject = this.getObjectById(data.id);
+        if( existingObject ) {
+          //console.log('Object exists');
+          existingObject.set(data);
+          this.updateObjectForPlayer(existingObject);
+          this.canvas.moveTo(existingObject,data.index);
+        //This object isn't currently in the process of being enlivened
+        } else if( ! this.enlivening[data.id] ) {
+          console.log('Need to enliven');
+          //console.log('Object does not exist');
+          //We're going to enliven this data
+          this.enlivening[data.id] = data;
+          //Make all of our objects into actual fabric canvas objects
+          this._enlivenObjects([data], _.bind( function (objects) {
+            //Go through each enlivened object and update it for the player,
+            //and since it's new, add it in at the proper index
+            objects.forEach( _.bind( function(object) {
+              //Even though we just enlivened with this data,
+              //use the most current set (in case another socket event
+              //triggered for this object while we were creating the object)
+              //console.log(this.enlivening[data.id]);
+              object.set(this.enlivening[data.id]);
+              this.updateObjectForPlayer(object);
+              //console.log(object.toJSON());
+              //Add the object to the top, then move it to the
+              //correct spot
+              this.canvas.add(object);
+              this.canvas.moveTo(object,object.index);
+              //We're done enlivening this object
+              delete this.enlivening[data.id];
+            }, this ) );
+          }, this ) );
+        //Object is being elivened, update the data for when it's done
+        } else {
+          this.enlivening[data.id] = data;
+        }
       }, this ) );
       this.canvas.renderAll();
       return this;

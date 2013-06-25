@@ -1,7 +1,7 @@
 3.2.5 (Media Mark)
-714f04ddf8406bb5f3abe431b3a10cb6a19d5826
+02e879b353679f8692a8deee44b0590a501b3aea
 o:Sass::Tree::RootNode
-:@template"f+@import "compass/css3/box-sizing";
+:@template"g+@import "compass/css3/box-sizing";
 @import "compass/css3/box-shadow";
 @import "compass/css3/border-radius";
 @import "compass/css3/opacity";
@@ -69,7 +69,7 @@ select {
   position: relative;
   top: 5%;
   @include box-sizing(border-box);
-  width: 300px;
+  width: 340px;
   margin: 0 auto;
   padding: 30px;
   background-color: #f1f1f1;
@@ -579,7 +579,8 @@ $sidePanelWidth: 340px;
   body {
     padding: 0;
   }
-}:@options{ :
+}
+:@options{ :
 @linei:@has_childrenT:@children[:o:Sass::Tree::ImportNode;0:@imported_filename"compass/css3/box-sizing;@;i;
 [ :@imported_file0o;;0;"compass/css3/box-shadow;@;i;
 [ ;0o;;0;"compass/css3/border-radius;@;i;
@@ -688,7 +689,7 @@ o;"
 [ ;1i o;,;o;-;"5%;@;;.;["top;@;iH;/;0;
 [ ;1i o;5;6{ ;"box-sizing;@;iI;7[o;-	;"border-box;@;iI;;.;80;
 [ o;,;o;-;"
-300px;@;;.;["
+340px;@;;.;["
 width;@;iJ;/;0;
 [ ;1i o;,;o;9	;[o;:;;@¦;i ;@;iK;<[ ;="0o;-	;"	auto;@;iK;;.;@;iK;>;?;["margin;@;iK;/;0;
 [ ;1i o;,;o;-;"	30px;@;;.;["padding;@;iL;/;0;
