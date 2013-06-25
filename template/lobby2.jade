@@ -16,43 +16,30 @@ html(lang='en')
     // Site Web Fonts
   body
     // BEGIN: Main wrapper
-    #Main.register-page
+    #Main.lobby-page
       // BEGIN: header
       header.header
       // END: header
       // BEGIN: Main container
       section.main(role='main')
-        form.register(id='registerform', action='/createAccount', method='post')
+        form.lobby(id='createGameForm', action='/createGame/#{player.username}', method='post')
           input(type='hidden', name='_csrf', value='#{session._csrf}')    
           img(id="logo", src='/images/driftwoodlogo.png')
           .control-group
-            label.control-label(for='username') Username
+            label.control-label(for='name') New Game
             .controls
-              input#username.input-block-level(id='registerUsername', type='text',placeholder='',name='username')
-          .control-group
-            label.control-label(for='password') Password
-            .controls
-              input#password.input-block-level(id='registerPassword', type='password',placeholder='',name='password')
-          .control-group
-            label.control-label(for='confirm-password') Confirm Password
-            .controls
-              input#confirm-password.input-block-level(id='registerPassword2', type='password',placeholder='',name='confirmPassword')
-          .control-group
-            label.control-label(for='display-name') Display Name
-            .controls
-              input#display-name.input-block-level(id='registerDisplayName', type='text', placeholder='', name='displayName')
-          .control-group
-            label.control-label(for='email') E-mail
-            .controls
-              input#email.input-block-level(id='registerEmailAddr', type='email',placeholder='',name='email')
-          .control-group
-            label.control-label(for='confirm-email') Confirm E-mail
-            .controls
-              input#confirm-email.input-block-level(id='registerEmailAddr2', type='email',placeholder='',name='confirmEmail')
+              input#username.input-block-level(id='createGameName',type='text',placeholder='',name='name')
           .control-group
             .controls
-              input.btn.btn-primary(type='submit', value='Register')
-              a(href='/') Already registered?
+              input.btn.btn-primary(type='submit', value='Create Game')
+          div.games
+           .content
+              .tr.object-list
+                .object-wrapper
+                  ol.unstyled
+                    each game in games
+                      li.object: a(href="/game/#{game.ownerUsername}/#{game.name}") #{game.name}
+          br
           a(href='/policy/tos.txt') Terms of Service, Privacy Policy & Contact
       // END: main container
       // BEGIN: footer
@@ -74,22 +61,12 @@ html(lang='en')
                   }
             };
 
-            $("#registerform").on("submit", function(event) {
+            $("#createGameForm").on("submit", function(event) {
 
-              var form = $('#registerform');
+              var form = $('#createGameForm');
 
-              if(!$("input[name=username]").val() || !$("input[name=password]").val() || !$("input[name=confirmPassword]").val() || !$("input[name=displayName]").val() || !$("input[name=email]").val() || !$("input[name=confirmEmail]").val()) {
-                error("All Fields Required");
-                return false;
-              }
-
-              if($("input[name=password]").val() !== $("input[name=confirmPassword]").val()) {
-                error("Passwords must match");
-                return false;
-              }
-
-              if($("input[name=email]").val() !== $("input[name=confirmEmail]").val()) {
-                error("Emails must match");
+              if(!$("input[name=name]").val()) {
+                error("Game Name is Required");
                 return false;
               }
 

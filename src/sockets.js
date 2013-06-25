@@ -87,6 +87,9 @@ var configureSockets = function(socketio) {
 							  return asyncCallback(err, _.pluck(objectLibrary));						  		
 						  });
 					  }}, function(err, doc) {
+              
+              io.sockets.in(socket.room).except(socket.id).emit('playerJoined', { user: {username: player.username, displayName: player.displayName, type: player.type} });
+
 						  socket.emit('joined', { user: {username: player.username, displayName: player.displayName, type: player.type}, 
                                       chatSession: chatHistory, 
                                       objectLibrary: objectLibrary, 
