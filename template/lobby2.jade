@@ -22,9 +22,12 @@ html(lang='en')
       // END: header
       // BEGIN: Main container
       section.main(role='main')
-        form.lobby(id='createGameForm', action='/createGame/#{player.username}', method='post')
+        form.lobby(id='createGameForm', action='/createGame/#{player.username}', method='post')         
           .logout
-            a(href='/logout') Logout
+            div
+              a(href='/changePassword') Change Password   
+            div
+              a(href='/logout') Logout
           section
             input(type='hidden', name='_csrf', value='#{session._csrf}')    
             img(id="logo", src='/images/driftwoodlogo.png')

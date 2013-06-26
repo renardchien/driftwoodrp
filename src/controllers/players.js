@@ -86,6 +86,10 @@ var resetPasswordPage = function(req, res){
 	res.render('reset-password', {title: 'Driftwood Password Reset'});
 };
 
+var changePasswordPage = function(req, res){
+  res.render('password-change', {title: 'Driftwood Change Password'});
+};
+
 var createAccount = function(req, res){
 	var username = req.body.username;
 	var password = req.body.password;
@@ -209,6 +213,7 @@ module.exports.login = login;
 module.exports.logout = logout;
 module.exports.createAccount = createAccount;
 module.exports.changePassword = changePassword;
+module.exports.changePasswordPage = changePasswordPage;
 module.exports.resetPassword = resetPassword;
 module.exports.resetPasswordPage = resetPasswordPage;
 module.exports.registerPage = registerPage;

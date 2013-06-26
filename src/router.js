@@ -38,6 +38,7 @@ var router = function(app, controllers, mid) {
 	app.post('/createAccount', mid.requiresNoAuth, controllers.Players.createAccount);
   app.get('/resetPassword', controllers.Players.resetPasswordPage);
   app.post('/resetPassword',  controllers.Players.resetPassword);
+	app.get('/changePassword', mid.requiresAuth, controllers.Players.changePasswordPage);	
 	app.post('/changePassword', mid.requiresAuth, controllers.Players.changePassword);	
 	app.get('/joinGame/:player', mid.requiresAuth, mid.requiresOwnership, controllers.Sessions.joinSessionPage);
 	app.post('/createGame/:player', mid.requiresAuth, mid.requiresOwnership, controllers.Sessions.createSession);

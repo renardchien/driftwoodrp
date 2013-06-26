@@ -40,7 +40,7 @@ var joinSessionPage = function(req, res) {
 	models.Session.sessionPlayerModel.find(conditions).exec(function(err, docs) {
 		var ids = docs.map(function(doc) { return doc.sessionId; });
 
-		models.Session.sessionModel.find({_id: {$in: ids}}).exec(function(err, games) {
+		models.Session.sessionModel.find({_id: {$in: ids}}).sort('name').exec(function(err, games) {
 			res.render('lobby2', {title: 'Lobby', games: games});
 		});
 	});
