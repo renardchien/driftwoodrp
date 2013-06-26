@@ -127,26 +127,11 @@ $(document).ready(function() {
         }
         //Run the game
         this.run();
-        //Hide the loading screen, we're ready to go!
-        this.loading.hide();
       }, this ) );
-
-      this.socket.on('playerLeft', _.bind( function() {
-        console.log('player left');
-      }, this));
-
-      this.socket.on('playerJoined', _.bind( function() {
-        console.log('player joined');
-      }, this));
-
-      this.socket.on('disconnect', _.bind( function() {
-        console.log('disconnected');
-        this.loading.show('Disconnected from Server. Trying to reestablish connection');
-      }, this));
     },
 
     run: function() {
-      
+      $body.off();
       //Create chat
       this.chat = new Chat({load:this.settings.chatData});
       //Make sure we have a command list
@@ -177,7 +162,11 @@ $(document).ready(function() {
       this.setUI();
       //Move canvas to center
       this.canvas.center();
+      //Allow the canvas to save
+      this.canvas.addSaveListener();
       //this.canvas.enableFog();
+      //Hide the loading screen, we're ready to go!
+      this.loading.hide();
     },
 
     addEventListeners: function() {
@@ -385,6 +374,18 @@ $(document).ready(function() {
         }, this ) );
         
       }, this ) );
+      this.socket.on('playerLeft', _.bind( function() {
+        console.log('player left');
+      }, this));
+
+      this.socket.on('playerJoined', _.bind( function() {
+        console.log('player joined');
+      }, this));
+
+      this.socket.on('disconnect', _.bind( function() {
+        console.log('disconnected');
+        this.loading.show('Disconnected from Server. Trying to reestablish connection');
+      }, this));
     },
 
     /**
@@ -1555,11 +1556,6 @@ $(document).ready(function() {
         driftwood.engine.socket.emit('objectRemoved',{objects:json});
       }, this ) );
 
-      this.on('object:added object:removed object:modified', _.bind( function() {
-        //console.log('Saving canvas',JSON.stringify(this.canvas),this.canvas.getObjects());
-        //driftwood.engine.socket.emit('saveCanvas',JSON.stringify(this.canvas));
-      }, this ) );
-
       //Creates a context menu
       $body.on('contextmenu','.canvas-wrapper', _.bind(this.openContextMenu, this));
 
@@ -1577,18 +1573,30 @@ $(document).ready(function() {
       
     },
 
+    addSaveListener: function() {
+      this.on('object:added object:removed object:modified', _.bind( function() {
+        //console.log('Saving canvas',JSON.stringify(this.canvas),this.canvas.getObjects());
+        var canvasJSON = this.canvas.toJSON(),
+            _objects = canvasJSON.objects;
+        if( _objects.length ) {
+          //_objects.pop();
+          _objects = this.normalizeObjects(_objects);
+          canvasJSON.objects = _objects;
+        }
+        driftwood.engine.socket.emit('saveCanvas',JSON.stringify(canvasJSON));
+      }, this ) );
+    },
+
     loadCanvas: function(data) {
       //console.log('Loading Data',data);
-      /*this.canvas.loadFromJSON(data);
+      this.canvas.loadFromJSON(data);
       var _objects = this.canvas.getObjects();
       if( _objects.length ) {
-        console.log(_objects);
          _objects.forEach(_.bind( function(object) {
-          console.log(object);
           this.updateObjectForPlayer(object);
         }, this ) );
         this.canvas.renderAll();
-      }*/
+      }
        
     },
 
@@ -1623,15 +1631,24 @@ $(document).ready(function() {
         //Add index into json data
         json['index'] = object.index;
         //Normalize scale/position
-        if( this.canvasScale ) {
+        json = this.normalizeObjects([json]).pop();
+        jsonObjects.push(json);
+      }, this ) );
+      return jsonObjects;
+    },
+
+    normalizeObjects: function( objects ) {
+      var _objects = [];
+      _.each( objects, _.bind( function(json) {
+        if( this.canvasScale !== 1 ) {
           json.scaleX = json.scaleX / this.canvasScale;
           json.scaleY = json.scaleY / this.canvasScale;
           json.left = json.left / this.canvasScale;
           json.top = json.top / this.canvasScale;
         }
-        jsonObjects.push(json);
+        _objects.push(json);
       }, this ) );
-      return jsonObjects;
+      return _objects;
     },
 
     /**
