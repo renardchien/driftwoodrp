@@ -749,6 +749,7 @@ $(document).ready(function() {
       this.addEventListeners();
       //Run test data
       if( this.options.load ) {
+        $(this.el).empty();
         this.addToList(this.options.load);
       }
     },
@@ -955,6 +956,7 @@ $(document).ready(function() {
      * Most likely used for preloading chat information
      */
     loadData: function(chatData) {
+      $(this.el).find('.messages').empty();
       _.each( chatData, _.bind( function( data ) {
         data.active = false;
         this.receiveData(data);
