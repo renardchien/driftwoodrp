@@ -28,32 +28,37 @@ html(lang='en')
           .control-group
             label.control-label(for='username') Username
             .controls
-              input#username.input-block-level(id='registerUsername', type='text',placeholder='',name='username')
+              input#registerUsername.input-block-level(type='text',placeholder='',name='username')
           .control-group
             label.control-label(for='password') Password
             .controls
-              input#password.input-block-level(id='registerPassword', type='password',placeholder='',name='password')
+              input#registerPassword.input-block-level(type='password',placeholder='',name='password')
           .control-group
             label.control-label(for='confirm-password') Confirm Password
             .controls
-              input#confirm-password.input-block-level(id='registerPassword2', type='password',placeholder='',name='confirmPassword')
+              input#registerPassword2.input-block-level(type='password',placeholder='',name='confirmPassword')
           .control-group
             label.control-label(for='display-name') Display Name
             .controls
-              input#display-name.input-block-level(id='registerDisplayName', type='text', placeholder='', name='displayName')
+              input#registerDisplayName.input-block-level( type='text', placeholder='', name='displayName')
           .control-group
             label.control-label(for='email') E-mail
             .controls
-              input#email.input-block-level(id='registerEmailAddr', type='email',placeholder='',name='email')
+              input#registerEmailAddr.input-block-level(type='email',placeholder='',name='email')
           .control-group
             label.control-label(for='confirm-email') Confirm E-mail
             .controls
-              input#confirm-email.input-block-level(id='registerEmailAddr2', type='email',placeholder='',name='confirmEmail')
+              input#registerEmailAddr2.input-block-level(type='email',placeholder='',name='confirmEmail')
+          .control-group
+            label.control-label(for='tosAgreement') I have read and agree to the
+            .controls.form-inline
+              input#registerTosAgreement.input-block-level(type='checkbox',placeholder='',name='tosAgreement')
+              a(href="/policy/tos.txt", target="_blank") <span style="width:10px;"></span> Terms of Service &amp; Privacy Policy
           .control-group
             .controls
               input.btn.btn-primary(type='submit', value='Register')
               a(href='/') Already registered?
-          a(href='/policy/tos.txt') Terms of Service, Privacy Policy & Contact
+          a(href='/policy/tos.txt', target="_blank") Terms of Service, Privacy Policy &amp; Contact
       // END: main container
       // BEGIN: footer
       footer.footer
@@ -82,6 +87,10 @@ html(lang='en')
                 error("All Fields Required");
                 return false;
               }
+
+              if(!$("input[name=tosAgreement]").val()) {
+                error("You must agree to the terms of service &amp; privacy policy");
+              } 
 
               if($("input[name=password]").val() !== $("input[name=confirmPassword]").val()) {
                 error("Passwords must match");
