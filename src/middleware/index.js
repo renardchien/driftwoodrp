@@ -39,6 +39,16 @@ var getPermission = function(playerId, gameId, callback) {
 	});
 };
 
+var checkOwnership = function(playerUsername, sessionUsername, callback) {
+  var isOwner = playerUsername.toLowerCase() === sessionUsername.toLowerCase();
+
+  if(!isOwner) {
+    return callback(false);
+  } 
+
+  return callback(true);
+};
+
 var findGame = function(gameName, player, callback) {
 	models.Session.sessionModel.findByNameOwner(gameName, player, function(err, doc) {
 		callback(err, doc);
@@ -58,12 +68,12 @@ var attachHandlers = function(config) {
   };
 
   var requiresOwnership = function(req, res, next) {
-	var isOwner = req.params.player.toLowerCase() === req.session.player.username.toLowerCase();
-	
-	if(!isOwner) {
-		return res.json("Forbidden");
-	}
-	attachPlayer(req, res, next);
+	  var isOwner = checkOwnership(req.params.player.toLowerCase(), req.session.player.username.toLowerCase(), function(isOwner) {
+	    if(!isOwner) {
+		    return res.json("Forbidden");
+	    }
+	    attachPlayer(req, res, next);
+    });
   };
 
   var requiresPermission = function(req, res, next) {
@@ -223,4 +233,5 @@ var attachHandlers = function(config) {
 
 module.exports.attachHandlers = attachHandlers;
 module.exports.getPermission = getPermission;
+module.exports.checkOwnership = checkOwnership;
 module.exports.findGame = findGame;

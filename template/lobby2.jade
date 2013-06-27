@@ -44,7 +44,7 @@ html(lang='en')
               .controls.games
                 ol.unstyled
                   each game in games
-                    li: a(href="/game/#{game.ownerUsername}/#{game.name}") #{game.name}
+                    li: a(href="/game/#{game.ownerUsername}/#{game.name}") #{game.name} by #{game.ownerUsername}
           section
             a(href='/policy/tos.txt') Terms of Service, Privacy Policy & Contact
       // END: main container

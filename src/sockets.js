@@ -26,6 +26,8 @@ var log = config.getLogger();
 
 var io;
 
+var clients = {};
+
 var configureSockets = function(socketio) {
   io = socketio;
   io.sockets.on('connection', function(socket) {
@@ -55,6 +57,13 @@ var configureSockets = function(socketio) {
 				  socket.room = data.gameName + "/" + data.owner;
 
           socket.game = game;
+
+
+          if(game.ownerUsername === socket.handshake.session.player.username) {
+            socket.handshake.session.player.isOwner = true;
+          } else {
+            socket.handshake.session.player.isOwner = false;
+          }
 
           if(doc.isGM === true) {
 					  socket.handshake.session.player.type = "gm";
@@ -87,10 +96,20 @@ var configureSockets = function(socketio) {
 							  return asyncCallback(err, _.pluck(objectLibrary));						  		
 						  });
 					  }}, function(err, doc) {
-              
-              io.sockets.in(socket.room).except(socket.id).emit('playerJoined', { user: {username: player.username, displayName: player.displayName, type: player.type} });
 
-						  socket.emit('joined', { user: {username: player.username, displayName: player.displayName, type: player.type}, 
+              if(!clients[socket.room]) {
+                clients[socket.room] = {};
+              } 
+               
+              if(!clients[socket.room][player.username]) {
+                clients[socket.room][player.username] = [];
+              }
+
+              clients[socket.room][player.username].push(socket);
+              
+              io.sockets.in(socket.room).emit('playerJoined', { user: {username: player.username, displayName: player.displayName, type: player.type} });
+
+						  socket.emit('joined', { user: {username: player.username, displayName: player.displayName, type: player.type, isOwner: player.isOwner}, 
                                       chatSession: chatHistory, 
                                       objectLibrary: objectLibrary, 
                                       canvas: game.canvas } );
@@ -102,6 +121,24 @@ var configureSockets = function(socketio) {
 		  });
 
 	  });
+ 
+    socket.on('removePlayer', function(data){
+        
+        middleware.checkOwnership(socket.game.ownerUsername, socket.handshake.session.player.username, function(isOwner) {
+
+          if(!isOwner) {
+            return socket.emit('error', 'You are not the owner of the game');
+          }
+
+          _.each(clients[socket.room]['new'], function(playerSocket) {
+            playerSocket.disconnect();
+          });
+          delete clients[socket.room]['new'];
+
+
+        });
+    });
+
 
 	  /**
 	   * TODO: Store in database
@@ -179,6 +216,8 @@ var configureSockets = function(socketio) {
 	  });
 
 	  socket.on('disconnect', function(data) {
+      delete clients[socket.room][socket.handshake.session.player.username];
+
 		  socket.leave(socket.room);
       io.sockets.in(socket.room).emit('playerLeft', socket.handshake.session.player.username);
     });
