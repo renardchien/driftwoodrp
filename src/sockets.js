@@ -113,6 +113,10 @@ var configureSockets = function(socketio) {
                                       chatSession: chatHistory, 
                                       objectLibrary: objectLibrary, 
                                       canvas: game.canvas } );
+
+              if(player.isOwner) {
+                returnGamePlayerList(socket);
+              }
 					  }
 				  );
 					
@@ -223,6 +227,30 @@ var configureSockets = function(socketio) {
     });
  });
 };
+
+var returnGamePlayerList = function(ownerSocket){
+  models.Session.sessionPlayerModel.findGamePlayers(ownerSocket.game.id, function(err, gamePlayers){
+    if(err) {
+      return ownerSocket.emit('error', 'Could not find players for this game');
+    }
+
+    if(!gamePlayers) {
+      return ownerSocket.emit('playerManageList', {});
+    }
+
+    models.Player.playerModel.findPlayersByIds(_.pluck(gamePlayers, 'playerId') , function(err, players) {
+      if(err) {
+        return ownerSocket.emit('error', 'Could not find players for this game');
+      }
+
+      if(!players) {
+        return ownerSocket.emit('playerManageList', {});
+      }
+
+      ownerSocket.emit('playerManageList', _.pluck(players, 'username'));
+    });
+  });
+}
 
 var updateSessionLibrary = function(room, message) {
   io.sockets.in(room).emit('sessionLibraryUpdate', message);

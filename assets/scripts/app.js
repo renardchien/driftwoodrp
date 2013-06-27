@@ -139,6 +139,10 @@ $(document).ready(function() {
         console.log('player joined');
       }, this));
 
+      this.socket.on('playerManageList', _.bind( function(data) {
+        console.log(data);
+      }, this));
+
       this.socket.on('disconnect', _.bind( function() {
         console.log('disconnected');
         this.loading.show('Disconnected from Server. Trying to reestablish connection');

@@ -25,6 +25,7 @@ var xxhash = require('xxhash');
 var _ = require('underscore');
 var utils = require('../utils');
 var config = require('../config.js');
+var player = require('./player.js');
 var log = config.getLogger();
 
 var setName = function(name) {
@@ -159,6 +160,13 @@ SessionSchema.statics.findByNameOwner = function(name, owner, callback) {
 		ownerUsername: owner
 	}, callback);
 };
+
+SessionPlayerSchema.statics.findGamePlayers = function(sessionId, callback) {
+  SessionPlayerModel.find(
+  {
+    sessionId: sessionId
+  }, callback);
+}
 
 SessionPlayerSchema.statics.findPlayerGamePermission = function(playerId, sessionId, callback) {
 	return SessionPlayerModel.findOne(
