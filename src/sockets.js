@@ -127,18 +127,37 @@ var configureSockets = function(socketio) {
 	  });
  
     socket.on('removePlayer', function(data){
-        
+                
+        if(!data || !data.playerUsername) {
+          return socket.emit('error', 'You must specify a player to remove');
+        }
+
         middleware.checkOwnership(socket.game.ownerUsername, socket.handshake.session.player.username, function(isOwner) {
 
           if(!isOwner) {
             return socket.emit('error', 'You are not the owner of the game');
           }
 
-          _.each(clients[socket.room]['new'], function(playerSocket) {
-            playerSocket.disconnect();
-          });
-          delete clients[socket.room]['new'];
+	        models.Player.playerModel.findByUsername(playerUsername, function(err, existingPlayer){
 
+		        if(err || !existingPlayer){
+			        return socket.emit('error', 'Player could not be found');
+		        }
+
+		        models.Session.sessionPlayerModel.findPlayerGamePermission(existingPlayer.id, game.id, function(err, permission){
+			        if(err || !permission) {
+				        return socket.emit('error', 'Player is not in this game');
+			        }
+
+			        permission.remove();
+
+              //Not sending out an explicit reply because this will already fire the disconnect/playerLeft event and send that to users
+              _.each(clients[socket.room]['new'], function(playerSocket) {
+                playerSocket.disconnect();
+              });
+              delete clients[socket.room]['new'];
+		        });
+	        });
 
         });
     });
