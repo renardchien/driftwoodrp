@@ -34,7 +34,7 @@ var authPrompt = function(req, res) {
 };
 
 var getPermission = function(playerId, gameId, callback) { 
-	models.Session.sessionPlayerModel.findPlayerGamePermission(playerId, gameId, function(err, doc) {
+	models.Session.sessionPlayerModel.findPlayerGamePermissionById(playerId, gameId, function(err, doc) {
 		callback(err, doc);
 	});
 };

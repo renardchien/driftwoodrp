@@ -83,12 +83,13 @@ var createSession = function(req, res){
 			var newGamePlayer = new models.Session.sessionPlayerModel({
 				sessionId: gameId,
 				playerId: player.id,
+        playerUsername: player.username,
         isGM: true
 			});
 
 			newGamePlayer.save(function(err) {
 				if(err) {
-					return res.err('An error occurred adding the you to the game. Please try again');
+					return res.err('An error occurred adding you to the game. Please try again');
 				}
 
 				res.redirect('/joinGame/' + player.username);
@@ -122,18 +123,29 @@ var addPlayer = function(req, res) {
 			return res.notFound("Player could not be found");
 		}
 
-		var newGamePlayer = new models.Session.sessionPlayerModel({
-			sessionId: game.id,
-			playerId: newPlayer.id
-		});
-
-		newGamePlayer.save(function(err) {
-			if(err) {
+	  models.Session.sessionPlayerModel.findPlayerGamePermissionByUsername(playerUsername, game.id, function(err, permission){
+		  if(err) {
 				return res.err('An error occurred adding the player to the game. Please try again.');
-			}
+		  }
 
-			res.created(newPlayer.username + " was added to the game");
-		});
+		  if(permission) {
+			  return res.err("Player is already added to the game");
+		  }
+
+		  var newGamePlayer = new models.Session.sessionPlayerModel({
+			  sessionId: game.id,
+			  playerId: newPlayer.id,
+        playerUsername: newPlayer.username
+		  });
+
+		  newGamePlayer.save(function(err) {
+			  if(err) {
+				  return res.err('An error occurred adding the player to the game. Please try again.');
+			  }
+
+			  res.created(newPlayer.username + " was added to the game");
+		  });
+    });
 	});
 };
 
@@ -149,26 +161,19 @@ var removePlayer = function(req, res) {
 		return res.badRequest("You cannot remove yourself from your own game");
 	}
 
-	models.Player.playerModel.findByUsername(playerUsername, function(err, existingPlayer){
-
-		if(err || !existingPlayer){
-			return res.notFound("Player could not be found");
+	models.Session.sessionPlayerModel.findPlayerGamePermissionByUsername(playerUsername, game.id, function(err, permission){
+		if(err) {
+			log.error(err);
+			return res.forbidden("Player could not be found in this game");
 		}
 
-		models.Session.sessionPlayerModel.findPlayerGamePermission(existingPlayer.id, game.id, function(err, permission){
-			if(err) {
-				log.error(err);
-				return res.forbidden("Player does not have permission to this game");
-			}
+		if(!permission) {
+			return res.forbidden("Player has not been added to the game. Please add them to the game first.");
+		}
 
-			if(!permission) {
-				return res.forbidden("Player does not have permission to this game");
-			}
+		permission.remove();
 
-			permission.remove();
-
-			res.updated(existingPlayer.username + " was removed from the game");
-		});
+		res.updated(playerUsername + " was removed from the game");
 	});
 };
 
@@ -184,37 +189,32 @@ var addGM = function(req, res) {
 		return res.badRequest("You are already a GM");
 	}
 
-	models.Player.playerModel.findByUsername(playerUsername, function(err, newPlayer){
 
-		if(err || !newPlayer){
-			return res.notFound("Player could not be found");
+	models.Session.sessionPlayerModel.findPlayerGamePermissionByUsername(playerUsername, game.id, function(err, player) {
+
+		if(err) {
+			return res.err('An error occurred adding the GM to the game. Please try again.');
 		}
 
-		models.Session.sessionPlayerModel.findPlayerGamePermission(newPlayer.id, game.id, function(err, player) {
+		if(!player) {
+			return res.err('Player could not be found in this game. Please add them to the game first.');
+		}
 
+		if(player.isGM === true) {
+			return res.err('Player is already a GM');
+		}
+
+		player.isGM = true;
+
+		player.save(function(err) {
 			if(err) {
 				return res.err('An error occurred adding the GM to the game. Please try again.');
 			}
 
-			if(!player) {
-				return res.err('Player could not be found in this game. Please add them to the game first.');
-			}
-
-			if(player.isGM === true) {
-				return res.err('Player is already a GM');
-			}
-
-			player.isGM = true;
-
-			player.save(function(err) {
-				if(err) {
-					return res.err('An error occurred adding the GM to the game. Please try again.');
-				}
-
-				res.created(newPlayer.username + " has been promoted to a GM");
-			});
+			res.created(playerUsername + " has been promoted to a GM");
 		});
 	});
+
 };
 
 var removeGM = function(req, res) {
@@ -229,35 +229,28 @@ var removeGM = function(req, res) {
 		return res.badRequest("You cannot remove yourself as a GM");
 	}
 
-	models.Player.playerModel.findByUsername(playerUsername, function(err, newPlayer){
+	models.Session.sessionPlayerModel.findPlayerGamePermissionByUsername(playerUsername, game.id, function(err, player) {
 
-		if(err || !newPlayer){
-			return res.notFound("Player could not be found");
+		if(err) {
+			return res.err('An error occurred removing the GM from the game. Please try again');
 		}
 
-		models.Session.sessionPlayerModel.findPlayerGamePermission(newPlayer.id, game.id, function(err, player) {
+		if(!player) {
+			return res.err('Player could not be found in this game. Please add them to the game first');
+		}
 
+    if(player.isGM === false) {
+		  	return res.err('Player is not currently a GM');
+    }
+
+		player.isGM = false;
+
+		player.save(function(err) {
 			if(err) {
-				return res.err('An error occurred removing the GM from the game');
+				return res.err('An error occurred removing the GM from the game. Please try again');
 			}
 
-			if(!player) {
-				return res.err('Player could not be found in this game. Please add them to the game first');
-			}
-
-      if(player.isGM === false) {
-			  	return res.err('Player is not currently a GM');
-      }
-
-			player.isGM = false;
-
-			player.save(function(err) {
-				if(err) {
-					return res.err('An error occurred removing the GM from the game. Please try again');
-				}
-
-				res.created(newPlayer.username + " has been made into a normal player");
-			});
+			res.created(playerUsername + " has been made into a normal player");
 		});
 	});
 };
@@ -364,35 +357,6 @@ var removeToken = function(req, res) {
 
 };
 
-var test = function(req, res) {	
-	models.Player.playerModel.findByUsername('test', function(err, player) {
-		if(err) {
-			return res.json("failed to load session");
-		}
-
-		if(!player) {
-			return res.json("failed to load session");
-		}
-
-		req.session.player = player.api();
-
-                var game;
-
-		models.Session.sessionModel.findByNameOwner('test', 'test', function(err, doc) {
-			if(err) {
-				return next(err);
-			}
-
-			if(!doc) {
-				return res.json('game was not found');
-			}
-
-			res.render('game2', { url: url, game: doc });
-		});
-	});
-};
-
-module.exports.test = test;
 module.exports.joinSessionPage = joinSessionPage;
 module.exports.createSession = createSession;
 module.exports.loadSession = loadSession;
