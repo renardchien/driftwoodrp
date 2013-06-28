@@ -81,6 +81,13 @@ PlayerSchema.methods.validatePassword = function(password) {
 	return bcrypt.compareSync(password, this.password);
 };
 
+PlayerSchema.statics.findPlayersByIds = function(playerIds, callback) {
+  return PlayerModel.find( 
+  {
+    _id: {$in: playerIds}
+  }, callback);
+};
+
 PlayerSchema.statics.findByUsername = function(user, callback) {
 	return PlayerModel.findOne(
 	{

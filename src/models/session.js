@@ -25,6 +25,7 @@ var xxhash = require('xxhash');
 var _ = require('underscore');
 var utils = require('../utils');
 var config = require('../config.js');
+var player = require('./player.js');
 var log = config.getLogger();
 
 var setName = function(name) {
@@ -33,23 +34,24 @@ var setName = function(name) {
 
 var SessionSchema = new mongoose.Schema({
   owner: 	{
-			type: Schema.ObjectId,
-			required: true,
-			ref: 'Player'
-		},
+		type: Schema.ObjectId,
+		required: true,
+		ref: 'Player'
+	},
   ownerUsername: {
-              		type: String,
-			required: true,
-			trim: true
-		},
+		type: String,
+		required: true,
+		trim: true
+	},
   name:		{
-			type: String,
-			required: true,
-			trim: true
-		},
-  canvas:       {
-			type: String
-		}
+		type: String,
+		required: true,
+		trim: true,
+    match: /^[a-z0-9]+$/i
+	},
+  canvas: {
+		type: String
+	}
 
 });
 
@@ -57,97 +59,102 @@ SessionSchema.index({ owner: 1, name: 1 }, { unique: true });
 
 var SessionPlayerSchema = new mongoose.Schema({
   sessionId:	{
-			type: Schema.ObjectId,
-			required: true,
-			ref: 'Session'
-		},
+		type: Schema.ObjectId,
+		required: true,
+		ref: 'Session'
+  },
   playerId:	{
-			type: Schema.ObjectId,
-			required: true,
-			ref: 'Player'
-		},
-  isGM:          {
-                        type: Boolean,
-                        required: true,
-                        'default': false
-                }
+		type: Schema.ObjectId,
+		required: true,
+		ref: 'Player'
+	},
+  playerUsername: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  isGM: {
+    type: Boolean,
+    required: true,
+    'default': false
+  }
  
 });
 SessionPlayerSchema.index({ sessionId: 1, playerId: 1 }, { unique: true });
 
 var SessionLibrarySchema = new mongoose.Schema({
   sessionId:	{
-			type: Schema.ObjectId,
-			required: true,
-			ref: 'Session'
-		},
+		type: Schema.ObjectId,
+		required: true,
+		ref: 'Session'
+	},
   playerId:	{
-			type: Schema.ObjectId,
-			required: true,
-			ref: 'Player'
-		},
+		type: Schema.ObjectId,
+		required: true,
+		ref: 'Player'
+	},
   name:		{
-			type: String,
-			required: true,
-			trim: true
-		},  
+		type: String,
+		required: true,
+		trim: true
+	},  
   type:		{
-			type: String,
-			required: true,
-			trim: true
-		},  
+		type: String,
+		required: true,
+		trim: true
+	},  
   publicPath:   {
-			type: String,
-			required: true,
-			trim: true
-                }
+		type: String,
+		required: true,
+		trim: true
+  }
  
 });
 SessionLibrarySchema.index({ publicPath: 1 }, { unique: true });
 
 var SessionChatSchema = new mongoose.Schema({
   sessionId:	{
-			type: Schema.ObjectId,
-			required: true,
-			ref: 'Session'
-		},
+		type: Schema.ObjectId,
+		required: true,
+		ref: 'Session'
+	},
   playerId:	{
-			type: Schema.ObjectId,
-			required: true,
-			ref: 'Player'
-		},
-  displayName:  {
-                        type: String,
-			required: true,
-			trim: true
-                },
+		type: Schema.ObjectId,
+		required: true,
+		ref: 'Player'
+	},
+  displayName: {
+    type: String,
+		required: true,
+		trim: true
+  },
   time: 	{	
-                        type: Date,
-                        'default': Date.now
-		},
-  message:      {
-                        type: String,
-                        required: true
-                }
+    type: Date,
+    'default': Date.now
+	},
+  message: {
+    type: String,
+    required: true
+  }
   
 });
 
 var SessionLogSchema = new mongoose.Schema({
   sessionId:	{
-			type: Schema.ObjectId,
-			required: true,
-			ref: 'Session'
-		},
+		type: Schema.ObjectId,
+		required: true,
+		ref: 'Session'
+	},
   events: 	[
-			{
-				type: String,
-				time: 	{	
-						type: Date,
-						'default': Date.now
-				      	},
-				data: String
-			}
-		]
+		{
+			type: String,
+			time: {	
+					type: Date,
+					'default': Date.now
+    	},
+			data: String
+		}
+	]
 
 });
 
@@ -159,11 +166,33 @@ SessionSchema.statics.findByNameOwner = function(name, owner, callback) {
 	}, callback);
 };
 
-SessionPlayerSchema.statics.findPlayerGamePermission = function(playerId, sessionId, callback) {
+SessionPlayerSchema.virtual('clientObject').get(function() {
+  return {
+    "playerUsername": this.playerUsername,
+    "isGM": this.isGM
+  }
+});
+
+SessionPlayerSchema.statics.findGamePlayers = function(sessionId, callback) {
+  SessionPlayerModel.find(
+  {
+    sessionId: sessionId
+  }, callback);
+}
+
+SessionPlayerSchema.statics.findPlayerGamePermissionById = function(playerId, sessionId, callback) {
 	return SessionPlayerModel.findOne(
 	{
 		sessionId: sessionId,	
 		playerId: playerId
+	}, callback );
+};
+
+SessionPlayerSchema.statics.findPlayerGamePermissionByUsername = function(playerUsername, sessionId, callback) {
+	return SessionPlayerModel.findOne(
+	{
+		sessionId: sessionId,	
+		playerUsername: playerUsername
 	}, callback );
 };
 

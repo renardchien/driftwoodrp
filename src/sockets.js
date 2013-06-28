@@ -26,6 +26,8 @@ var log = config.getLogger();
 
 var io;
 
+var clients = {};
+
 var configureSockets = function(socketio) {
   io = socketio;
   io.sockets.on('connection', function(socket) {
@@ -55,6 +57,13 @@ var configureSockets = function(socketio) {
 				  socket.room = data.gameName + "/" + data.owner;
 
           socket.game = game;
+
+
+          if(game.ownerUsername === socket.handshake.session.player.username) {
+            socket.handshake.session.player.isOwner = true;
+          } else {
+            socket.handshake.session.player.isOwner = false;
+          }
 
           if(doc.isGM === true) {
 					  socket.handshake.session.player.type = "gm";
@@ -87,13 +96,27 @@ var configureSockets = function(socketio) {
 							  return asyncCallback(err, _.pluck(objectLibrary));						  		
 						  });
 					  }}, function(err, doc) {
-              
-              io.sockets.in(socket.room).except(socket.id).emit('playerJoined', { user: {username: player.username, displayName: player.displayName, type: player.type} });
 
-						  socket.emit('joined', { user: {username: player.username, displayName: player.displayName, type: player.type}, 
+              if(!clients[socket.room]) {
+                clients[socket.room] = {};
+              } 
+               
+              if(!clients[socket.room][player.username]) {
+                clients[socket.room][player.username] = [];
+              }
+
+              clients[socket.room][player.username].push(socket);
+              
+              io.sockets.in(socket.room).emit('playerJoined', { user: {username: player.username, displayName: player.displayName, type: player.type} });
+
+						  socket.emit('joined', { user: {username: player.username, displayName: player.displayName, type: player.type, isOwner: player.isOwner}, 
                                       chatSession: chatHistory, 
                                       objectLibrary: objectLibrary, 
                                       canvas: game.canvas } );
+
+              if(player.isOwner) {
+                returnGamePlayerList(socket);
+              }
 					  }
 				  );
 					
@@ -103,17 +126,118 @@ var configureSockets = function(socketio) {
 
 	  });
 
+    socket.on('addPlayer', function(data){
+                
+        if(!data || !data.playerUsername) {
+          return sendSystemMessage(socket, 'error', 'You must specify a player to add');
+        }
+
+        middleware.checkOwnership(socket.game.ownerUsername, socket.handshake.session.player.username, function(isOwner) {
+
+          if(!isOwner) {
+            return sendSystemMessage(socket, 'error', 'You are not the owner of the game');
+          }
+
+	        if(data.playerUsername.toLowerCase() === socket.game.ownerUsername.toLowerCase()) {
+            return sendSystemMessage(socket, 'error', 'You are already added to the game');
+	        }
+
+          models.Player.playerModel.findByUsername(data.playerUsername, function(err, newPlayer){
+
+            if(err || !newPlayer){
+              return sendSystemMessage(socket, 'error', 'Player could not be found');
+            }
+
+            models.Session.sessionPlayerModel.findPlayerGamePermissionByUsername(data.playerUsername, socket.game.id, function(err, permission){
+              if(err) {
+                return sendSystemMessage(socket, 'error', 'An error occurred adding the player to the game. Please try again.');
+              }
+
+              if(permission) {
+                return sendSystemMessage(socket, 'error', 'Player is already added to the game');
+              }
+
+              var newGamePlayer = new models.Session.sessionPlayerModel({
+                    sessionId: socket.game.id,
+                    playerId: newPlayer.id,
+                    playerUsername: newPlayer.username
+              });
+
+              newGamePlayer.save(function(err) {
+                if(err) {
+                  return sendSystemMessage(socket, 'error', 'An error occurred adding the player to the game. Please try again.');
+                }
+
+                sendSystemMessage(socket, 'success', newPlayer.username + ' was added to the game');
+                returnGamePlayerList(socket);
+              });
+	          });
+	        });
+        });
+    });
+ 
+    socket.on('removePlayer', function(data){
+                
+        if(!data || !data.playerUsername) {
+          return sendSystemMessage(socket, 'error', 'You must specify a player to remove');
+        }
+
+        middleware.checkOwnership(socket.game.ownerUsername, socket.handshake.session.player.username, function(isOwner) {
+
+          if(!isOwner) {
+            return sendSystemMessage(socket, 'error', 'You are not the owner of the game');
+          }
+
+	        if(data.playerUsername.toLowerCase() === socket.game.ownerUsername.toLowerCase()) {
+		        return sendSystemMessage(socket, 'error', 'You cannot remove yourself from your own game');
+	        }
+
+	        models.Session.sessionPlayerModel.findPlayerGamePermissionByUsername(data.playerUsername, socket.game.id, function(err, permission){
+		        if(err || !permission) {
+			        return sendSystemMessage(socket, 'error', 'Player is not in this game');
+		        }
+
+		        permission.remove();
+
+            sendSystemMessage(socket, 'success', data.playerUsername + ' was removed from the game');
+            _.each(clients[socket.room][data.playerUsername], function(playerSocket) {
+              playerSocket.disconnect();
+            });
+            delete clients[socket.room][data.playerUsername];
+	        });
+	
+        });
+    });
+
+    socket.on('changePlayer', function(data){
+      if(!data || !data.type) {
+        return sendSystemMessage(socket, 'error', 'Type of player change is required');
+      }
+
+      switch(data.type) {
+        case 'promoteGM' :
+          addGM(data, socket);
+          break;
+        case 'demoteGM' : 
+          removeGM(data, socket);
+          break;
+        default: 
+          return;
+      }
+    });
+
+
 	  /**
 	   * TODO: Store in database
 	   */
 	  socket.on('chat', function(data) {
 
 		  if(!socket.room) {
-			  return socket.emit('error', 'Not connected to a game');
+			  return sendSystemMessage(socket, 'error', 'Not connected to a game');
 		  }
 
       if(!data) {
-       	return socket.emit('error', 'A message is required');
+       	return sendSystemMessage(socket, 'error', 'A message is required');
       }
 
 		  var message = _.escape(data); 
@@ -128,7 +252,7 @@ var configureSockets = function(socketio) {
 
 		  newChatMessage.save(function(err) {
 			  if(err) {
-				  return socket.emit('error', 'An error occurred while saving chat');
+				  return sendSystemMessage(socket, 'error', 'An error occurred while saving chat');
 			  }
 
 			  io.sockets.in(socket.room).emit('chat', {displayName: socket.handshake.session.player.displayName,message: message });
@@ -137,11 +261,11 @@ var configureSockets = function(socketio) {
 
 	  socket.on('saveCanvas', function(data) {
 		  if(!socket.room) {
-			  return socket.emit('error', 'Not connected to a game');
+			  return sendSystemMessage(socket, 'error', 'Not connected to a game');
 		  }
 
 		  if(!data) {
-			  return socket.emit('error', 'Could not access canvas data');
+			  return sendSystemMessage(socket, 'error', 'Could not access canvas data');
 		  }
 
 		  socket.game.canvas = data;
@@ -159,31 +283,138 @@ var configureSockets = function(socketio) {
 
 	  socket.on('objectAdded', function(data) {
 		  if(!socket.room) {
-			  return socket.emit('error', 'Not connected to a game');
+			  return sendSystemMessage(socket, 'error', 'Not connected to a game');
 		  }
 		  io.sockets.in(socket.room).except(socket.id).emit('objectAdded',data);
     });
 
 	  socket.on('objectModified', function(data) {
 		  if(!socket.room) {
-			  return socket.emit('error', 'Not connected to a game');
+			  return sendSystemMessage(socket, 'error', 'Not connected to a game');
 		  }
 		  io.sockets.in(socket.room).except(socket.id).emit('objectModified',data);
 	  });
 
 	  socket.on('objectRemoved', function(data) {
 		  if(!socket.room) {
-			  return socket.emit('error', 'Not connected to a game');
+			  return sendSystemMessage(socket, 'error', 'Not connected to a game');
 		  }
 		  io.sockets.in(socket.room).except(socket.id).emit('objectRemoved',data);
 	  });
 
 	  socket.on('disconnect', function(data) {
+      delete clients[socket.room][socket.handshake.session.player.username];
+
 		  socket.leave(socket.room);
       io.sockets.in(socket.room).emit('playerLeft', socket.handshake.session.player.username);
     });
  });
 };
+
+var addGM = function(data, socket) {
+  if(!data || !data.playerUsername) {
+    return sendSystemMessage(socket, 'error', 'You must specify a username to make a GM');
+  }
+
+  middleware.checkOwnership(socket.game.ownerUsername, socket.handshake.session.player.username, function(isOwner) {
+
+    if(!isOwner) {
+      return sendSystemMessage(socket, 'error', 'You are not the owner of the game');
+    }
+
+    if(data.playerUsername.toLowerCase() === socket.game.ownerUsername.toLowerCase()) {
+      return sendSystemMessage(socket, 'error', 'You are already a GM');
+    }
+
+    models.Session.sessionPlayerModel.findPlayerGamePermissionByUsername(data.playerUsername, socket.game.id, function(err, permission){
+      if(err || !permission) {
+        return sendSystemMessage(socket, 'error', 'Player could not be found in this game. Please add them to the game first.');
+      }
+
+      if(permission.isGM === true) {
+        return sendSystemMessage(socket, 'error', 'Player is already a GM');
+      }
+
+      permission.isGM = true;
+
+      permission.save(function(err) {
+        if(err) {
+	        return sendSystemMessage(socket, 'error', 'An error occurred adding the GM to the game. Please try again.');
+        }
+
+        sendSystemMessage(socket, 'success', data.playerUsername + ' has been promoted to a GM');
+
+        _.each(clients[socket.room][data.playerUsername], function(playerSocket) {
+          sendSystemMessage(playerSocket, 'updatePlayer', 'You have been promoted to a GM. Please reload the page to access your new GM abilities');
+        });
+      });
+    });
+  });
+};
+
+var removeGM = function(data, socket) {
+  if(!data || !data.playerUsername) {
+    return sendSystemMessage(socket, 'error', 'You must specify a username to remove as a GM');
+  }
+
+  middleware.checkOwnership(socket.game.ownerUsername, socket.handshake.session.player.username, function(isOwner) {
+
+    if(!isOwner) {
+      return sendSystemMessage(socket, 'error', 'You are not the owner of the game');
+    }
+
+    if(data.playerUsername.toLowerCase() === socket.game.ownerUsername.toLowerCase()) {
+      return sendSystemMessage(socket, 'error', 'You cannot remove yourself as a GM');
+    }
+
+    models.Session.sessionPlayerModel.findPlayerGamePermissionByUsername(data.playerUsername, socket.game.id, function(err, permission){
+      if(err || !permission) {
+        return sendSystemMessage(socket, 'error', 'Player could not be found in this game. Please add them to the game first.');
+      }
+
+      if(permission.isGM === false) {
+        return sendSystemMessage(socket, 'error', 'Player is not currently a GM');
+      }
+
+      permission.isGM = false;
+
+      permission.save(function(err) {
+        if(err) {
+	        return sendSystemMessage(socket, 'error', 'An error occurred removing the GM from the game. Please try again');
+        }
+
+        sendSystemMessage(socket, 'success', data.playerUsername + ' has been made into a normal player');
+
+        _.each(clients[socket.room][data.playerUsername], function(playerSocket) {
+          sendSystemMessage(playerSocket, 'updatePlayer', 'You have been made into a normal player. Please reload the page to access your new abilities');
+        });
+      });
+    });
+  });
+};
+
+var sendSystemMessage = function(socket, type, message) {
+  socket.emit('systemMessage', { type: type, message: message} );
+}
+
+var sendRoomSystemMessage = function(room, type, message) {
+  io.sockets.in(room).emit('systemMessage', { type: type, message: message} );
+}
+
+var returnGamePlayerList = function(ownerSocket){
+  models.Session.sessionPlayerModel.findGamePlayers(ownerSocket.game.id, function(err, players){
+    if(err) {
+      return ownerSocket.emit('error', 'Could not find players for this game');
+    }
+
+    if(!players) {
+      return ownerSocket.emit('playerManageList', {});
+    }
+
+    ownerSocket.emit('playerManageList', _.pluck(players, 'clientObject'));
+
+  });
+}
 
 var updateSessionLibrary = function(room, message) {
   io.sockets.in(room).emit('sessionLibraryUpdate', message);

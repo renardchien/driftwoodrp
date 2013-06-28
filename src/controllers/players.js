@@ -97,10 +97,15 @@ var createAccount = function(req, res){
 	var emailAddr = req.body.email;
   var confirmEmail = req.body.confirmEmail;
 	var displayName = req.body.displayName;
+  var tosAgreement = req.body.tosAgreement;
 	
 	if(!username || !password || !confirmPassword || !emailAddr || !confirmEmail || !displayName) {
 		return res.badRequest("All fields required");
 	}
+
+  if(!tosAgreement) {
+    return res.badRequest("You must agree to the terms of service &amp; privacy policy");
+  }
   
   if(password !== confirmPassword) {
     return res.badRequest("Passwords must match");
