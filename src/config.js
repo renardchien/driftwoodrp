@@ -90,6 +90,11 @@ if(files) {
  	}
 }
 
+var tutorial = fs.readFileSync(__dirname + '/tutorialdata', 'utf8');
+
+if(!tutorial) {
+  tutorial = "";
+}
 
 var getLogger = function(){
 	if(!logger){
@@ -118,7 +123,8 @@ var getConfig = function(){
                 url: url,
 		liveUrl: liveUrl,
 		databaseURI: databaseURI,
-                specialConfigs: specialConfigs
+                specialConfigs: specialConfigs,
+    tutorial: tutorial
 	};
 };
 
