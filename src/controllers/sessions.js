@@ -69,8 +69,7 @@ var createSession = function(req, res){
 		  owner: player.id,
 		  ownerUsername: player.username,
       ownerDisplayName: player.name.displayName,
-		  name: gameName,
-      canvas: config.getConfig().tutorial
+		  name: gameName
 		});
 
 		// Saving it to the database.  
