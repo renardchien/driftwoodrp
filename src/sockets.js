@@ -240,14 +240,11 @@ var configureSockets = function(socketio) {
        	return sendSystemMessage(socket, 'error', 'A message is required');
       }
 
-		  var message = _.escape(data); 
-
-
 		  var newChatMessage = new models.Session.sessionChatModel({
 			  sessionId: socket.game.id,
 			  playerId: socket.handshake.session.player.id,
 			  displayName: socket.handshake.session.player.displayName,
-        message: message
+        message: data
 		  });
 
 		  newChatMessage.save(function(err) {
@@ -255,7 +252,7 @@ var configureSockets = function(socketio) {
 				  return sendSystemMessage(socket, 'error', 'An error occurred while saving chat');
 			  }
 
-			  io.sockets.in(socket.room).emit('chat', {displayName: socket.handshake.session.player.displayName,message: message });
+			  io.sockets.in(socket.room).emit('chat', {displayName: socket.handshake.session.player.displayName,message: data });
 		  });
 	  });
 

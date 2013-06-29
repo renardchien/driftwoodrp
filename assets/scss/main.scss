@@ -346,6 +346,25 @@ $sidePanelWidth: 340px;
   float: right;
   z-index: 1;
   .nav {
+    .game-info {
+      -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      box-sizing: border-box;
+      margin-bottom: 10px;
+      padding: 10px;
+      background-color: #fefefe; 
+      .game-name{
+        float: left;
+      }
+      .lobby-return{
+        float: right;
+        text-decoration: none;
+      }
+      span.lobby-return {
+          margin-right: 8px;
+      }
+    }
+
     height: auto;
     ol {
       @include box-sizing(border-box);
