@@ -43,6 +43,11 @@ var SessionSchema = new mongoose.Schema({
 		required: true,
 		trim: true
 	},
+  ownerDisplayName : {
+    type: String,
+    required: true,
+    trim: true
+  },
   name:		{
 		type: String,
 		required: true,

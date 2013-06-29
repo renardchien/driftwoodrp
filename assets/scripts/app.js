@@ -3138,6 +3138,12 @@ $(document).ready(function() {
       //TODO: maybe these get loaded in via socket on connect?
       objects: [
         {
+          url: '/images/driftwoodtutorial.png',
+          thumbnail: '/images/driftwoodtutorial.png',
+          type: 'token',
+          name: 'Tutorial'
+        },
+        {
           url: '/images/tmp/goblin.png',
           thumbnail: '/images/tmp/goblin.png',
           type: 'token',
