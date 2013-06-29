@@ -40,13 +40,14 @@ html(lang='en')
             .control-group
               .controls
                 input.btn.btn-primary(type='submit', value='Create Game')
-          section
-            .control-group
-              label.control-label(for='name') Games
-              .controls.games
-                ol.unstyled
-                  each game in games
-                    li: a(href="/game/#{game.ownerUsername}/#{game.name}") #{game.name} by #{game.ownerUsername}
+          - if(games.length)
+            section
+              .control-group
+                label.control-label(for='name') Games
+                .controls.games
+                  ol.unstyled
+                    each game in games
+                      li: a(href="/game/#{game.ownerUsername}/#{game.name}") #{game.name} by #{game.ownerDisplayName}
           section
             a(href='/policy/tos.txt', target="_blank") Terms of Service, Privacy Policy & Contact
       // END: main container
