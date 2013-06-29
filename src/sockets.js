@@ -159,7 +159,8 @@ var configureSockets = function(socketio) {
               var newGamePlayer = new models.Session.sessionPlayerModel({
                     sessionId: socket.game.id,
                     playerId: newPlayer.id,
-                    playerUsername: newPlayer.username
+                    playerUsername: newPlayer.username,
+                    displayName: newPlayer.name.displayName
               });
 
               newGamePlayer.save(function(err) {
@@ -307,10 +308,12 @@ var configureSockets = function(socketio) {
 	  });
 
 	  socket.on('disconnect', function(data) {
-      delete clients[socket.room][socket.handshake.session.player.username];
+	  var player = socket.handshake.session.player;
+      delete clients[socket.room][player.username];
+
 
 		  socket.leave(socket.room);
-      io.sockets.in(socket.room).emit('playerLeft', socket.handshake.session.player.username);
+      io.sockets.in(socket.room).emit('playerLeft',  {username: player.username, displayName: player.displayName, type: player.type});
     });
  });
 };

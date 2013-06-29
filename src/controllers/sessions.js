@@ -64,7 +64,7 @@ var createSession = function(req, res){
 			return res.conflict('You already have a game with the same name');
 		}
 
-		log.info('creating game ' + gameName + ' for player ' + player.username);
+    //var imagedata = fs.readFileSync(__dirname + '/imagetest', 'utf8');
 		// Creating one game.
 		var newGame = new models.Session.sessionModel({
 		  owner: player.id,
@@ -84,6 +84,7 @@ var createSession = function(req, res){
 				sessionId: gameId,
 				playerId: player.id,
         playerUsername: player.username,
+        displayName: player.name.displayName,
         isGM: true
 			});
 
