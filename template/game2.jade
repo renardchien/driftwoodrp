@@ -42,7 +42,13 @@ html(lang='en')
         // Side Panel
         aside.panel
           .nav
-
+            .game-info
+                  b.game-name #{game.name} 
+                  a(href="/") 
+                    .lobby-return Return to Lobby
+                    span.lobby-return.icon-arrow-left 
+                  br
+                  div.game-name by #{game.ownerUsername}
             ol.unstyled.inline(data-tabs='tabs', data-tab-panels='.chat,.objects,.settings')
               li(data-toggle='tab', data-target='.chat')
                 b.icon-comment
