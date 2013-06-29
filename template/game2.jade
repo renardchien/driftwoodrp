@@ -91,29 +91,30 @@ html(lang='en')
           .settings
             .content
               .tr
-                .control-pane.form-horizontal
-                  h2 Editor
-                  .control-group
-                    label.control-label Background Color:
-                    .controls
-                      input.span1.editor-color(type='color')
-                  h2 Grid Settings
-                  .control-group
-                    .controls
-                      .btn-group(data-toggle='buttons-radio')
-                        button.btn.grid-on.btn-primary.active(type='button') On
-                        button.btn.grid-off.btn-primary(type='button') Off
-                  .grid-settings
+                .settings-wrapper
+                  .settings-content.control-pane.form-horizontal
+                    h2 Editor
                     .control-group
-                      label.control-label Grid Color:
+                      label.control-label Background Color:
                       .controls
-                        input.span1.grid-color(type='color')
+                        input.span1.editor-color(type='color')
+                    h2 Grid Settings
                     .control-group
-                      label.control-label Grid Size:
                       .controls
-                        input.span1.grid-size(type='number', value='')
-                        | px =
-                        input.span1.grid-unit(type='text', placeholder='5 ft', value='5 ft')
+                        .btn-group(data-toggle='buttons-radio')
+                          button.btn.grid-on.btn-primary.active(type='button') On
+                          button.btn.grid-off.btn-primary(type='button') Off
+                    .grid-settings
+                      .control-group
+                        label.control-label Grid Color:
+                        .controls
+                          input.span1.grid-color(type='color')
+                      .control-group
+                        label.control-label Grid Size:
+                        .controls
+                          input.span1.grid-size(type='number', value='')
+                          | px =
+                          input.span1.grid-unit(type='text', placeholder='5 ft', value='5 ft')
               .tr
                 .actions
                   input.save-settings.btn.btn-success.input-block-level(type='button', value='Save')
@@ -139,6 +140,75 @@ html(lang='en')
           var gamename = "#{game.name}";
           var owner = "#{game.ownerUsername}";
         script(src='/scripts/app.js')
+      script#settingsPanelTemplate(type='text/template')
+        <% if( isGM ) { %>
+        <h2>Editor</h2>
+        <div class="control-group">
+        <label class="control-label">Background Color:</label>
+        <div class="controls">
+        <input class="span1 editor-color" type="color">
+        </div>
+        </div>
+        <h2>Grid Settings</h2>
+        <div class="control-group">
+        <div class="controls">
+        <div class="btn-group" data-toggle="buttons-radio">
+        <button type="button" class="btn grid-on btn-primary active">On</button>
+        <button type="button" class="btn grid-off btn-primary">Off</button>
+        </div>
+        </div>
+        </div>
+        <div class="grid-settings">
+        <div class="control-group">
+        <label class="control-label">Grid Color:</label>
+        <div class="controls">
+        <input class="span1 grid-color" type="color">
+        </div>
+        </div>
+        <div class="control-group">
+        <label class="control-label">Grid Size:</label>
+        <div class="controls">
+        <input class="span1 grid-size" type="number" value="">px = <input class="span1 grid-unit" type="text" placeholder="5 ft" value="5 ft">
+        </div>
+        </div>
+        </div>
+        <% } %>
+        <div class="player-list"></div>
+      script#playerListTemplate(type='text/template')
+        <h2>Players</h2>
+        <ul>
+        <% _.each( players, function(player) { %>
+        <li>
+        <span class="player-type is-<%= player.isGM ? 'gm' : 'player' %>"><%= player.isGM ? 'GM' : 'P' %></span>
+        <p>
+        <span class="username"><%= player.playerUsername %></span>
+        </p>
+        <% if( isGM && player.playerUsername !== playerUsername) { %>
+        <div class="dropdown menu">
+        <div class="dropdown-toggle" data-toggle="dropdown" href="#">
+        <b class="icon-caret-down"></b>
+        </div>
+        <!-- Link or button to toggle dropdown -->
+        <ul class="dropdown-menu pull-right" role="menu" aria-labelledby="dLabel">
+        <% if( player.isGM ) { %>
+        <li><a tabindex="-1" href="#" data-action="demoteGM" data-player="<%= player.playerUsername %>">Make Player</a></li>
+        <% } else { %>
+        <li><a tabindex="-1" href="#" data-action="promoteGM" data-player="<%= player.playerUsername %>">Make GM</a></li>
+        <% } %>
+        <li><a tabindex="-1" href="#" data-action="removePlayer" data-player="<%= player.playerUsername %>">Remove Player</a></li>
+        </ul>
+        </div>
+        </li>
+        <% } %>
+        <% }); %>
+        </ul>
+        <% if( isGM ) { %>
+        <div class="row-fluid">
+        <div class="span7">
+        <input type="text" class="add-username input-block-level"/>
+        </div>
+        <div class="span5"><span class="btn" data-action="addPlayer" data-player="" data-target=".add-username">Add Player</span></div>
+        <% } %>
       script#commandMenuTemplate(type='text/template')
         <div class="commands btn-group btn-group-vertical" data-toggle="buttons-radio">
         <div class="btn-group command move-pan">

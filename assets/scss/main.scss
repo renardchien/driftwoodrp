@@ -5,7 +5,19 @@
 @import "compass/css3/transition";
 @import "compass/utilities/general/clearfix";
 @import "compass/typography/text/force-wrap";
-
+@mixin clearfix() {
+    & {
+        *zoom: 1;
+    }
+    &:before,
+    &:after {
+        content: "";
+        display: table;
+    }
+    &:after {
+        clear: both;
+    }
+}
 //
 //
 // Variables
@@ -343,6 +355,12 @@ $sidePanelWidth: 340px;
 .clear {
   cursor: pointer;
 }
+.object-wrapper,
+.settings-wrapper {
+  height: 100%;
+  max-height: 100%;
+  overflow: auto;
+}
 .panel {
   @include box-shadow(0 2px 6px rgba(0,0,0,.2));
   position: relative;
@@ -448,11 +466,7 @@ $sidePanelWidth: 340px;
   }// END .chat
   .objects {
     display: none;
-    .object-wrapper {
-      height: 100%;
-      max-height: 100%;
-      overflow: auto;
-    }
+    
     .search {
       @include transition(padding 0.3s ease);
       position: relative;
@@ -616,6 +630,57 @@ $sidePanelWidth: 340px;
     .menu {
       display: none;
     }
+  }
+}
+.player-list {
+  > ul {
+    list-style: none;
+    margin: 0; padding: 0;
+    > li {
+      @include box-sizing(border-box);
+      @include border-radius(2px);
+      @include box-shadow(0 1px 2px rgba(0,0,0,.15));
+      @include clearfix();
+      overflow: visible;
+      position: relative;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid $borderColor;
+    }
+  }
+  .dropdown {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+  }
+  .btn {
+    margin-left: 10px;
+  }
+  .player-type {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    color: white;
+    font-size: 16px;
+    margin-right: 10px;
+    &.is-gm {
+      background-color: orange;
+    }
+    &.is-player {
+      background-color: #4a54ba;
+    }
+    float: left;
+  }
+  .dropdown-toggle {
+    cursor: pointer;
+  }
+  p {
+    vertical-align: top;
+  }
+  .username {
+    font-weight: bold;
   }
 }
 

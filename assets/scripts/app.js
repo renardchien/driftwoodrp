@@ -143,6 +143,8 @@ $(document).ready(function() {
 
     run: function() {
       $body.off();
+      //create settings panel
+      this.settingsPanel = new SettingsPanel();
       //Create chat
       this.chat = new Chat({load:this.settings.chatData});
       //Make sure we have a command list
@@ -237,7 +239,7 @@ $(document).ready(function() {
       //Clears a target of its value
       $body.on('click','[data-clear]', function() {
         var $target = $body.find($(this).data('clear'));
-        console.log($target);
+        //console.log($target);
         $target.val('');
       })
 
@@ -350,6 +352,21 @@ $(document).ready(function() {
         }
         
       } );
+
+      $body.on('click','[data-action][data-player]', function() {
+        var $this = $(this),
+            action = $this.attr('data-action'),
+            username = $this.attr('data-target') ? $body.find($this.attr('data-target')).val() : $this.attr('data-player');
+
+        if( action === 'promoteGM' || action === 'demoteGM' ) {
+          scope.socket.emit('changePlayer',{type:action,playerUsername:username});
+        } else if( action === 'removePlayer' ) {
+          scope.socket.emit('removePlayer',{playerUsername:username});
+        } else if( action === 'addPlayer' ) {
+          console.log(username);
+          scope.socket.emit('addPlayer',{playerUsername:username});
+        }
+      });
       
       //Save all our settings
       $body.on('click','.save-settings', _.bind( function() {
@@ -412,6 +429,10 @@ $(document).ready(function() {
         console.log('disconnected');
         this.loading.show('Disconnected from Server. Trying to reestablish connection');
       }, this));
+      this.socket.on('playerManageList', _.bind( function(data) {
+        console.log('Player List',data);
+        this.settingsPanel.updatePlayerList(data);
+      }, this ) );
     },
 
     /**
@@ -448,7 +469,6 @@ $(document).ready(function() {
 
       //Change background color
       if( settings.hasOwnProperty('editorColor') ) {
-        console.log(this.canvas,settings.editorColor);
         this.canvas.setBackgroundColor(settings.editorColor);
       }
       if( settings.hasOwnProperty('enableFog') ) {
@@ -467,7 +487,6 @@ $(document).ready(function() {
       }
       //Canvas has been modified
       if( ! noDispatch ) {
-        console.log('dispatch settings',settings);
         this.socket.emit('changeGameSettings',settings);
         this.canvas.trigger('canvas:modified');
       }
@@ -497,14 +516,21 @@ $(document).ready(function() {
      * Sets UI items with our given settings
      */
     setUI: function() {
-      this.$editorColor.val(this.settings.editorColor);
-      this.$gridColor.val(this.settings.gridColor);
-      this.$gridSize.val(this.settings.gridSize);
-      this.$gridUnit.val(this.settings.gridUnit);
+      //Always set these things
       this.$freeDrawStroke.val(this.settings.freeDrawColor);
       this.$freeDrawFill.val(this.settings.freeDrawFill);
       this.$freeDrawStrokeWidth.find('option[value="'+this.settings.freeDrawWidth+'"]').prop('selected',true);
-      $body.find('.grid-'+(this.settings.grid ? 'on' : 'off')).trigger('click');
+      //These options are only available if you're a GM
+      if( driftwood.engine.player.isGM() ) {
+        this.$editorColor.val(this.settings.editorColor);
+        this.$gridColor.val(this.settings.gridColor);
+        this.$gridSize.val(this.settings.gridSize);
+        this.$gridUnit.val(this.settings.gridUnit);
+        $body.find('.grid-'+(this.settings.grid ? 'on' : 'off')).trigger('click');
+      //Make sure the form fields are disabled on settings, they can't do anything right now
+      } else {
+        $body.find('.save-settings, .cancel-settings').prop('disabled',true);
+      }
     },
 
     /**
@@ -763,7 +789,38 @@ $(document).ready(function() {
       this.context.fill();
     }
   });
+  /**
+   * Settings Panel
+   *
+   * Allows us to drag stuff onto the camvas, upload objects,
+   * search objects.
+   */
+  SettingsPanel = Backbone.View.extend( {
+     // Container element
+    el: $('.settings-content'),
 
+
+    //Grab the template from the page
+    template: _.template($('#settingsPanelTemplate').html()),
+
+    initialize: function(options) {
+      this.options = options || {};
+      _.bindAll(this,'render');
+      //Render the panel
+      this.render();
+    },
+    render: function() {
+      $(this.el).html(this.template({isGM: driftwood.engine.player.isGM()}));
+    },
+    updatePlayerList: function(playerList) {
+      var template = _.template($('#playerListTemplate').html());
+      $(this.el).find('.player-list').html(template({
+        players: playerList,
+        isGM: driftwood.engine.player.isGM(),
+        playerUsername: driftwood.engine.player.get('username')
+      }));
+    }
+  } );
   /**
    * Object List
    *
@@ -1617,22 +1674,26 @@ $(document).ready(function() {
     },
 
     addSaveListener: function() {
-      this.on('object:added object:removed object:modified canvas:modified', _.bind( function() {
-        //console.log('Saving canvas',JSON.stringify(this.canvas),this.canvas.getObjects());
+      this.on('object:added object:removed object:modified canvas:modified', _.bind( function(e) {
+        //We do not want to emit a save of the object being changed is the grid, we let the canvas:modified
+        //event handle that.
+        if( e && e.layer && e.layer === 'grid_layer' ) {
+          return false;
+        }
         var canvasJSON = this.canvas.toJSON(),
             _objects = canvasJSON.objects;
         if( _objects.length ) {
           //_objects.pop();
           _objects = this.normalizeObjects(_objects);
           canvasJSON.objects = _objects;
-          console.log(canvasJSON);
+          //console.log('Saving data',canvasJSON,e);
         }
         driftwood.engine.socket.emit('saveCanvas',JSON.stringify(canvasJSON));
       }, this ) );
     },
 
     loadCanvas: function(data) {
-      console.log('Loading Data',JSON.parse(data));
+      //console.log('Loading Data',JSON.parse(data));
       this.canvas.loadFromJSON(data);
       var _objects = this.canvas.getObjects();
       if( _objects.length ) {
@@ -1743,7 +1804,6 @@ $(document).ready(function() {
      * grid layer (as the grid should be the only thing on this layer)
      */
     setGrid: function(gridSize,gridColor) {
-      console.log('set grid',gridSize,gridColor);
       var lines = [],
           layer = this.currentLayer;
       //Make sure grid size is a number
@@ -2235,7 +2295,7 @@ $(document).ready(function() {
         })(activeObject.toObject);
       }
       if( newObject ) {
-        console.log('Added object');
+        //console.log('Added object');
         var currentLayer = this.currentLayer;
         //Set all our intial attributes
         activeObject.set({
@@ -2595,7 +2655,7 @@ $(document).ready(function() {
           //Set our intial circle. We're actually creating an Ellipse
           //with some intial qualities and then making it bigger
           startCircleDraw: function(event) {
-            console.log('starting circle draw');
+            //console.log('starting circle draw');
             //Where did the mouse click start
             this.offsetLeft = this.scope.offsetLeft();
             this.offsetTop = this.scope.offsetTop();
@@ -2938,7 +2998,7 @@ $(document).ready(function() {
           this.canvas.moveTo(existingObject,data.index);
         //This object isn't currently in the process of being enlivened
         } else if( ! this.enlivening[data.id] ) {
-          console.log('Need to enliven');
+          //console.log('Need to enliven');
           //console.log('Object does not exist');
           //We're going to enliven this data
           this.enlivening[data.id] = data;
