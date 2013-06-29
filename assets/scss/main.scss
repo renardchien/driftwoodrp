@@ -155,6 +155,25 @@ select {
   }
   .loading-message {
     margin-top: 20px;
+    a:hover {
+      cursor: pointer;
+    }
+  }
+}
+//
+//
+// System Message
+//------------------------------
+.system-message {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: none;
+  z-index: 4;
+  text-align: center;
+  .message a:hover {
+    cursor: pointer;
   }
 }
 //

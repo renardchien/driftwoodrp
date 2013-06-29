@@ -27,6 +27,12 @@ html(lang='en')
           h1
             | Loading Game...
           .loading-message
+        //Global Messages
+        .system-message
+          .alert
+            button(type="button",class="close",data-dismiss="alert")
+              | &times;
+            .message
         // Editor
         section.editor
           // Command Pallet
@@ -93,28 +99,6 @@ html(lang='en')
               .tr
                 .settings-wrapper
                   .settings-content.control-pane.form-horizontal
-                    h2 Editor
-                    .control-group
-                      label.control-label Background Color:
-                      .controls
-                        input.span1.editor-color(type='color')
-                    h2 Grid Settings
-                    .control-group
-                      .controls
-                        .btn-group(data-toggle='buttons-radio')
-                          button.btn.grid-on.btn-primary.active(type='button') On
-                          button.btn.grid-off.btn-primary(type='button') Off
-                    .grid-settings
-                      .control-group
-                        label.control-label Grid Color:
-                        .controls
-                          input.span1.grid-color(type='color')
-                      .control-group
-                        label.control-label Grid Size:
-                        .controls
-                          input.span1.grid-size(type='number', value='')
-                          | px =
-                          input.span1.grid-unit(type='text', placeholder='5 ft', value='5 ft')
               .tr
                 .actions
                   input.save-settings.btn.btn-success.input-block-level(type='button', value='Save')
@@ -183,7 +167,7 @@ html(lang='en')
         <p>
         <span class="username"><%= player.playerUsername %></span>
         </p>
-        <% if( isGM && player.playerUsername !== playerUsername) { %>
+        <% if( isOwner && player.playerUsername !== playerUsername) { %>
         <div class="dropdown menu">
         <div class="dropdown-toggle" data-toggle="dropdown" href="#">
         <b class="icon-caret-down"></b>
@@ -202,7 +186,7 @@ html(lang='en')
         <% } %>
         <% }); %>
         </ul>
-        <% if( isGM ) { %>
+        <% if( isOwner ) { %>
         <div class="row-fluid">
         <div class="span7">
         <input type="text" class="add-username input-block-level"/>

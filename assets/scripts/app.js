@@ -145,6 +145,8 @@ $(document).ready(function() {
       $body.off();
       //create settings panel
       this.settingsPanel = new SettingsPanel();
+      //Global message
+      this.system = new SystemMessage();
       //Create chat
       this.chat = new Chat({load:this.settings.chatData});
       //Make sure we have a command list
@@ -389,6 +391,9 @@ $(document).ready(function() {
      * the call to the proper scope.
      */
     addSocketListeners: function() {
+      if( this.socketsAssigned ) {
+        return;
+      }
       //On receiving chat, use our chat object to receive the message
       //and make sure the scope being used is the chat object itself
       this.socket.on('chat', _.bind( this.chat.receiveData, this.chat ) );
@@ -403,20 +408,43 @@ $(document).ready(function() {
         }, this ) );
         
       }, this ) );
-      this.socket.on('playerLeft', _.bind( function() {
-        console.log('player left');
+      this.socket.on('playerLeft', _.bind( function(username) {
+        console.log('Player left',username);
+        this.removePlayer(username);
       }, this));
 
-      this.socket.on('playerJoined', _.bind( function() {
-        console.log('player joined');
+      this.socket.on('playerJoined', _.bind( function(data) {
+        console.log('Player joined',data.user);
       }, this));
 
       this.socket.on('playerManageList', _.bind( function(data) {
-        console.log(data);
-      }, this));
+        console.log('Player List',data);
+        this.settingsPanel.updatePlayerList(data);
+      }, this ) );
 
       this.socket.on('systemMessage', _.bind( function(data) {
         console.log(data);
+        if( data.action ) {
+          switch(data.action) {
+            case 'addGM' :
+              if( data.type === 'updatePlayer' ) {
+                this.system.message('You have been promoted to a GM. Please <a onclick="window.location.reload();return false;">reload the game</a> to access your new GM abilities','success');
+                break;
+              }
+            case 'removeGM' :
+              //They have been demoted, prevent them from doing anything else
+              if( data.type === 'updatePlayer' ) {
+                this.destroy();
+                this.loading.show('The heavens have cast you out to live among the mortals. <a onclick="window.location.reload();return false;">Reload the game</a> to walk among the world once more.','The GM has spoken!');
+                break;
+              }
+            default:
+              var type = (['success','error'].indexOf(data.type) !== - 1) ? data.type : false;
+              console.log(type);
+              this.system.message(data.message,type,true);
+              break;
+          }
+        }
       }, this));
 
       this.socket.on('gameSettingsChanged', _.bind( function(data) {
@@ -425,14 +453,22 @@ $(document).ready(function() {
         this.setUI();
       }, this ) );
 
-      this.socket.on('disconnect', _.bind( function() {
-        console.log('disconnected');
-        this.loading.show('Disconnected from Server. Trying to reestablish connection');
+      this.socket.on('disconnect', _.bind( function(s) {
+        if( s === 'booted') {
+          this.loading.show("No saving throw here. You've been booted. Critical Hit!",'For shame!');
+        } else {
+          this.loading.show('Disconnected from Server. Trying to reestablish connection');
+        }
       }, this));
-      this.socket.on('playerManageList', _.bind( function(data) {
-        console.log('Player List',data);
-        this.settingsPanel.updatePlayerList(data);
-      }, this ) );
+      
+
+      this.socketsAssigned = true;
+    },
+
+    destroy: function() {
+      this.socket.removeAllListeners();
+      $body.off();
+      $body.find('.editor,.panel').remove();
     },
 
     /**
@@ -444,7 +480,11 @@ $(document).ready(function() {
         this.players = {};
       }
       //Create a player
-      this.players[data.id] = new Player(data);
+      this.players[data.username] = new Player(data);
+    },
+
+    removePlayer: function(username) {
+      delete this.players[username];
     },
 
     /**
@@ -651,6 +691,7 @@ $(document).ready(function() {
     initialize: function(options) {
       //Set messages element
       this.$message = $(this.el).find('.loading-message');
+      this.$header = $(this.el).find('h1');
       //Set messages
       this.reloadMessages();
       //Kick off time out
@@ -697,9 +738,11 @@ $(document).ready(function() {
       
     },
 
-    show: function(message) {
-        this.$message.html(message);
-        $(this.el).show(); 
+    show: function(message,header) {
+      header = (typeof header === 'string') ? header : 'Loading Game...';
+      this.$header.html(header);
+      this.$message.html(message);
+      $(this.el).show(); 
     }
   });
 
@@ -816,10 +859,45 @@ $(document).ready(function() {
       var template = _.template($('#playerListTemplate').html());
       $(this.el).find('.player-list').html(template({
         players: playerList,
-        isGM: driftwood.engine.player.isGM(),
+        isOwner: driftwood.engine.player.isOwner(),
         playerUsername: driftwood.engine.player.get('username')
       }));
     }
+  } );
+  /**
+   * Settings Panel
+   *
+   * Allows us to drag stuff onto the camvas, upload objects,
+   * search objects.
+   */
+  SystemMessage = Backbone.View.extend( {
+     // Container element
+    el: $('.system-message'),
+
+    hideDelay: 8000,
+
+    initialize: function(options) {
+      this.options = options || {};
+      _.bindAll(this,'render');
+      this.$alert = $(this.el).find('.alert');
+      this.$message = this.$alert.find('.message');
+    },
+
+    message: function(message,type,delayClose) {
+      //console.log('Show message:',message);
+      this.$alert.attr('class','alert');
+      if( type ) {
+        this.$alert.addClass('alert-'+type);
+      }
+      this.$message.html(message);
+      $(this.el).slideDown();
+      if( delayClose ) {
+        this.messageTimeout = window.setTimeout( _.bind( function() {
+          $(this.el).hide();
+        }, this ), this.hideDelay );
+      }
+    }
+    
   } );
   /**
    * Object List
@@ -1304,6 +1382,7 @@ $(document).ready(function() {
     defaults: {
       username: '',
       displayName: '',
+      isOwner: false,
       type: 'player'
     },
     initialize: function() {
@@ -1312,6 +1391,10 @@ $(document).ready(function() {
 
     isGM: function() {
       return this.get('type') === 'gm';
+    },
+
+    isOwner: function() {
+      return this.get('isOwner') === true;
     }
   });
   /**
@@ -1750,6 +1833,10 @@ $(document).ready(function() {
           json.scaleY = json.scaleY / this.canvasScale;
           json.left = json.left / this.canvasScale;
           json.top = json.top / this.canvasScale;
+        }
+        if( json.layer === 'grid_layer' ) {
+          json.gridSize = driftwood.engine.settings.gridSize;
+          json.gridUnit = driftwood.engine.settings.gridUnit;
         }
         _objects.push(json);
       }, this ) );
@@ -2284,16 +2371,7 @@ $(document).ready(function() {
           });
         };
       })(activeObject.toObject);
-      if( this.currentLayer === 'grid_layer' ) {
-        activeObject.toObject = (function(toObject) {
-          return function() {
-            return fabric.util.object.extend(toObject.call(this), {
-              gridSize: driftwood.engine.settings.gridSize,
-              gridUnit: driftwood.engine.settings.gridUnit
-            });
-          };
-        })(activeObject.toObject);
-      }
+      
       if( newObject ) {
         //console.log('Added object');
         var currentLayer = this.currentLayer;
@@ -2305,10 +2383,6 @@ $(document).ready(function() {
           locked: false,
           controlledBy: driftwood.engine.player.get('username')
         });
-
-        if( this.currentLayer === 'grid_layer' ) {
-          
-        }
 
         //Move the object to the front of it's layer
         var object = this.toObject(activeObject);
