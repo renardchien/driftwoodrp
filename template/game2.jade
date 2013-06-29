@@ -49,12 +49,17 @@ html(lang='en')
         aside.panel
           .nav
             .game-info
-                  b.game-name #{game.name} 
-                  a(href="/") 
-                    .lobby-return Return to Lobby
-                    span.lobby-return.icon-arrow-left 
-                  br
-                  div.game-name by #{game.ownerUsername}
+              div.game-name 
+                strong #{game.name}
+                br
+                small.muted by #{game.ownerUsername}
+              .dropdown.menu.lobby-return
+                .dropdown-toggle(data-toggle="dropdown",href="#")
+                  b.icon-caret-down
+                ul.dropdown-menu.pull-right(role="menu",aria-labelledby="dLabel")
+                  li
+                    a(href="/") Return to Lobby
+                    a(href="/logout") Logout
             ol.unstyled.inline(data-tabs='tabs', data-tab-panels='.chat,.objects,.settings')
               li(data-toggle='tab', data-target='.chat')
                 b.icon-comment
@@ -165,7 +170,7 @@ html(lang='en')
         <li>
         <span class="player-type is-<%= player.isGM ? 'gm' : 'player' %>"><%= player.isGM ? 'GM' : 'P' %></span>
         <p>
-        <span class="username"><%= player.playerUsername %></span>
+        <span class="username"><%= player.displayName %></span>
         </p>
         <% if( isOwner && player.playerUsername !== playerUsername) { %>
         <div class="dropdown menu">
