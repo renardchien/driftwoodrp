@@ -3125,6 +3125,12 @@ fabric.util.string = {
         scrollTop = 0,
         firstFixedAncestor;
 
+    //FIXED: They are moving outside of the canvas, set the element as the upper canvas
+    if( $(element).closest('canvas-wrapper').size() === 0 ) {
+      element = $('.upper-canvas')[0];
+      orgElement = element;
+    }
+    
     while (element && element.parentNode && !firstFixedAncestor) {
       element = element.parentNode;
 
@@ -3134,7 +3140,7 @@ fabric.util.string = {
         scrollLeft = 0;
         scrollTop = 0;
       }
-      else if (element === fabric.document && orgElement !== upperCanvasEl) {
+      else if (element === fabric.document && orgElement !== upperCanvasEl ) {
         scrollLeft = body.scrollLeft || docElement.scrollLeft || 0;
         scrollTop = body.scrollTop ||  docElement.scrollTop || 0;
       }
@@ -3143,7 +3149,6 @@ fabric.util.string = {
         scrollTop += element.scrollTop || 0;
       }
     }
-
     return {
       x: pointerX(event) + scrollLeft,
       y: pointerY(event) + scrollTop

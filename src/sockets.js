@@ -226,6 +226,13 @@ var configureSockets = function(socketio) {
       }
     });
 
+    socket.on('changeGameSettings', function(data) {
+      if(!socket.room) {
+        return sendSystemMessage(socket, 'error', 'Not connected to a game');
+      }
+      io.sockets.in(socket.room).except(socket.id).emit('gameSettingsChanged',data);
+    });
+
 
 	  /**
 	   * TODO: Store in database

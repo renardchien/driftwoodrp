@@ -211,9 +211,14 @@ select {
 //
 // Editor
 //------------------------------
+.canvas-padding {
+  //position: fixed;
+  padding: 100px;
+}
 .canvas-container {
-  margin: 100px;
-  padding-right: 100px; //Damned if we can't get a margin right up in here
+  //position: fixed;
+  //margin: 100px;
+  //padding-right: 100px; //Damned if we can't get a margin right up in here
 }
 .editor {
   position: relative;

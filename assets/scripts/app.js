@@ -124,6 +124,17 @@ $(document).ready(function() {
         }
         if( data.canvas ) {
           this.settings.canvas = data.canvas;
+          canvasJSON = JSON.parse(data.canvas);
+          this.settings.editorColor = canvasJSON.background;
+          if( canvasJSON.objects.length && canvasJSON.objects[canvasJSON.objects.length -1].layer === 'grid_layer' ) {
+            var grid = canvasJSON.objects[canvasJSON.objects.length -1];
+            this.settings.grid = true;
+            this.settings.gridColor = grid.stroke;
+            this.settings.gridSize = grid.gridSize;
+            this.settings.gridUnit = grid.gridUnit;
+          } else {
+            this.settings.grid = false;
+          }
         }
         //Run the game
         this.run();
@@ -155,7 +166,7 @@ $(document).ready(function() {
       //Set initial layer
       this.setInitialLayer();
       //Update our intial settings
-      this.updateSettings(this.settings);
+      this.updateSettingsWithoutDispatch(this.settings);
       //Load the canvas
       this.canvas.loadCanvas(this.settings.canvas);
       //Update UI
@@ -242,7 +253,6 @@ $(document).ready(function() {
         onChange: _.bind( function (hsb, hex, rgb) {
           var color = '#' + hex;
           this.$editorColor.val(color);
-          this.updateSettings({editorColor:color});
         }, this )
       });
 
@@ -308,12 +318,10 @@ $(document).ready(function() {
       // --- GRID SETTINGS ---- //
       //Turn grid on
       $body.on('click','.grid-on:not(.active)', _.bind( function() {
-        this.updateSettings({grid:true});
         this.$gridSettings.slideDown();
       }, scope ) );
       //Turn grid off
       $body.on('click','.grid-off:not(.active)', _.bind( function() {
-        this.updateSettings({grid:false});
         this.$gridSettings.slideUp();
       }, scope ) );
       //Change grid color
@@ -327,7 +335,6 @@ $(document).ready(function() {
         onChange: _.bind( function (hsb, hex, rgb) {
           var color = '#' + hex;
           this.$gridColor.val(color);
-          this.updateSettings({gridColor:color});
         }, this)
       });
 
@@ -347,10 +354,15 @@ $(document).ready(function() {
       //Save all our settings
       $body.on('click','.save-settings', _.bind( function() {
         this.updateSettings( {
+          grid: $body.find('.grid-on.active').size() ? true: false,
           gridSize: this.$gridSize.val(),
+          gridColor: this.$gridColor.val(),
           editorColor: this.$editorColor.val(),
           gridUnit: this.$gridUnit.val()
         } );
+      }, this ) );
+      $body.on('click','.cancel-settings', _.bind( function() {
+        this.setUI();
       }, this ) );
     },
 
@@ -390,6 +402,12 @@ $(document).ready(function() {
         console.log(data);
       }, this));
 
+      this.socket.on('gameSettingsChanged', _.bind( function(data) {
+        console.log('Game settings changed',data);
+        this.updateSettingsWithoutDispatch(data);
+        this.setUI();
+      }, this ) );
+
       this.socket.on('disconnect', _.bind( function() {
         console.log('disconnected');
         this.loading.show('Disconnected from Server. Trying to reestablish connection');
@@ -411,29 +429,27 @@ $(document).ready(function() {
     /**
      * Updates settings and initiates the proper changes
      */
-    updateSettings: function( settings ) {
+    updateSettings: function( settings, noDispatch ) {
       //Turn grid on
       if( settings.hasOwnProperty('grid') && settings.grid ) {
         this.canvas.setGrid(this.settings.gridSize,this.settings.gridColor);
         this.toggleGridLabel('show');
+        //Change grid size
+        if( settings.hasOwnProperty('gridSize') && settings.hasOwnProperty('gridColor') ) {
+          this.canvas.setGrid(settings.gridSize,settings.gridColor);
+        }
       }
       //Turn grid off
       if( settings.hasOwnProperty('grid') && ! settings.grid ) {
         this.canvas.clearLayer('grid_layer');
         this.toggleGridLabel('hide');
       }
-      //Change grid color
-      if( this.settings.grid && settings.hasOwnProperty('gridColor') ) {
-        this.canvas.setGridColor(settings.gridColor);
-      }
-      //Change grid size
-      if( this.settings.grid && settings.hasOwnProperty('gridSize') ) {
-        this.canvas.setGrid(settings.gridSize,this.settings.gridColor);
-      }
+      
+
       //Change background color
       if( settings.hasOwnProperty('editorColor') ) {
-        this.canvas.canvas.backgroundColor = settings.editorColor;
-        this.canvas.canvas.renderAll();
+        console.log(this.canvas,settings.editorColor);
+        this.canvas.setBackgroundColor(settings.editorColor);
       }
       if( settings.hasOwnProperty('enableFog') ) {
         if( settings.enableFog ) {
@@ -449,6 +465,16 @@ $(document).ready(function() {
       if( this.settings.grid && (settings.hasOwnProperty('gridSize') || settings.hasOwnProperty('gridUnit')) ) {
         this.updateGridLabel(this.settings.gridUnit)
       }
+      //Canvas has been modified
+      if( ! noDispatch ) {
+        console.log('dispatch settings',settings);
+        this.socket.emit('changeGameSettings',settings);
+        this.canvas.trigger('canvas:modified');
+      }
+    },
+
+    updateSettingsWithoutDispatch: function(settings) {
+      this.updateSettings(settings,true);
     },
 
     /**
@@ -474,9 +500,11 @@ $(document).ready(function() {
       this.$editorColor.val(this.settings.editorColor);
       this.$gridColor.val(this.settings.gridColor);
       this.$gridSize.val(this.settings.gridSize);
+      this.$gridUnit.val(this.settings.gridUnit);
       this.$freeDrawStroke.val(this.settings.freeDrawColor);
       this.$freeDrawFill.val(this.settings.freeDrawFill);
       this.$freeDrawStrokeWidth.find('option[value="'+this.settings.freeDrawWidth+'"]').prop('selected',true);
+      $body.find('.grid-'+(this.settings.grid ? 'on' : 'off')).trigger('click');
     },
 
     /**
@@ -1484,8 +1512,11 @@ $(document).ready(function() {
 
       //Local references to UI elements
       this.$canvasWrapper = $body.find('.canvas-wrapper');
+      this.$canvasPadding = $body.find('.canvas-padding');
       this.$canvasContainer = $body.find('.canvas-container');
       this.$editorOverlay = $body.find('.editor .overlay');
+
+      this.setEditorSize();
 
       //Zoom utility
       this.zoom = this.zoomUtil.init(this);
@@ -1566,6 +1597,8 @@ $(document).ready(function() {
         driftwood.engine.socket.emit('objectRemoved',{objects:json});
       }, this ) );
 
+
+
       //Creates a context menu
       $body.on('contextmenu','.canvas-wrapper', _.bind(this.openContextMenu, this));
 
@@ -1584,7 +1617,7 @@ $(document).ready(function() {
     },
 
     addSaveListener: function() {
-      this.on('object:added object:removed object:modified', _.bind( function() {
+      this.on('object:added object:removed object:modified canvas:modified', _.bind( function() {
         //console.log('Saving canvas',JSON.stringify(this.canvas),this.canvas.getObjects());
         var canvasJSON = this.canvas.toJSON(),
             _objects = canvasJSON.objects;
@@ -1592,13 +1625,14 @@ $(document).ready(function() {
           //_objects.pop();
           _objects = this.normalizeObjects(_objects);
           canvasJSON.objects = _objects;
+          console.log(canvasJSON);
         }
         driftwood.engine.socket.emit('saveCanvas',JSON.stringify(canvasJSON));
       }, this ) );
     },
 
     loadCanvas: function(data) {
-      //console.log('Loading Data',data);
+      console.log('Loading Data',JSON.parse(data));
       this.canvas.loadFromJSON(data);
       var _objects = this.canvas.getObjects();
       if( _objects.length ) {
@@ -1709,6 +1743,7 @@ $(document).ready(function() {
      * grid layer (as the grid should be the only thing on this layer)
      */
     setGrid: function(gridSize,gridColor) {
+      console.log('set grid',gridSize,gridColor);
       var lines = [],
           layer = this.currentLayer;
       //Make sure grid size is a number
@@ -1754,7 +1789,9 @@ $(document).ready(function() {
         width: this.CANVAS_WIDTH,
         height: this.CANVAS_HEIGHT,
         originX: 'left',
-        originY: 'top'
+        originY: 'top',
+        stroke: gridColor,
+        strokeWidth: 1
       });
 
       //The canvas has been scaled, so we need to scale our lines down/up
@@ -1768,25 +1805,6 @@ $(document).ready(function() {
         this.switchLayer(layer);
       }
       this.canvas.renderAll();
-    },
-
-    orderByIndex: function(objects) {
-      if( ! objects || ! objects.length ) {
-        return objects;
-      }
-      var _objects = this.canvas.getObjects();
-      
-      return _.sortBy(objects, function(object) {
-        return _objects.indexOf(object);
-      });
-    },
-
-    toCanvasObjects: function(objects) {
-      var canvasObjects = [];
-      _.each( objects, function(object) {
-        canvasObjects.push(object.get('object'));
-      });
-      return canvasObjects;
     },
 
     /**
@@ -1808,6 +1826,38 @@ $(document).ready(function() {
         });
         this.canvas.renderAll();
       }
+    },
+
+    setBackgroundColor: function(color) {
+      this.canvas.backgroundColor = color;
+      this.canvas.renderAll();
+    },
+
+     orderByIndex: function(objects) {
+      if( ! objects || ! objects.length ) {
+        return objects;
+      }
+      var _objects = this.canvas.getObjects();
+      
+      return _.sortBy(objects, function(object) {
+        return _objects.indexOf(object);
+      });
+    },
+
+    toCanvasObjects: function(objects) {
+      var canvasObjects = [];
+      _.each( objects, function(object) {
+        canvasObjects.push(object.get('object'));
+      });
+      return canvasObjects;
+    },
+
+    setEditorSize: function() {
+      this.$canvasPadding.css({
+        width: this.$canvasContainer.outerWidth(),
+        height: this.$canvasContainer.outerHeight()
+      });
+      //this.$canvasContainer.css('position','fixed');
     },
 
     /**
@@ -2174,6 +2224,16 @@ $(document).ready(function() {
           });
         };
       })(activeObject.toObject);
+      if( this.currentLayer === 'grid_layer' ) {
+        activeObject.toObject = (function(toObject) {
+          return function() {
+            return fabric.util.object.extend(toObject.call(this), {
+              gridSize: driftwood.engine.settings.gridSize,
+              gridUnit: driftwood.engine.settings.gridUnit
+            });
+          };
+        })(activeObject.toObject);
+      }
       if( newObject ) {
         console.log('Added object');
         var currentLayer = this.currentLayer;
@@ -2185,6 +2245,10 @@ $(document).ready(function() {
           locked: false,
           controlledBy: driftwood.engine.player.get('username')
         });
+
+        if( this.currentLayer === 'grid_layer' ) {
+          
+        }
 
         //Move the object to the front of it's layer
         var object = this.toObject(activeObject);
@@ -2451,6 +2515,7 @@ $(document).ready(function() {
             this.canvasScale = canvasScale;
             canvas.renderAll();
             this.setOverlaySize();
+            this.setEditorSize();
           },
           Out: function() {
             // TODO limit max cavas zoom out
@@ -2479,6 +2544,7 @@ $(document).ready(function() {
                 objects[i].setCoords();
             }
             this.setOverlaySize();
+            this.setEditorSize();
             this.canvasScale = canvasScale;
             canvas.renderAll();
           }

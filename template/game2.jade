@@ -36,11 +36,13 @@ html(lang='en')
             span.unit-label
           // Canvas
           .canvas-wrapper
-            canvas#c
+            .canvas-padding
+              canvas#c
             .overlay
         // Side Panel
         aside.panel
           .nav
+
             ol.unstyled.inline(data-tabs='tabs', data-tab-panels='.chat,.objects,.settings')
               li(data-toggle='tab', data-target='.chat')
                 b.icon-comment
@@ -109,7 +111,7 @@ html(lang='en')
               .tr
                 .actions
                   input.save-settings.btn.btn-success.input-block-level(type='button', value='Save')
-                  input.btn.input-block-level(type='button', value='Cancel')
+                  input.cancel-settings.btn.input-block-level(type='button', value='Cancel')
       // END: main container
       // BEGIN: footer
       footer.footer
