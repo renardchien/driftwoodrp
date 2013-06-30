@@ -307,6 +307,31 @@ var configureSockets = function(socketio) {
 		  io.sockets.in(socket.room).except(socket.id).emit('objectRemoved',data);
 	  });
 
+    socket.on('removeLibraryObject', function(data) {
+      if(!socket.room) {
+        return sendSystemMessage(socket, 'error', 'removeLibraryObject', 'Not connected to a game');
+      }
+
+      if(!data || !data.publicPath) {
+        return sendSystemMessage(socket, 'error', 'removeLibraryObject', 'Public path must be specified');
+      }
+
+      models.Session.sessionLibraryModel.findByPublicPath(data.publicPath, function(err, token) {
+        if(err || !token) {
+          return sendSystemMessage(socket, 'error', 'removeLibraryObject', 'Failed to remove object from the game library. Please try again.');
+        }
+
+        token.remove(function(err, token) {
+          if(err) {
+            return sendSystemMessage(socket, 'error', 'removeLibraryObject', 'Failed to remove object from the game library. Please try again.');
+          }
+
+          updateSessionLibrary(socket.game.id, socket.game.name + "/" + socket.game.ownerUsername);
+        });
+      });
+
+    });
+
 	  socket.on('disconnect', function(data) {
 	  var player = socket.handshake.session.player;
       delete clients[socket.room][player.username];
@@ -430,8 +455,18 @@ var returnGamePlayerList = function(socket, broadcast){
   });
 }
 
-var updateSessionLibrary = function(room, message) {
-  io.sockets.in(room).emit('sessionLibraryUpdate', message);
+var updateSessionLibrary = function(gameId, room) {
+
+  models.Session.sessionLibraryModel.findLibrary(gameId, function(err, data) {
+
+    if(err) {
+      return sendRoomSystemMessage(room, 'error', 'sessionLibraryUpdate', 'Game Object Library could not be loaded');
+    }
+
+    io.sockets.in(room).emit('sessionLibraryUpdate', _.pluck(data, 'clientObject'));
+
+  });
+
 }
 
 module.exports.configureSockets = configureSockets;

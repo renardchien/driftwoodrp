@@ -316,21 +316,16 @@ var uploadToken = function(req, res) {
                 return res.err(err);  
                }
 
-               sockets.updateSessionLibrary(res.locals.game.name + "/" + res.locals.game.ownerUsername, {
+               sockets.updateSessionLibrary(res.locals.game.id, res.locals.game.name + "/" + res.locals.game.ownerUsername);
+
+              
+               res.json({
                           'url': config.getConfig().specialConfigs.awsUrl + publicPath,
                           'thumbnail': config.getConfig().specialConfigs.awsUrl + publicPath + config.getConfig().specialConfigs.imageSize.thumb.type,
                           'type': req.body.type,
                           'name': req.files.assetFile.name
-                       });
-
-	       res.json({
-                          'url': config.getConfig().specialConfigs.awsUrl + publicPath,
-                          'thumbnail': config.getConfig().specialConfigs.awsUrl + publicPath + config.getConfig().specialConfigs.imageSize.thumb.type,
-                          'type': req.body.type,
-                          'name': req.files.assetFile.name
-                       });
-
-               //res.json('File uploaded to game library');               
+                       });     
+    
            });
         });
 };

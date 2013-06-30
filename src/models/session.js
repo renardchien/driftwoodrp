@@ -209,6 +209,7 @@ SessionPlayerSchema.statics.findPlayerGamePermissionByUsername = function(player
 
 SessionLibrarySchema.virtual('clientObject').get(function() {
 	return {
+    'publicPath': this.publicPath,
 		'url': config.getConfig().specialConfigs.awsUrl + this.publicPath,
 		'thumbnail': config.getConfig().specialConfigs.awsUrl + this.publicPath + config.getConfig().specialConfigs.imageSize.thumb.type,
 		'type': this.type,
