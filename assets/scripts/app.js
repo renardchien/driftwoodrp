@@ -2,6 +2,28 @@
  * Sets environment variable, whether or not
  * this is a DEV environment 
  * @type {Boolean}
+ *
+ *
+ * BUG LIST
+ *  - Object management
+ *    - Delete
+ *  - Zoom
+ *    - Need to screen zoom
+ *    - When switching from zoom to another action, it zooms on click
+ *  - Color pickers 
+ *    - Are missing transparent or "none" option
+ *    - Need to close color picker on mouse up or have some button to accept color
+ *   - Selection
+ *     - Selecting two or more items seems to move them to the top of the stack. This only
+ *       seems to happen for the user selecting, not on other players screens. Possibly
+ *       something to do with it being a group vs a single item
+ *     - Selecting two or more items messes up the save canvas (saves group, not each object)
+ *     - Dragging off canvas will do browser selection on other items (just get the browser blue selection)
+ *   - Right clicking on a non selected object brings up a menu for the selected object. It should
+ *     shift selection to that object and open a menu for that
+ *   - When a player leaves, they maintain "control" over an object so others can't move it. Need to remove
+ *     control when a player leaves (or add a "does this player exist" check when updating for player)
+ *  
  */
 var DEV = false;
 
@@ -1763,11 +1785,22 @@ $(document).ready(function() {
         if( e && e.layer && e.layer === 'grid_layer' ) {
           return false;
         }
-        var canvasJSON = this.canvas.toJSON(),
-            _objects = canvasJSON.objects;
-        if( _objects.length ) {
-          //_objects.pop();
-          _objects = this.normalizeObjects(_objects);
+        var canvasJSON = this.canvas.toJSON();
+        //This canvas has objects, we need to normalize them before saving
+        if( canvasJSON.objects.length ) {
+          //Get all objects in singular form (canvas.toJSON will bring stuff in as groups if in selection)
+          var objects = this.canvas.getObjects(),
+              _objects = []; //Objects we'll store to when done
+          _.each( objects, _.bind( function(object) {
+            //Not a grid object, so run it through data json function (which will normalize and restore from groups)
+            if( object.get('layer') !== 'grid_layer' ) {
+              _objects = _objects.concat(this.toDataJSON(object));
+            //Is a grid, just normalize it
+            } else {
+              _objects = _objects.concat(this.normalizeObjects([object.toJSON()]));
+            }
+          }, this) );
+          //Save our objects
           canvasJSON.objects = _objects;
           //console.log('Saving data',canvasJSON,e);
         }
@@ -1777,14 +1810,17 @@ $(document).ready(function() {
 
     loadCanvas: function(data) {
       //console.log('Loading Data',JSON.parse(data));
-      this.canvas.loadFromJSON(data);
-      var _objects = this.canvas.getObjects();
-      if( _objects.length ) {
-         _objects.forEach(_.bind( function(object) {
-          this.updateObjectForPlayer(object);
-        }, this ) );
+      this.canvas.loadFromJSON(data, _.bind( function() {
+        var _objects = this.canvas.getObjects();
+        console.log(_objects);
+        if( _objects.length ) {
+           _objects.forEach(_.bind( function(object) {
+            this.updateObjectForPlayer(object);
+          }, this ) );
+        }
         this.canvas.renderAll();
-      }
+      }, this ));
+      
        
     },
 
@@ -1809,6 +1845,11 @@ $(document).ready(function() {
           objects.push(_o);
         });
       } else {
+        //This single object is part of a group, restore it!
+        if( object.group ) {
+          var object = fabric.util.object.clone(object);
+          object.group._restoreObjectState(object);
+        }
         object.index = canvasObjects.indexOf(object);
         objects.push(object);
       }
@@ -1856,6 +1897,7 @@ $(document).ready(function() {
       if( ! e.target._objects ) {
         selected.push(e.target);
       } else {
+        e.target.layer == this.currentLayer;
         selected = e.target._objects;
       }
       //console.log('Take control of objects',selected);
@@ -2570,9 +2612,8 @@ $(document).ready(function() {
     },
 
     center: function() {
-      //FIXME: Doesn't quite work
-      this.$canvasWrapper[0].scrollLeft = this.$canvasWrapper.offset().top + (this.$canvasWrapper.find('.canvas-container').height()/2);
-      this.$canvasWrapper[0].scrollTop = this.$canvasWrapper.offset().left + (this.$canvasWrapper.find('.canvas-container').width()/2);
+      this.$canvasWrapper[0].scrollTop = (this.$canvasPadding.outerHeight()/2) - (this.$canvasWrapper.height()/2) ;
+      this.$canvasWrapper[0].scrollLeft = (this.$canvasPadding.outerWidth()/2) - (this.$canvasWrapper.width()/2);
     },
     
     /**

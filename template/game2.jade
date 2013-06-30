@@ -165,6 +165,9 @@ html(lang='en')
         <div class="player-list"></div>
       script#playerListTemplate(type='text/template')
         <h2>Players</h2>
+        <% if( isOwner ) { %>
+        <small class="muted">All player changes occur instantly, no save required.</small>
+        <% } %>
         <ul>
         <% _.each( players, function(player) { %>
         <li>
