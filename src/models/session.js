@@ -52,7 +52,7 @@ var SessionSchema = new mongoose.Schema({
 		type: String,
 		required: true,
 		trim: true,
-    match: /^[a-z0-9]+$/i
+    match: /^[a-z0-9\s]+$/i
 	},
   canvas: {
 		type: String
