@@ -22,6 +22,7 @@ var models = require('./models');
 var _ = require('underscore');
 var async = require('async');
 var config = require('./config.js');
+var utils = require('./utils');
 var log = config.getLogger();
 
 var io;
@@ -321,12 +322,20 @@ var configureSockets = function(socketio) {
           return sendSystemMessage(socket, 'error', 'removeLibraryObject', 'Failed to remove object from the game library. Please try again.');
         }
 
-        token.remove(function(err, token) {
+        utils.uploadModule.removeAsset(data.publicPath + config.getConfig().specialConfigs.imageSize.thumb.type, function(err, status) {
+
           if(err) {
-            return sendSystemMessage(socket, 'error', 'removeLibraryObject', 'Failed to remove object from the game library. Please try again.');
+              return sendSystemMessage(socket, 'error', 'removeLibraryObject', 'Failed to remove object from the game library. Please try again.');         
           }
 
-          updateSessionLibrary(socket.game.id, socket.game.name + "/" + socket.game.ownerUsername);
+          token.remove(function(err, token) {
+            if(err) {
+              return sendSystemMessage(socket, 'error', 'removeLibraryObject', 'Failed to remove object from the game library. Please try again.');
+            }
+
+            updateSessionLibrary(socket.game.id, socket.game.name + "/" + socket.game.ownerUsername);
+          });
+
         });
       });
 
