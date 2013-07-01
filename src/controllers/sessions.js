@@ -68,13 +68,14 @@ var createSession = function(req, res){
 		var newGame = new models.Session.sessionModel({
 		  owner: player.id,
 		  ownerUsername: player.username,
-      ownerDisplayName: player.name.displayName,
+      ownerDisplayName: player.displayName,
 		  name: gameName
 		});
 
 		// Saving it to the database.  
 		newGame.save(function(err) {
 			if(err) {
+          console.log(err);
 			  return res.err('An error occurred creating the game. Please try again.');
 			}
 
@@ -84,7 +85,6 @@ var createSession = function(req, res){
 				sessionId: gameId,
 				playerId: player.id,
         playerUsername: player.username,
-        displayName: player.name.displayName,
         isGM: true
 			});
 
@@ -135,8 +135,7 @@ var addPlayer = function(req, res) {
 
 		  var newGamePlayer = new models.Session.sessionPlayerModel({
 			  sessionId: game.id,
-			  playerId: newPlayer.id,
-        playerUsername: newPlayer.username
+			  playerId: newPlayer.id
 		  });
 
 		  newGamePlayer.save(function(err) {

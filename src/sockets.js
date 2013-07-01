@@ -82,7 +82,7 @@ var configureSockets = function(socketio) {
       	        if(err) {
       	          chatHistory = [{ displayName: "System", message: "Previous chats could not be loaded" }];
       	        } else {
-      	          chatHistory = chats;
+      	          chatHistory = _.pluck(chats, 'clientObject');
               	}	
 
 							  return asyncCallback(err, chatHistory);
@@ -161,7 +161,7 @@ var configureSockets = function(socketio) {
                     sessionId: socket.game.id,
                     playerId: newPlayer.id,
                     playerUsername: newPlayer.username,
-                    displayName: newPlayer.name.displayName
+                    displayName: newPlayer.displayName
               });
 
               newGamePlayer.save(function(err) {

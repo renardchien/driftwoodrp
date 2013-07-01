@@ -32,9 +32,7 @@ var createPlayer = function(newUser, pass, displayName, emailAddr, callback)
 	var newPlayer = new models.Player.playerModel({
 	  username: newUser,
 	  password: pass,
-	  name: 	{
-				displayName: displayName
-			},
+		displayName: displayName,
 	  email:   	emailAddr
 	});
 
@@ -129,9 +127,7 @@ var createAccount = function(req, res){
 		var newPlayer = new models.Player.playerModel({
 		  username: username,
 		  password: password,
-		  name: 	{
-					displayName: displayName
-				},
+		  displayName: displayName,
 		  email:   	emailAddr
 		});
 
