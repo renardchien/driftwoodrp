@@ -29,7 +29,25 @@ var xxhash = require('xxhash');
 var log = config.getLogger();
 var utils = require('../utils');
 var sockets = require('../sockets.js');
-var url = config.getConfig().liveUrl
+var url = config.getConfig().liveUrl;
+
+var colorRegex = new RegExp(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/);
+
+var gridPage = function(req, res) {
+  
+  var color = req.query.color;
+  var size = req.query.size;
+
+  if(!color || !colorRegex.test(color)) {
+    color = '#777777';
+  }
+
+  if(!size || isNaN(size) || !isFinite(size)) {
+    size = 80;
+  }
+
+  res.render('grid', { color: color, size: size});
+};
 
 var joinSessionPage = function(req, res) {
 	var player = res.locals.player;
@@ -352,6 +370,7 @@ var removeToken = function(req, res) {
 
 };
 
+module.exports.gridPage = gridPage;
 module.exports.joinSessionPage = joinSessionPage;
 module.exports.createSession = createSession;
 module.exports.loadSession = loadSession;
