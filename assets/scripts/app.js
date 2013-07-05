@@ -8,8 +8,9 @@
  *  - Object management
  *    - Delete
  *  - Zoom
- *    - Need to screen zoom
+ *    - Need fit to screen zoom
  *    - When switching from zoom to another action, it zooms on click
+ *    - When zooming it would be nice to try and maintain centering, instead of from top left
  *  - Color pickers 
  *    - Are missing transparent or "none" option
  *    - Need to close color picker on mouse up or have some button to accept color
@@ -17,7 +18,6 @@
  *     - Selecting two or more items seems to move them to the top of the stack. This only
  *       seems to happen for the user selecting, not on other players screens. Possibly
  *       something to do with it being a group vs a single item
- *     - Selecting two or more items messes up the save canvas (saves group, not each object)
  *     - Dragging off canvas will do browser selection on other items (just get the browser blue selection)
  *   - Right clicking on a non selected object brings up a menu for the selected object. It should
  *     shift selection to that object and open a menu for that
@@ -197,6 +197,8 @@ $(document).ready(function() {
       this.canvas.loadCanvas(this.settings.canvas);
       //Update UI
       this.setUI();
+      //Enable hotkeys
+      this.enableHotKeys();
       //Move canvas to center
       this.canvas.center();
       //Allow the canvas to save
@@ -219,6 +221,16 @@ $(document).ready(function() {
       this.$subMenus = $body.find('.sub-menu');
       this.$freeDrawMenu = $body.find('.sub-menu.free-draw');
       this.$freeDrawStrokeWidth = this.$freeDrawMenu.find('.freeDrawStrokeWidth');
+      //hasfocus class for editor
+      $editor = this.$editor;
+      $body.on('click','.editor',_.bind( function() {
+        $editor.addClass('hasfocus');
+      }, this ) );
+      $body.on('click',':not(.editor)',function() {
+        if ( $(this).find('.editor').size() === 0) {
+          $editor.removeClass('hasfocus');
+        }
+      });
 
       //Tabs
       $body.on('click','[data-toggle="tab"]', function() {
@@ -337,7 +349,7 @@ $(document).ready(function() {
             ui.draggable.find(':text').val('');
             this.canvas.trigger('loadImage',{url:url,type:type},event);
           }
-          
+          this.$editor.trigger('click'); //Focus
         }, this )
       });
 
@@ -593,6 +605,137 @@ $(document).ready(function() {
       } else {
         $body.find('.save-settings, .cancel-settings').prop('disabled',true);
       }
+    },
+
+    enableHotKeys: function() {
+      $body.bind('keydown.del', _.bind( function(e) {
+        return this.handleHotKeys('delete',e);
+      }, this ) );
+      $body.bind('keydown.backspace', _.bind( function(e) {
+        this.handleHotKeys('delete',e);
+        return false;
+      }, this ) );
+      $body.bind('keydown.shift_c', _.bind( function(e) {
+        return this.handleHotKeys('copy',e);
+      }, this ) );
+      $body.bind('keydown.shift_v', _.bind( function(e) {
+        return this.handleHotKeys('paste',e);
+      }, this ) );
+      $body.bind('keydown.shift_x', _.bind( function(e) {
+        return this.handleHotKeys('cut',e);
+      }, this ) );
+      //Lock objects
+      $body.bind('keydown.shift_l', _.bind( function(e) {
+        return this.handleHotKeys('lockObject',e);
+      }, this ) );
+      //Unlock objects
+      $body.bind('keydown.shift_u', _.bind( function(e) {
+        return this.handleHotKeys('unlockObject',e);
+      }, this ) );
+      //
+      $body.bind('keydown.shift_up', _.bind( function(e) {
+        return this.handleHotKeys('moveObject',e,'toFront');
+      }, this ) );
+      $body.bind('keydown.shift_down', _.bind( function(e) {
+        return this.handleHotKeys('moveObject',e,'toBack');
+      }, this ) );
+      $body.bind('keydown.shift_left', _.bind( function(e) {
+        return this.handleHotKeys('moveObject',e,'backwards');
+      }, this ) );
+      $body.bind('keydown.shift_right', _.bind( function(e) {
+        return this.handleHotKeys('moveObject',e,'forwards');
+      }, this ) );
+      $body.bind('keydown.shift_1', _.bind( function(e) {
+        return this.handleHotKeys('switchObjectLayer',e,'map_layer');
+      }, this ) );
+      $body.bind('keydown.shift_2', _.bind( function(e) {
+        return this.handleHotKeys('switchObjectLayer',e,'object_layer');
+      }, this ) );
+      $body.bind('keydown.shift_3', _.bind( function(e) {
+        return this.handleHotKeys('switchObjectLayer',e,'gm_layer');
+      }, this ) );
+      $body.bind('keydown.1', _.bind( function(e) {
+        $body.find('.commands [data-cmd="switchLayer"][data-cmd-value="map_layer"]').trigger('click');
+        return false;
+      }, this ) );
+      $body.bind('keydown.2', _.bind( function(e) {
+        $body.find('.commands [data-cmd="switchLayer"][data-cmd-value="object_layer"]').trigger('click');
+        return false;
+      }, this ) );
+      $body.bind('keydown.3', _.bind( function(e) {
+        if( ! driftwood.engine.player.isGM() ) {
+          return true;
+        }
+        $body.find('.commands [data-cmd="switchLayer"][data-cmd-value="gm_layer"]').trigger('click');
+        return false;
+      }, this ) );
+      $body.bind('keydown.s', _.bind( function(e) {
+        $body.find('.commands [data-cmd="selectCanvas"]').trigger('click');
+        return false;
+      }, this ) );
+      $body.bind('keydown.f', _.bind( function(e) {
+        $body.find('.commands [data-cmd="draw"][data-cmd-value="free"]').trigger('click');
+        return false;
+      }, this ) );
+      $body.bind('keydown.r', _.bind( function(e) {
+        $body.find('.commands [data-cmd="draw"][data-cmd-value="rectangle"]').trigger('click');
+        return false;
+      }, this ) );
+      $body.bind('keydown.c', _.bind( function(e) {
+        $body.find('.commands [data-cmd="draw"][data-cmd-value="circle"]').trigger('click');
+        return false;
+      }, this ) );
+      $body.bind('keydown.meta_shift_up', _.bind( function(e) {
+        $body.find('.commands [data-cmd="zoomIn"]').trigger('click');
+        return false;
+      }, this ) );
+      $body.bind('keydown.meta_shift_down', _.bind( function(e) {
+        $body.find('.commands [data-cmd="zoomOut"]').trigger('click');
+        return false;
+      }, this ) );
+    },
+
+    handleHotKeys: function(command,e,data) {
+      //IF the editor doesn't have focus, these don't need
+      //to be executed
+      if( ! this.$editor.hasClass('hasfocus') ) {
+        return true;
+      }
+      //Can't paste if there's nothing copied
+      if( command === 'paste' && ! this.canvas._cloned.length ) {
+        return true;
+      }
+      //Can't do this if they're not a gm
+      if( data === 'gm_layer' && ! driftwood.engine.player.isGM() ) {
+        return true;
+      }
+      return this.sendContextCommand(command,e,data)
+    },
+
+    sendContextCommand: function(command,e,data) {
+      if( ! this.$('.editor').hasClass('hasfocus') ) {
+        return true;
+      }
+      //Grab context objects we would be doing 
+      var objects = this.canvas.getContextObjects(e);
+      
+      //Must have objects to do commands if not paste
+      if( (! objects.length && command !== 'paste') ) {
+        return true;
+      }
+      //Set context menu (make a function for this?)
+      this.canvas.contextMenu = {objects: objects};
+      //If the command is paste, we need to set the X/Y coordinates
+      if( command === 'paste' ) {
+        this.canvas.contextMenu.X = this.$('.canvas-wrapper').width()/2;
+        this.canvas.contextMenu.Y = this.$('.canvas-wrapper').height()/2;
+      }
+
+      //Trigger the command
+      this.commands.doCommand(command,data);
+      //Remove reference to context menu
+      this.canvas.contextMenu = false;
+      return false;
     },
 
     /**
@@ -1058,6 +1201,8 @@ $(document).ready(function() {
       this.copied = options.copied || false;
       this.X = options.x;
       this.Y = options.y;
+      this.offsetX = options.offsetX;
+      this.offsetY = options.offsetY;
       //Open up the menu
       this.open();
     },
@@ -1313,6 +1458,9 @@ $(document).ready(function() {
         }
         scope.commandClicked(this);
       } );
+      $body.on('click',function() {
+        $body.find('.command.open').removeClass('open');
+      });
     },
     //Checks the DOM to see what command is set as active and runs it
     runInitialCommand: function() {
@@ -1656,6 +1804,7 @@ $(document).ready(function() {
 
     enlivening: {},
     canvasScale: 1,
+    _cloned: [],
 
     initialize: function(options) {
       _.bindAll(this,'render');
@@ -1818,6 +1967,7 @@ $(document).ready(function() {
             this.updateObjectForPlayer(object);
           }, this ) );
         }
+        //this.clearLayer('object_layer');
         this.canvas.renderAll();
       }, this ));
       
@@ -2071,13 +2221,7 @@ $(document).ready(function() {
       }, this ) );
     },
 
-    /**
-     * Opens up a context menu based on the currently active object, or group
-     * of objects. If no object is active, it attempts to find a target. If
-     * an object is still not found, it's assumed that empty canvas has been
-     * clicked on.
-     */
-    openContextMenu: function(e) {
+    getContextObjects: function(e) {
       var objects = this.getActiveGroup() || [];
       //No active group, try to get a single active object
       if( ! objects.length ) {
@@ -2094,10 +2238,23 @@ $(document).ready(function() {
           objects.push(this.getActiveObject());
         }
       }
+      return objects;
+    },
+
+    /**
+     * Opens up a context menu based on the currently active object, or group
+     * of objects. If no object is active, it attempts to find a target. If
+     * an object is still not found, it's assumed that empty canvas has been
+     * clicked on.
+     */
+    openContextMenu: function(e) {
+      var objects = this.getContextObjects(e);
       //Create our context menu
       this.contextMenu = new ContextMenu({
         x: e.clientX,
         y: e.clientY,
+        offsetX: this.offsetLeft() + e.clientX,
+        offsetY: this.offsetTop() + e.clientY,
         objects: objects,
         copied: this._cloned
       });
@@ -2157,6 +2314,7 @@ $(document).ready(function() {
           this.trigger('object:added', object);
           //this.canvas.setActiveObject(object);
         }, this ) );
+        this.canvas.deactivateAll();
         this.canvas.renderAll();
       }
     },

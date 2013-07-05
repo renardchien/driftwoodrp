@@ -349,7 +349,9 @@ select {
     }
   }
 }
-
+.hotkey {
+  margin-left: 20px;
+}
 //
 //
 // Side Panel
@@ -703,13 +705,16 @@ $sidePanelWidth: 340px;
 
 //
 //
-// Editor
+// Other
 //------------------------------
 .context-menu {
   display: block;
   position: absolute;
   top: 0;
   left: 0;
+}
+.colorpicker {
+  width: 211px;
 }
 //
 //
