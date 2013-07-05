@@ -165,7 +165,7 @@ var attachHandlers = function(config) {
     res.notFound = function(message) {
       res.err({
         name: 'Not found',
-        message: message + ' not found'
+        message: message
       }, 404);
     };
 

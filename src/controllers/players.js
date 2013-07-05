@@ -189,7 +189,7 @@ var changePassword = function(req, res) {
     }
 
     if(!player) {
-      return res.notFound("");
+      return res.notFound("Player was not found");
     }
 
     if(!player.validatePassword(currentPass)) {
