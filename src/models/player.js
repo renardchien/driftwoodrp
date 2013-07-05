@@ -49,9 +49,9 @@ var PlayerSchema = new mongoose.Schema({
   	    	},
   name:     	{
     			first: { type: String, trim: true, set: setName },
-    			last: { type: String, trim: true, set: setName },
-                        displayName: { type: String, trim: true, set: setName }
+    			last: { type: String, trim: true, set: setName }
            	},
+  displayName: { type: String, trim: true, set: setName, required: true },
   email:   	{
 			type: String,
 			trim: true,
@@ -72,7 +72,7 @@ PlayerSchema.methods.api = function() {
 	return {
 		id: this._id,
 		username: this.username,
-		displayName: this.name.displayName
+		displayName: this.displayName
 	};
 
 };

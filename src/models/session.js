@@ -36,7 +36,7 @@ var SessionSchema = new mongoose.Schema({
   owner: 	{
 		type: Schema.ObjectId,
 		required: true,
-		ref: 'Player'
+		ref: 'Players'
 	},
   ownerUsername: {
 		type: String,
@@ -66,22 +66,16 @@ var SessionPlayerSchema = new mongoose.Schema({
   sessionId:	{
 		type: Schema.ObjectId,
 		required: true,
-		ref: 'Session'
+		ref: 'sessions'
   },
   playerId:	{
 		type: Schema.ObjectId,
 		required: true,
-		ref: 'Player'
+		ref: 'Players'
 	},
   playerUsername: {
     type: String,
-    required: true,
-    trim: true
-  },
-  displayName: {
-    type: String,
-    required: true,
-    trim: true
+    required: true
   },
   isGM: {
     type: Boolean,
@@ -96,12 +90,12 @@ var SessionLibrarySchema = new mongoose.Schema({
   sessionId:	{
 		type: Schema.ObjectId,
 		required: true,
-		ref: 'Session'
+		ref: 'sessions'
 	},
   playerId:	{
 		type: Schema.ObjectId,
 		required: true,
-		ref: 'Player'
+		ref: 'Players'
 	},
   name:		{
 		type: String,
@@ -126,18 +120,13 @@ var SessionChatSchema = new mongoose.Schema({
   sessionId:	{
 		type: Schema.ObjectId,
 		required: true,
-		ref: 'Session'
+		ref: 'sessions'
 	},
   playerId:	{
 		type: Schema.ObjectId,
 		required: true,
-		ref: 'Player'
+		ref: 'Players'
 	},
-  displayName: {
-    type: String,
-		required: true,
-		trim: true
-  },
   time: 	{	
     type: Date,
     'default': Date.now
@@ -153,7 +142,7 @@ var SessionLogSchema = new mongoose.Schema({
   sessionId:	{
 		type: Schema.ObjectId,
 		required: true,
-		ref: 'Session'
+		ref: 'sessions'
 	},
   events: 	[
 		{
@@ -178,8 +167,8 @@ SessionSchema.statics.findByNameOwner = function(name, owner, callback) {
 
 SessionPlayerSchema.virtual('clientObject').get(function() {
   return {
-    "playerUsername": this.playerUsername,
-    "displayName": this.displayName,
+    "playerUsername": this.playerId.username,
+    "displayName": this.playerId.displayName,
     "isGM": this.isGM
   }
 });
@@ -188,7 +177,7 @@ SessionPlayerSchema.statics.findGamePlayers = function(sessionId, callback) {
   SessionPlayerModel.find(
   {
     sessionId: sessionId
-  }, callback);
+  }).populate('playerId', 'username displayName').exec(callback);
 }
 
 SessionPlayerSchema.statics.findPlayerGamePermissionById = function(playerId, sessionId, callback) {
@@ -200,7 +189,7 @@ SessionPlayerSchema.statics.findPlayerGamePermissionById = function(playerId, se
 };
 
 SessionPlayerSchema.statics.findPlayerGamePermissionByUsername = function(playerUsername, sessionId, callback) {
-	return SessionPlayerModel.findOne(
+  SessionPlayerModel.findOne(
 	{
 		sessionId: sessionId,	
 		playerUsername: playerUsername
@@ -209,10 +198,13 @@ SessionPlayerSchema.statics.findPlayerGamePermissionByUsername = function(player
 
 SessionLibrarySchema.virtual('clientObject').get(function() {
 	return {
+    'publicPath': this.publicPath,
 		'url': config.getConfig().specialConfigs.awsUrl + this.publicPath,
 		'thumbnail': config.getConfig().specialConfigs.awsUrl + this.publicPath + config.getConfig().specialConfigs.imageSize.thumb.type,
 		'type': this.type,
-		'name': this.name
+		'name': this.name,
+    'ownerDisplayName': this.playerId.displayName,
+    'owner': this.playerId.username
         }
 });
 
@@ -227,14 +219,23 @@ SessionLibrarySchema.statics.findLibrary = function(sessionId, callback) {
 	return SessionLibraryModel.find(
 	{
 		sessionId: sessionId
-	}, { _id: 0, __v: 0, sessionId: 0, playerId: 0 }).find(callback);      
+	}).populate('playerId', 'username displayName').find(callback);      
 };
+
+
+SessionChatSchema.virtual('clientObject').get(function() {
+  return {
+    'message': this.message,
+    'username': this.playerId.username,
+    'displayName': this.playerId.displayName
+  }
+});
 
 SessionChatSchema.statics.findHistory = function(sessionId, callback) {
 	return SessionChatModel.find(
 	{
 		sessionId: sessionId
-	}, { _id: 0, __v: 0, sessionId: 0, playerId: 0  } ).sort({'_id': 1}).find(callback);
+	}).populate('playerId').find(callback);
 };
 
 var SessionModel = mongoose.model('Session', SessionSchema);

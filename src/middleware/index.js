@@ -70,7 +70,7 @@ var attachHandlers = function(config) {
   var requiresOwnership = function(req, res, next) {
 	  var isOwner = checkOwnership(req.params.player.toLowerCase(), req.session.player.username.toLowerCase(), function(isOwner) {
 	    if(!isOwner) {
-		    return res.json("Forbidden");
+		    return res.err("Forbidden");
 	    }
 	    attachPlayer(req, res, next);
     });
@@ -82,7 +82,7 @@ var attachHandlers = function(config) {
 			  return next(err);
 		  }
 		  if(!doc) {
-			  return res.json("User did not have permission for this game");
+			  return res.err("User did not have permission for this game");
 		  }
 		  next();
 	  });
@@ -94,7 +94,7 @@ var attachHandlers = function(config) {
         return next(err);
       }
       if (!doc) {
-        return res.json('User was not found');
+        return res.err('User was not found');
       }
       res.locals.player = doc;
       next();
@@ -108,7 +108,7 @@ var attachHandlers = function(config) {
 		  }
 
 		  if(!doc) {
-			  return res.json('Game was not found');
+			  return res.err('Game was not found');
 		  }
 
 		  res.locals.game = doc;
@@ -165,7 +165,7 @@ var attachHandlers = function(config) {
     res.notFound = function(message) {
       res.err({
         name: 'Not found',
-        message: message + ' not found'
+        message: message
       }, 404);
     };
 

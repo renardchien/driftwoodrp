@@ -60,7 +60,7 @@ select {
 .main {
   display: table;
 }
-.login-page .main,.register-page .main, .reset-pass-page .main, .change-pass-page .main, .lobby-page .main {
+.login-page .main,.register-page .main, .reset-pass-page .main, .change-pass-page .main, .lobby-page .main, .error-page .main {
   display: block;
   background: #ffffff url('../images/driftwoodimage.jpg') no-repeat top left fixed;
   -webkit-background-size: cover;
@@ -78,6 +78,7 @@ select {
 // Login Styling
 //------------------------------
 .login,
+.error,
 .register,
 .reset-password,
 .change-password,
@@ -106,6 +107,10 @@ select {
 .register {
   width: 500px;
   top: 15%;
+}
+
+.error-code {
+  text-align: center;
 }
 
 .lobby {

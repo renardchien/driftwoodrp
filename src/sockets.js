@@ -22,6 +22,7 @@ var models = require('./models');
 var _ = require('underscore');
 var async = require('async');
 var config = require('./config.js');
+var utils = require('./utils');
 var log = config.getLogger();
 
 var io;
@@ -81,7 +82,7 @@ var configureSockets = function(socketio) {
       	        if(err) {
       	          chatHistory = [{ displayName: "System", message: "Previous chats could not be loaded" }];
       	        } else {
-      	          chatHistory = chats;
+      	          chatHistory = _.pluck(chats, 'clientObject');
               	}	
 
 							  return asyncCallback(err, chatHistory);
@@ -160,7 +161,7 @@ var configureSockets = function(socketio) {
                     sessionId: socket.game.id,
                     playerId: newPlayer.id,
                     playerUsername: newPlayer.username,
-                    displayName: newPlayer.name.displayName
+                    displayName: newPlayer.displayName
               });
 
               newGamePlayer.save(function(err) {
@@ -307,6 +308,39 @@ var configureSockets = function(socketio) {
 		  io.sockets.in(socket.room).except(socket.id).emit('objectRemoved',data);
 	  });
 
+    socket.on('removeLibraryObject', function(data) {
+      if(!socket.room) {
+        return sendSystemMessage(socket, 'error', 'removeLibraryObject', 'Not connected to a game');
+      }
+
+      if(!data || !data.publicPath) {
+        return sendSystemMessage(socket, 'error', 'removeLibraryObject', 'Public path must be specified');
+      }
+
+      models.Session.sessionLibraryModel.findByPublicPath(data.publicPath, function(err, token) {
+        if(err || !token) {
+          return sendSystemMessage(socket, 'error', 'removeLibraryObject', 'Failed to remove object from the game library. Please try again.');
+        }
+
+        utils.uploadModule.removeAsset(data.publicPath + config.getConfig().specialConfigs.imageSize.thumb.type, function(err, status) {
+
+          if(err) {
+              return sendSystemMessage(socket, 'error', 'removeLibraryObject', 'Failed to remove object from the game library. Please try again.');         
+          }
+
+          token.remove(function(err, token) {
+            if(err) {
+              return sendSystemMessage(socket, 'error', 'removeLibraryObject', 'Failed to remove object from the game library. Please try again.');
+            }
+
+            updateSessionLibrary(socket.game.id, socket.game.name + "/" + socket.game.ownerUsername);
+          });
+
+        });
+      });
+
+    });
+
 	  socket.on('disconnect', function(data) {
 	  var player = socket.handshake.session.player;
       delete clients[socket.room][player.username];
@@ -430,8 +464,18 @@ var returnGamePlayerList = function(socket, broadcast){
   });
 }
 
-var updateSessionLibrary = function(room, message) {
-  io.sockets.in(room).emit('sessionLibraryUpdate', message);
+var updateSessionLibrary = function(gameId, room) {
+
+  models.Session.sessionLibraryModel.findLibrary(gameId, function(err, data) {
+
+    if(err) {
+      return sendRoomSystemMessage(room, 'error', 'sessionLibraryUpdate', 'Game Object Library could not be loaded');
+    }
+
+    io.sockets.in(room).emit('sessionLibraryUpdate', _.pluck(data, 'clientObject'));
+
+  });
+
 }
 
 module.exports.configureSockets = configureSockets;

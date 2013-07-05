@@ -29,7 +29,25 @@ var xxhash = require('xxhash');
 var log = config.getLogger();
 var utils = require('../utils');
 var sockets = require('../sockets.js');
-var url = config.getConfig().liveUrl
+var url = config.getConfig().liveUrl;
+
+var colorRegex = new RegExp(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/);
+
+var gridPage = function(req, res) {
+  
+  var color = req.query.color;
+  var size = req.query.size;
+
+  if(!color || !colorRegex.test(color)) {
+    color = '#777777';
+  }
+
+  if(!size || isNaN(size) || !isFinite(size)) {
+    size = 80;
+  }
+
+  res.render('grid', { color: color, size: size});
+};
 
 var joinSessionPage = function(req, res) {
 	var player = res.locals.player;
@@ -68,13 +86,14 @@ var createSession = function(req, res){
 		var newGame = new models.Session.sessionModel({
 		  owner: player.id,
 		  ownerUsername: player.username,
-      ownerDisplayName: player.name.displayName,
+      ownerDisplayName: player.displayName,
 		  name: gameName
 		});
 
 		// Saving it to the database.  
 		newGame.save(function(err) {
 			if(err) {
+          console.log(err);
 			  return res.err('An error occurred creating the game. Please try again.');
 			}
 
@@ -84,7 +103,6 @@ var createSession = function(req, res){
 				sessionId: gameId,
 				playerId: player.id,
         playerUsername: player.username,
-        displayName: player.name.displayName,
         isGM: true
 			});
 
@@ -135,8 +153,7 @@ var addPlayer = function(req, res) {
 
 		  var newGamePlayer = new models.Session.sessionPlayerModel({
 			  sessionId: game.id,
-			  playerId: newPlayer.id,
-        playerUsername: newPlayer.username
+			  playerId: newPlayer.id
 		  });
 
 		  newGamePlayer.save(function(err) {
@@ -316,21 +333,16 @@ var uploadToken = function(req, res) {
                 return res.err(err);  
                }
 
-               sockets.updateSessionLibrary(res.locals.game.name + "/" + res.locals.game.ownerUsername, {
+               sockets.updateSessionLibrary(res.locals.game.id, res.locals.game.name + "/" + res.locals.game.ownerUsername);
+
+              
+               res.json({
                           'url': config.getConfig().specialConfigs.awsUrl + publicPath,
                           'thumbnail': config.getConfig().specialConfigs.awsUrl + publicPath + config.getConfig().specialConfigs.imageSize.thumb.type,
                           'type': req.body.type,
                           'name': req.files.assetFile.name
-                       });
-
-	       res.json({
-                          'url': config.getConfig().specialConfigs.awsUrl + publicPath,
-                          'thumbnail': config.getConfig().specialConfigs.awsUrl + publicPath + config.getConfig().specialConfigs.imageSize.thumb.type,
-                          'type': req.body.type,
-                          'name': req.files.assetFile.name
-                       });
-
-               //res.json('File uploaded to game library');               
+                       });     
+    
            });
         });
 };
@@ -358,6 +370,7 @@ var removeToken = function(req, res) {
 
 };
 
+module.exports.gridPage = gridPage;
 module.exports.joinSessionPage = joinSessionPage;
 module.exports.createSession = createSession;
 module.exports.loadSession = loadSession;

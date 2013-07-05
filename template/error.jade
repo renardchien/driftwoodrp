@@ -1,7 +1,37 @@
-extends base
-
-block body
-  h2 #{err.name} #{code}
-  p #{err.message}
-
-    
+!!! 5
+html(lang='en')
+  head
+    meta(charset='utf-8')
+    meta(http-equiv='X-UA-Compatible', content='IE=edge,chrome=1')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    // SEO Validation Tags
+    meta(name='msvalidate.01', content='TODO: Fill me in!')
+    meta(name='google-site-verification', content='TODO: Fill me in!')
+    title Driftwood 0.0.1
+    // Application styles
+    link(rel='stylesheet', href='/css/libs/bootstrap/bootstrap.css')
+    link(rel='stylesheet', href='/css/libs/font-awesome/font-awesome.css')
+    link(rel='stylesheet', href='/scripts/libs/colorpicker/css/colorpicker.css')
+    link(rel='stylesheet', href='/css/main.css')
+    // Site Web Fonts
+  body
+    // BEGIN: Main wrapper
+    #Main.error-page
+      // BEGIN: header
+      header.header
+      // END: header
+      // BEGIN: Main container
+      section.main(role='main')
+        .error
+          section
+            img(id="logo", src='/images/driftwoodlogo.png')
+          section.error-code
+            h4 #{err.message}
+            a(href="/") Return to Lobby
+          br
+          section
+            a(href='/policy/tos.txt', target="_blank") Terms of Service, Privacy Policy & Contact
+      // END: main container
+      // BEGIN: footer
+      footer.footer
+      // END: footer

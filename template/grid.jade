@@ -1,0 +1,8 @@
+!!! 5
+html
+  body
+    svg(width='3000', height='3000', xmlns='http://www.w3.org/2000/svg')
+      defs
+        pattern#grid(width='#{size}', height='#{size}', patternunits='userSpaceOnUse')
+          path.grid-path(d='M #{size} 0 L 0 0 0 #{size}', fill='none', stroke='#{color}', stroke-width='1')
+      rect(width='3000', height='3000', fill='url(#grid)')
