@@ -655,43 +655,31 @@ $(document).ready(function() {
         return this.handleHotKeys('switchObjectLayer',e,'gm_layer');
       }, this ) );
       $body.bind('keydown.1', _.bind( function(e) {
-        $body.find('.commands [data-cmd="switchLayer"][data-cmd-value="map_layer"]').trigger('click');
-        return false;
+        return this.handleHotKeys('switchLayer',e,'map_layer');
       }, this ) );
       $body.bind('keydown.2', _.bind( function(e) {
-        $body.find('.commands [data-cmd="switchLayer"][data-cmd-value="object_layer"]').trigger('click');
-        return false;
+        return this.handleHotKeys('switchLayer',e,'object_layer');
       }, this ) );
       $body.bind('keydown.3', _.bind( function(e) {
-        if( ! driftwood.engine.player.isGM() ) {
-          return true;
-        }
-        $body.find('.commands [data-cmd="switchLayer"][data-cmd-value="gm_layer"]').trigger('click');
-        return false;
+        return this.handleHotKeys('switchLayer',e,'gm_layer');
       }, this ) );
       $body.bind('keydown.s', _.bind( function(e) {
-        $body.find('.commands [data-cmd="selectCanvas"]').trigger('click');
-        return false;
+        return this.handleHotKeys('selectCanvas',e);
       }, this ) );
       $body.bind('keydown.f', _.bind( function(e) {
-        $body.find('.commands [data-cmd="draw"][data-cmd-value="free"]').trigger('click');
-        return false;
+        return this.handleHotKeys('draw',e,'free');
       }, this ) );
       $body.bind('keydown.r', _.bind( function(e) {
-        $body.find('.commands [data-cmd="draw"][data-cmd-value="rectangle"]').trigger('click');
-        return false;
+        return this.handleHotKeys('draw',e,'rectangle');
       }, this ) );
       $body.bind('keydown.c', _.bind( function(e) {
-        $body.find('.commands [data-cmd="draw"][data-cmd-value="circle"]').trigger('click');
-        return false;
+        return this.handleHotKeys('draw',e,'circle');
       }, this ) );
       $body.bind('keydown.meta_shift_up', _.bind( function(e) {
-        $body.find('.commands [data-cmd="zoomIn"]').trigger('click');
-        return false;
+        return this.handleHotKeys('zoomIn',e);
       }, this ) );
       $body.bind('keydown.meta_shift_down', _.bind( function(e) {
-        $body.find('.commands [data-cmd="zoomOut"]').trigger('click');
-        return false;
+        return this.handleHotKeys('zoomOut',e);
       }, this ) );
     },
 
@@ -708,6 +696,17 @@ $(document).ready(function() {
       //Can't do this if they're not a gm
       if( data === 'gm_layer' && ! driftwood.engine.player.isGM() ) {
         return true;
+      }
+
+      //These commands are command pallete commands (need to trigger click)
+      if( ['switchLayer','selectCanvas','draw','zoomIn','zoomOut'].indexOf(command) !== -1 ) {
+        console.log(command,data);
+        var selector = '.commands [data-cmd="'+command+'"]';
+        if( data ) {
+          selector += '[data-cmd-value="'+data+'"]';
+        }
+        $body.find(selector).trigger('click');
+        return false;
       }
       return this.sendContextCommand(command,e,data)
     },

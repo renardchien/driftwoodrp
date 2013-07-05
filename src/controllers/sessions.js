@@ -45,7 +45,7 @@ var gridPage = function(req, res) {
   if(!size || isNaN(size) || !isFinite(size)) {
     size = 80;
   }
-
+  res.contentType('image/svg+xml');
   res.render('grid', { color: color, size: size});
 };
 
