@@ -116,6 +116,12 @@ var attachHandlers = function(config) {
 	  });
   };
 
+  var requiresTosAgreement = function(req, res, next) { 
+    if(!req.session.tosAgreement) {
+      return res.redirect('/termsAgreement');
+    }
+    next();
+  };
 
   var requiresAuth = function(req, res, next) {
     if (req.session && req.session.player) {
@@ -222,6 +228,7 @@ var attachHandlers = function(config) {
 	  requests: requests,
     responses: responses,
     csrf: csrf,
+    requiresTosAgreement: requiresTosAgreement,
 	  requiresOwnership: requiresOwnership,
 	  requiresPermission: requiresPermission,
     requiresNoAuth: requiresNoAuth,

@@ -96,6 +96,12 @@ if(!tutorial) {
   tutorial = "";
 }
 
+var tos = fs.readFileSync(__dirname + '/../assets/policy/tos.txt');
+
+if (!tos) {
+  process.exit(5);
+}
+
 var getLogger = function(){
 	if(!logger){
 		var now = new Date();
@@ -124,7 +130,8 @@ var getConfig = function(){
 		liveUrl: liveUrl,
 		databaseURI: databaseURI,
                 specialConfigs: specialConfigs,
-    tutorial: tutorial
+    tutorial: tutorial,
+    tos: tos
 	};
 };
 

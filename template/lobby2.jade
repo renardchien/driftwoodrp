@@ -43,6 +43,8 @@ html(lang='en')
           - if(games.length)
             section
               .control-group
+                a.icon-refresh(href="/joinGame/#{player.username}"): a.refresh(href="/joinGame/#{player.username}") Refresh 
+              .control-group
                 label.control-label(for='name') Games
                 .controls.games
                   ol.unstyled

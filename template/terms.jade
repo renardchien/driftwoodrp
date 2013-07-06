@@ -1,0 +1,42 @@
+!!! 5
+html(lang='en')
+  head
+    meta(charset='utf-8')
+    meta(http-equiv='X-UA-Compatible', content='IE=edge,chrome=1')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    // SEO Validation Tags
+    meta(name='msvalidate.01', content='TODO: Fill me in!')
+    meta(name='google-site-verification', content='TODO: Fill me in!')
+    title Driftwood 0.0.1
+    // Application styles
+    link(rel='stylesheet', href='/css/libs/bootstrap/bootstrap.css')
+    link(rel='stylesheet', href='/css/libs/font-awesome/font-awesome.css')
+    link(rel='stylesheet', href='/scripts/libs/colorpicker/css/colorpicker.css')
+    link(rel='stylesheet', href='/css/main.css')
+    // Site Web Fonts
+  body
+    // BEGIN: Main wrapper
+    #Main.terms-page
+      // BEGIN: header
+      header.header
+      // END: header
+      // BEGIN: Main container
+      section.main(role='main')
+        form#termsForm.terms(action='/acceptTerms', method='post')
+          input(type='hidden', name='_csrf', value='#{session._csrf}')    
+          input(type='hidden', name='redirect', value='#{redirect}')
+          img(id="logo", src='/images/driftwoodlogo.png')
+          .control-group
+            .controls
+              textarea(readonly) #{tos}
+          .control-group
+            .controls
+              a.btn.btn-primary(href='/logout') I Disagree
+              input.btn.btn-primary(type="submit", value="I Agree") 
+      // END: main container
+      // BEGIN: footer
+      footer.footer
+      // END: footer
+      #scripts
+        script(src='/scripts/libs/jquery/jquery.js')
+    // END: Main wrapper

@@ -63,6 +63,7 @@ var login = function(req, res){
 		}
 
 		req.session.player = player.api();
+
 		res.redirect('/joinGame/' + req.session.player.username);
 	});
 };
@@ -86,6 +87,30 @@ var resetPasswordPage = function(req, res){
 
 var changePasswordPage = function(req, res){
   res.render('password-change', {title: 'Driftwood Change Password'});
+};
+
+var acceptTerms = function(req, res) {
+  var redirect = req.body.redirect;
+
+  if(!redirect || redirect === "") {
+    redirect = "/";
+  }
+
+  req.session.tosAgreement = true;
+
+  res.redirect(redirect);
+};
+
+var termsPage = function(req, res, redirect) {
+  res.render('terms', {redirect: redirect, tos: config.getConfig().tos});
+};
+
+var termsRedirect = function(req, res) {
+  termsPage(req, res, '/');
+};
+
+var registerTermsPage = function(req, res) {
+  termsPage(req, res, '/createAccount');
 };
 
 var createAccount = function(req, res){
@@ -218,3 +243,6 @@ module.exports.changePasswordPage = changePasswordPage;
 module.exports.resetPassword = resetPassword;
 module.exports.resetPasswordPage = resetPasswordPage;
 module.exports.registerPage = registerPage;
+module.exports.registerTermsPage = registerTermsPage;
+module.exports.termsRedirect = termsRedirect;
+module.exports.acceptTerms = acceptTerms;

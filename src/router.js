@@ -33,6 +33,9 @@ var router = function(app, controllers, mid) {
 	app.post('/login', mid.requiresNoAuth, controllers.Players.login);
   app.get('/logout', controllers.Players.logout);
   app.post('/logout', controllers.Players.logout);
+  app.post('/acceptTerms', controllers.Players.acceptTerms);
+  app.get('/termsAgreement', controllers.Players.termsRedirect);
+  app.get('/createTerms', controllers.Players.registerTermsPage);
   app.get('/createAccount', mid.requiresNoAuth, controllers.Players.registerPage);
 	app.post('/createAccount', mid.requiresNoAuth, controllers.Players.createAccount);
   app.get('/resetPassword', controllers.Players.resetPasswordPage);
@@ -40,7 +43,7 @@ var router = function(app, controllers, mid) {
 	app.get('/changePassword', mid.requiresAuth, controllers.Players.changePasswordPage);	
 	app.post('/changePassword', mid.requiresAuth, controllers.Players.changePassword);	
   app.get('/grid.svg', mid.requiresAuth, controllers.Sessions.gridPage);
-	app.get('/joinGame/:player', mid.requiresAuth, mid.requiresOwnership, controllers.Sessions.joinSessionPage);
+	app.get('/joinGame/:player', mid.requiresAuth, mid.requiresTosAgreement, mid.requiresOwnership, controllers.Sessions.joinSessionPage);
 	app.post('/createGame/:player', mid.requiresAuth, mid.requiresOwnership, controllers.Sessions.createSession);
 	app.get('/game/:player/:gameName', mid.requiresAuth, mid.attachGame, controllers.Sessions.loadSession);
 	app.post('/addPlayer/:player/:gameName', mid.requiresAuth, mid.requiresOwnership, mid.attachGame, controllers.Sessions.addPlayer);
