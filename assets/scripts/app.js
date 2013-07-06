@@ -481,6 +481,12 @@ $(document).ready(function() {
         }
       }, this));
 
+      this.socket.on('sessionLibraryUpdate', _.bind( function(data) {
+        console.log('Object Library Updated');
+       // this.settings.objects = data;
+       // this.objects = new ObjectList({load:this.settings.objects});
+      }, this));
+
       this.socket.on('gameSettingsChanged', _.bind( function(data) {
         console.log('Game settings changed',data);
         this.updateSettingsWithoutDispatch(data);
@@ -1114,7 +1120,6 @@ $(document).ready(function() {
           contentType: false,
           type: 'POST',
           success: function(data) {
-            //socket.emit('newUpload', data)
             scope.processServerData(data);
           },
          error: function( jqXHR, textStatus, errorThrown ) {
