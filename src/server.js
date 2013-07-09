@@ -35,6 +35,7 @@ var connect = require('connect');
 var cookie = require('cookie');
 var Session = connect.middleware.session.Session;
 var compass = require('node-compass');
+var sync = require('sync');
 
 
 log.info("Initializing");
@@ -48,28 +49,6 @@ mongoose.connect(config.getConfig().databaseURI, function (err, res) {
   } else {
     log.info ('Succeeded connected to: ' + config.getConfig().databaseURI);
   }
-});
-
-var shutdown = function(sig) {
-  if (typeof sig === "string") {
-    log.info(Date(Date.now()) + ': Received ' + sig +
-      ' - terminating Node server ...');
-    mongoose.connection.close();
-    log.info('disconnected from database');
-    process.exit(0);
-  }
-};
-
-process.on('exit', function() {
-   log.info("Exit event captured");
-   shutdown();
-});
-
-['SIGHUP', 'SIGINT', 'SIGQUIT', 'SIGILL', 'SIGTRAP', 'SIGABRT', 'SIGBUS',
-  'SIGFPE', 'SIGUSR1', 'SIGSEGV', 'SIGUSR2', 'SIGPIPE', 'SIGTERM'].forEach(function(element, index, array) {
-  process.on(element, function() {
-    shutdown(element);
-  });
 });
 
 var app = express();
@@ -107,6 +86,7 @@ var ioRedis = require('socket.io/node_modules/redis');
 var ioPub = ioRedis.createClient();
 var ioSub = ioRedis.createClient();
 var ioClient = ioRedis.createClient();
+var socketStorage = ioRedis.createClient();
 var sockets = require('./sockets.js');
 
 io.set('store', new IoStore({
@@ -143,13 +123,60 @@ io.configure(function() {
 
 });
 
-sockets.configureSockets(io);
+sockets.configureSockets(io, socketStorage);
+
+var clearRedisSockets = function() {
+  sync(function() {
+    socketStorage.keys("storagePlayer:*", function(err, keys) {
+      if(keys) {
+        socketStorage.del(keys, function(err) {});
+      }
+    });
+    
+    log.info('Player sockets removed');
+
+    socketStorage.keys("storageGameRoom:*", function(err, key) {
+      if(key) {
+        socketStorage.del(key, function(err) {});
+      }
+    });
+
+    log.info('Game Room sockets removed');
+  });
+};
+
+//If the environment is not production, this clears out the sockets stored in redis to remove old data
+if(config.getConfig().environment !== 'production' ) {
+  sync(function() {
+    clearRedisSockets();  
+  });
+}
 
 server.listen(config.getConfig().port, function() {
 	module.exports.app = app;
 	log.info('Server started on port ' + config.getConfig().port);
 });
 
+var shutdown = function(sig) {
+    if (typeof sig === "string") {
+      log.info(Date(Date.now()) + ': Received ' + sig +
+        ' - terminating Node server ...');
+      mongoose.connection.close();
+      log.info('disconnected from database');
+      log.info('clearing redis player sockets');
+      process.exit(0);
+    }
+};
 
+process.on('exit', function() {
+   log.info("Exit event captured");
+   shutdown();
+});
 
+['SIGHUP', 'SIGINT', 'SIGQUIT', 'SIGILL', 'SIGTRAP', 'SIGABRT', 'SIGBUS',
+  'SIGFPE', 'SIGUSR1', 'SIGSEGV', 'SIGUSR2', 'SIGPIPE', 'SIGTERM'].forEach(function(element, index, array) {
+  process.on(element, function() {
+    shutdown(element);
+  });
+});
 
