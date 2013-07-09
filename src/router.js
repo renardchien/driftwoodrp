@@ -35,6 +35,7 @@ var router = function(app, controllers, mid) {
   app.post('/logout', controllers.Players.logout);
   app.post('/acceptTerms', controllers.Players.acceptTerms);
   app.get('/termsAgreement', controllers.Players.termsRedirect);
+  app.get('/terms', controllers.Players.termsConditions);
   app.get('/createTerms', controllers.Players.registerTermsPage);
   app.get('/createAccount', mid.requiresNoAuth, controllers.Players.registerPage);
 	app.post('/createAccount', mid.requiresNoAuth, controllers.Players.createAccount);

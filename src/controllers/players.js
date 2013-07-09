@@ -101,6 +101,10 @@ var acceptTerms = function(req, res) {
   res.redirect(redirect);
 };
 
+var termsConditions = function(req, res) {
+  res.render('terms2', {tos: config.getConfig().tos});
+};
+
 var termsPage = function(req, res, redirect) {
   res.render('terms', {redirect: redirect, tos: config.getConfig().tos});
 };
@@ -246,3 +250,4 @@ module.exports.registerPage = registerPage;
 module.exports.registerTermsPage = registerTermsPage;
 module.exports.termsRedirect = termsRedirect;
 module.exports.acceptTerms = acceptTerms;
+module.exports.termsConditions = termsConditions;

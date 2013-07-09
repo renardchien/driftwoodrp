@@ -22,17 +22,11 @@ html(lang='en')
       // END: header
       // BEGIN: Main container
       section.main(role='main')
-        form#termsForm.terms(action='/acceptTerms', method='post')
-          input(type='hidden', name='_csrf', value='#{session._csrf}')    
-          input(type='hidden', name='redirect', value='#{redirect}')
+        #termsForm.terms
           img(id="logo", src='/images/driftwoodlogo.png')
           .control-group
             .controls
               textarea(readonly) #{tos}
-          .control-group
-            .controls
-              a.btn.btn-primary(href='/logout') I Disagree
-              input.btn.btn-primary(type="submit", value="I Agree") 
       // END: main container
       // BEGIN: footer
       footer.footer
