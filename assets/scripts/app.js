@@ -615,43 +615,43 @@ $(document).ready(function() {
         this.handleHotKeys('delete',e);
         return false;
       }, this ) );
-      $body.bind('keydown.shift_c', _.bind( function(e) {
+      $body.bind('keydown.meta_c', _.bind( function(e) {
         return this.handleHotKeys('copy',e);
       }, this ) );
-      $body.bind('keydown.shift_v', _.bind( function(e) {
+      $body.bind('keydown.meta_v', _.bind( function(e) {
         return this.handleHotKeys('paste',e);
       }, this ) );
-      $body.bind('keydown.shift_x', _.bind( function(e) {
+      $body.bind('keydown.meta_x', _.bind( function(e) {
         return this.handleHotKeys('cut',e);
       }, this ) );
       //Lock objects
-      $body.bind('keydown.shift_l', _.bind( function(e) {
+      $body.bind('keydown.meta_l', _.bind( function(e) {
         return this.handleHotKeys('lockObject',e);
       }, this ) );
       //Unlock objects
-      $body.bind('keydown.shift_u', _.bind( function(e) {
+      $body.bind('keydown.meta_u', _.bind( function(e) {
         return this.handleHotKeys('unlockObject',e);
       }, this ) );
       //
-      $body.bind('keydown.shift_up', _.bind( function(e) {
+      $body.bind('keydown.meta_up', _.bind( function(e) {
         return this.handleHotKeys('moveObject',e,'toFront');
       }, this ) );
-      $body.bind('keydown.shift_down', _.bind( function(e) {
+      $body.bind('keydown.meta_down', _.bind( function(e) {
         return this.handleHotKeys('moveObject',e,'toBack');
       }, this ) );
-      $body.bind('keydown.shift_left', _.bind( function(e) {
+      $body.bind('keydown.meta_left', _.bind( function(e) {
         return this.handleHotKeys('moveObject',e,'backwards');
       }, this ) );
-      $body.bind('keydown.shift_right', _.bind( function(e) {
+      $body.bind('keydown.meta_right', _.bind( function(e) {
         return this.handleHotKeys('moveObject',e,'forwards');
       }, this ) );
-      $body.bind('keydown.shift_1', _.bind( function(e) {
+      $body.bind('keydown.meta_1', _.bind( function(e) {
         return this.handleHotKeys('switchObjectLayer',e,'map_layer');
       }, this ) );
-      $body.bind('keydown.shift_2', _.bind( function(e) {
+      $body.bind('keydown.meta_2', _.bind( function(e) {
         return this.handleHotKeys('switchObjectLayer',e,'object_layer');
       }, this ) );
-      $body.bind('keydown.shift_3', _.bind( function(e) {
+      $body.bind('keydown.meta_3', _.bind( function(e) {
         return this.handleHotKeys('switchObjectLayer',e,'gm_layer');
       }, this ) );
       $body.bind('keydown.1', _.bind( function(e) {
@@ -663,7 +663,7 @@ $(document).ready(function() {
       $body.bind('keydown.3', _.bind( function(e) {
         return this.handleHotKeys('switchLayer',e,'gm_layer');
       }, this ) );
-      $body.bind('keydown.s', _.bind( function(e) {
+      $body.bind('keydown.m', _.bind( function(e) {
         return this.handleHotKeys('selectCanvas',e);
       }, this ) );
       $body.bind('keydown.f', _.bind( function(e) {
@@ -1443,6 +1443,7 @@ $(document).ready(function() {
           $this.closest('.command').addClass('open');
         }, scope.subMenuDelay );
         e.preventDefault();
+        e.stopPropagation();
       } );
 
       //Clears the longpress timer
@@ -1456,6 +1457,7 @@ $(document).ready(function() {
           return false;
         }
         scope.commandClicked(this);
+        e.stopPropagation();
       } );
       $body.on('click',function() {
         $body.find('.command.open').removeClass('open');
@@ -2849,7 +2851,8 @@ $(document).ready(function() {
             this.setOverlaySize();
             this.setEditorSize();
           },
-          Out: function() {
+          Out: function(e) {
+            console.log(e);
             // TODO limit max cavas zoom out
             canvasScale = canvasScale / SCALE_FACTOR;
             //Set canvas size
