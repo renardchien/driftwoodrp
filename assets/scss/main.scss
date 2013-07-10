@@ -60,7 +60,7 @@ select {
 .main {
   display: table;
 }
-.login-page .main,.register-page .main, .reset-pass-page .main, .change-pass-page .main, .lobby-page .main, .error-page .main {
+.login-page .main,.register-page .main, .reset-pass-page .main, .change-pass-page .main, .lobby-page .main, .error-page .main, .terms-page .main {
   display: block;
   background: #ffffff url('../images/driftwoodimage.jpg') no-repeat top left fixed;
   -webkit-background-size: cover;
@@ -82,7 +82,8 @@ select {
 .register,
 .reset-password,
 .change-password,
-.lobby {
+.lobby,
+.terms {
   position: relative;
   top: 22%;
   @include box-sizing(border-box);
@@ -113,6 +114,14 @@ select {
   text-align: center;
 }
 
+.terms {
+  width: 500px;
+  textarea {
+    height: 400px;
+    width: 420px;
+  }
+}
+
 .lobby {
   position: relative;
   width: 400px;
@@ -128,6 +137,10 @@ select {
     top: 10px;
     right: 20px;
     cursor: pointer;
+  }
+
+  .refresh {
+    margin-left: 5px;
   }
 }
 

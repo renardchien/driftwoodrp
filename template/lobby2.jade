@@ -40,8 +40,10 @@ html(lang='en')
             .control-group
               .controls
                 input.btn.btn-primary(type='submit', value='Create Game')
-          - if(games.length)
             section
+              .control-group
+                a.icon-refresh(href="/joinGame/#{player.username}"): a.refresh(href="/joinGame/#{player.username}") Refresh 
+          - if(games.length)
               .control-group
                 label.control-label(for='name') Games
                 .controls.games
@@ -49,7 +51,7 @@ html(lang='en')
                     each game in games
                       li: a(href="/game/#{game.ownerUsername}/#{game.name}") #{game.name} by #{game.ownerDisplayName}
           section
-            a(href='/policy/tos.txt', target="_blank") Terms of Service, Privacy Policy & Contact
+            a(href='/terms', target="_blank") Terms of Service, Privacy Policy & Contact
       // END: main container
       // BEGIN: footer
       footer.footer

@@ -16,22 +16,25 @@ html(lang='en')
     // Site Web Fonts
   body
     // BEGIN: Main wrapper
-    #Main.error-page
+    #Main.terms-page
       // BEGIN: header
       header.header
       // END: header
       // BEGIN: Main container
       section.main(role='main')
-        .error
-          section
-            img(id="logo", src='/images/driftwoodlogo.png')
-          section.error-code
-            h4 #{err.message}
-            a(href="/") Return to Lobby
-          br
-          section
-            a(href='/terms', target="_blank") Terms of Service, Privacy Policy & Contact
+        form#termsForm.terms(action='/acceptTerms', method='post')
+          input(type='hidden', name='_csrf', value='#{session._csrf}')    
+          input(type='hidden', name='redirect', value='#{redirect}')
+          img(id="logo", src='/images/driftwoodlogo.png')
+          .control-group
+            .controls
+              textarea(readonly) #{tos}
+          .control-group
+            .controls
+              a.btn.btn-primary(href='/logout') I Disagree
+              input.btn.btn-primary(type="submit", value="I Agree") 
       // END: main container
       // BEGIN: footer
       footer.footer
       // END: footer
+    // END: Main wrapper

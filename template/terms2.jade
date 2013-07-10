@@ -16,22 +16,19 @@ html(lang='en')
     // Site Web Fonts
   body
     // BEGIN: Main wrapper
-    #Main.error-page
+    #Main.terms-page
       // BEGIN: header
       header.header
       // END: header
       // BEGIN: Main container
       section.main(role='main')
-        .error
-          section
-            img(id="logo", src='/images/driftwoodlogo.png')
-          section.error-code
-            h4 #{err.message}
-            a(href="/") Return to Lobby
-          br
-          section
-            a(href='/terms', target="_blank") Terms of Service, Privacy Policy & Contact
+        #termsForm.terms
+          img(id="logo", src='/images/driftwoodlogo.png')
+          .control-group
+            .controls
+              textarea(readonly) #{tos}
       // END: main container
       // BEGIN: footer
       footer.footer
       // END: footer
+    // END: Main wrapper

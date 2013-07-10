@@ -26,11 +26,13 @@ var utils = require('./utils');
 var log = config.getLogger();
 
 var io;
+var socketStorage;
 
 var clients = {};
 
-var configureSockets = function(socketio) {
+var configureSockets = function(socketio, storageio) {
   io = socketio;
+  socketStorage = storageio;
   io.sockets.on('connection', function(socket) {
 
     socket.on('join', function(data) {
@@ -98,24 +100,44 @@ var configureSockets = function(socketio) {
 						  });
 					  }}, function(err, doc) {
 
-              if(!clients[socket.room]) {
-                clients[socket.room] = {};
-              } 
-               
-              if(!clients[socket.room][player.username]) {
-                clients[socket.room][player.username] = [];
-              }
+//              if(!clients[socket.room]) {
+//                clients[socket.room] = {};
+//              } 
+//               
+//              if(!clients[socket.room][player.username]) {
+//                clients[socket.room][player.username] = [];
+//              }
 
-              clients[socket.room][player.username].push(socket);
-              
-              io.sockets.in(socket.room).emit('playerJoined', { user: {username: player.username, displayName: player.displayName, type: player.type} });
+//              clients[socket.room][player.username].push(socket);
 
-						  socket.emit('joined', { user: {username: player.username, displayName: player.displayName, type: player.type, isOwner: player.isOwner}, 
-                                      chatSession: chatHistory, 
-                                      objectLibrary: objectLibrary, 
-                                      canvas: game.canvas } );
+              socket.storageGamePlayer = "storagePlayer:" + socket.room + "/" + player.username;
+              socket.storageGameRoom = "storageGameRoom:" + socket.room;
+                
+              socketStorage.sadd(socket.storageGamePlayer, socket.id, function(err, success) {
 
-              returnGamePlayerList(socket);
+                if(err) {
+                  sendSystemMessage(socket, 'error', 'join', 'An error occurred trying to connect to the game. Please try again.');
+                  return socket.disconnect();
+                }
+
+                socketStorage.sadd(socket.storageGameRoom, socket.storageGamePlayer, function(err, success) {
+
+                  if(err) {
+                    socketStorage.srem(socket.storageGamePlayer, socket.id);
+                    sendSystemMessage(socket, 'error', 'join', 'An error occurred trying to connect to the game. Please try again.');
+                    return socket.disconnect();
+                  }
+
+                  io.sockets.in(socket.room).emit('playerJoined', { user: {username: player.username, displayName: player.displayName, type: player.type} });
+
+						      socket.emit('joined', { user: {username: player.username, displayName: player.displayName, type: player.type, isOwner: player.isOwner}, 
+                                          chatSession: chatHistory, 
+                                          objectLibrary: objectLibrary, 
+                                          canvas: game.canvas } );
+
+                  returnGamePlayerList(socket);
+                });
+              });
 
 					  }
 				  );
@@ -201,10 +223,19 @@ var configureSockets = function(socketio) {
 		        permission.remove();
 
             sendSystemMessage(socket, 'success', 'removePlayer', data.playerUsername + ' was removed from the game');
-            _.each(clients[socket.room][data.playerUsername], function(playerSocket) {
-              playerSocket.disconnect();
+//            _.each(clients[socket.room][data.playerUsername], function(playerSocket) {
+//              playerSocket.disconnect();
+//            });
+//            delete clients[socket.room][data.playerUsername];
+
+
+            socketStorage.smembers("storagePlayer:" + socket.room + "/" + data.playerUsername, function (err, members) {
+              _.each(members, function(playerSocket) {
+                io.sockets.socket(playerSocket).disconnect();
+              });
+
             });
-            delete clients[socket.room][data.playerUsername];
+
             returnGamePlayerList(socket, true);
 	        });
 	
@@ -342,9 +373,16 @@ var configureSockets = function(socketio) {
     });
 
 	  socket.on('disconnect', function(data) {
-	  var player = socket.handshake.session.player;
-      delete clients[socket.room][player.username];
+	    var player = socket.handshake.session.player;
+      //delete clients[socket.room][player.username];
 
+      socketStorage.srem(socket.storageGamePlayer, socket.id);
+
+      socketStorage.smembers(socket.storageGamePlayer, function(err, members) {
+        if(!members || members.length === 0) {
+          socketStorage.srem(socket.storageGameRoom, socket.storageGamePlayer);
+        }
+      });
 
 		  socket.leave(socket.room);
       io.sockets.in(socket.room).emit('playerLeft',  {username: player.username, displayName: player.displayName, type: player.type});
@@ -385,9 +423,15 @@ var addGM = function(data, socket) {
 
         sendSystemMessage(socket, 'success', 'addGM', data.playerUsername + ' has been promoted to a GM');
 
-        _.each(clients[socket.room][data.playerUsername], function(playerSocket) {
-          sendSystemMessage(playerSocket, 'updatePlayer', 'addGM', 'You have been promoted to a GM. Please reload the page to access your new GM abilities');
-        });
+//        _.each(clients[socket.room][data.playerUsername], function(playerSocket) {
+//          sendSystemMessage(playerSocket, 'updatePlayer', 'addGM', 'You have been promoted to a GM. Please reload the page to access your new GM abilities');
+//        });
+
+          socketStorage.smembers("storagePlayer:" + socket.room + "/" + data.playerUsername, function (err, members) {
+            _.each(members, function(playerSocket) {
+              sendSystemMessage(io.sockets.socket(playerSocket), 'updatePlayer', 'addGM', 'You have been promoted to a GM. Please reload the page to access your new GM abilities');
+            });
+          });
 
         returnGamePlayerList(socket, true);
       });
@@ -428,9 +472,15 @@ var removeGM = function(data, socket) {
 
         sendSystemMessage(socket, 'success', 'removeGM', data.playerUsername + ' has been made into a normal player');
 
-        _.each(clients[socket.room][data.playerUsername], function(playerSocket) {
-          sendSystemMessage(playerSocket, 'updatePlayer', 'removeGM', 'You have been made into a normal player. Please reload the page to access your new abilities');
-        });
+//        _.each(clients[socket.room][data.playerUsername], function(playerSocket) {
+//          sendSystemMessage(playerSocket, 'updatePlayer', 'removeGM', 'You have been made into a normal player. Please reload the page to access your new abilities');
+//        });
+
+          socketStorage.smembers("storagePlayer:" + socket.room + "/" + data.playerUsername, function (err, members) {
+            _.each(members, function(playerSocket) {
+              sendSystemMessage(io.sockets.socket(playerSocket), 'updatePlayer', 'removeGM', 'You have been made into a normal player. Please reload the page to access your new abilities');
+            });
+          });
 
         returnGamePlayerList(socket, true);
       });
