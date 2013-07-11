@@ -621,43 +621,43 @@ $(document).ready(function() {
         this.handleHotKeys('delete',e);
         return false;
       }, this ) );
-      $body.bind('keydown.meta_c', _.bind( function(e) {
+      $body.bind('keydown.ctrl_c keydown.meta_c', _.bind( function(e) {
         return this.handleHotKeys('copy',e);
       }, this ) );
-      $body.bind('keydown.meta_v', _.bind( function(e) {
+      $body.bind('keydown.ctrl_v keydown.meta_v', _.bind( function(e) {
         return this.handleHotKeys('paste',e);
       }, this ) );
-      $body.bind('keydown.meta_x', _.bind( function(e) {
+      $body.bind('keydown.ctrl_x keydown.meta_x', _.bind( function(e) {
         return this.handleHotKeys('cut',e);
       }, this ) );
       //Lock objects
-      $body.bind('keydown.meta_l', _.bind( function(e) {
+      $body.bind('keydown.ctrl_shift_l keydown.meta_shift_l', _.bind( function(e) {
         return this.handleHotKeys('lock',e);
       }, this ) );
       //Unlock objects
-      $body.bind('keydown.meta_u', _.bind( function(e) {
+      $body.bind('keydown.ctrl_shift_u keydown.meta_shift_u', _.bind( function(e) {
         return this.handleHotKeys('unlock',e);
       }, this ) );
       //
-      $body.bind('keydown.meta_up', _.bind( function(e) {
+      $body.bind('keydown.ctrl_up keydown.meta_up', _.bind( function(e) {
         return this.handleHotKeys('moveObject',e,'toFront');
       }, this ) );
-      $body.bind('keydown.meta_down', _.bind( function(e) {
+      $body.bind('keydown.ctrl_down keydown.meta_down', _.bind( function(e) {
         return this.handleHotKeys('moveObject',e,'toBack');
       }, this ) );
-      $body.bind('keydown.meta_left', _.bind( function(e) {
+      $body.bind('keydown.ctrl_left keydown.meta_left', _.bind( function(e) {
         return this.handleHotKeys('moveObject',e,'backwards');
       }, this ) );
-      $body.bind('keydown.meta_right', _.bind( function(e) {
+      $body.bind('keydown.ctrl_right keydown.meta_right', _.bind( function(e) {
         return this.handleHotKeys('moveObject',e,'forwards');
       }, this ) );
-      $body.bind('keydown.meta_1', _.bind( function(e) {
+      $body.bind('keydown.ctrl_1 keydown.meta_1', _.bind( function(e) {
         return this.handleHotKeys('switchObjectLayer',e,'map_layer');
       }, this ) );
-      $body.bind('keydown.meta_2', _.bind( function(e) {
+      $body.bind('keydown.ctrl_2 keydown.meta_2', _.bind( function(e) {
         return this.handleHotKeys('switchObjectLayer',e,'object_layer');
       }, this ) );
-      $body.bind('keydown.meta_3', _.bind( function(e) {
+      $body.bind('keydown.ctrl_3 keydown.meta_3', _.bind( function(e) {
         return this.handleHotKeys('switchObjectLayer',e,'gm_layer');
       }, this ) );
       $body.bind('keydown.1', _.bind( function(e) {
@@ -681,10 +681,10 @@ $(document).ready(function() {
       $body.bind('keydown.c', _.bind( function(e) {
         return this.handleHotKeys('draw',e,'circle');
       }, this ) );
-      $body.bind('keydown.meta_shift_up', _.bind( function(e) {
+      $body.bind('keydown.ctrl_shift_up keydown.meta_shift_up', _.bind( function(e) {
         return this.handleHotKeys('zoomIn',e);
       }, this ) );
-      $body.bind('keydown.meta_shift_down', _.bind( function(e) {
+      $body.bind('keydown.ctrl_shift_down keydown.meta_shift_down', _.bind( function(e) {
         return this.handleHotKeys('zoomOut',e);
       }, this ) );
     },
