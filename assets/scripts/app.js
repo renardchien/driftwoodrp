@@ -1125,7 +1125,7 @@ $(document).ready(function() {
           type: 'POST',
           success: function(data) {
             console.log(data);
-            scope.processServerData(data);
+            //scope.processServerData(data);
           },
           error: function( jqXHR, textStatus, errorThrown ) {
             console.log(jqXHR);
