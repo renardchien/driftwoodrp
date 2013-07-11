@@ -9,20 +9,19 @@
  *    - Delete
  *  - Zoom
  *    - Need fit to screen zoom
- *    - When switching from zoom to another action, it zooms on click
- *    - When zooming it would be nice to try and maintain centering, instead of from top left
+ *    - Zooming in twice makes the canvas disappear? wtf? It's still there in the inspector
  *  - Color pickers 
  *    - Are missing transparent or "none" option
  *    - Need to close color picker on mouse up or have some button to accept color
- *   - Selection
- *     - Selecting two or more items seems to move them to the top of the stack. This only
- *       seems to happen for the user selecting, not on other players screens. Possibly
- *       something to do with it being a group vs a single item
- *     - Dragging off canvas will do browser selection on other items (just get the browser blue selection)
- *   - Right clicking on a non selected object brings up a menu for the selected object. It should
- *     shift selection to that object and open a menu for that
- *   - When a player leaves, they maintain "control" over an object so others can't move it. Need to remove
- *     control when a player leaves (or add a "does this player exist" check when updating for player)
+ *  - Selection
+ *    - Selecting two or more items seems to move them to the top of the stack. This only
+ *      seems to happen for the user selecting, not on other players screens. Possibly
+ *      something to do with it being a group vs a single item
+ *    - Dragging off canvas will do browser selection on other items (just get the browser blue selection)
+ *  - Right clicking on a non selected object brings up a menu for the selected object. It should
+ *    shift selection to that object and open a menu for that
+ *  - When a player leaves, they maintain "control" over an object so others can't move it. Need to remove
+ *    control when a player leaves (or add a "does this player exist" check when updating for player)
  *  
  */
 var DEV = false;
@@ -632,11 +631,11 @@ $(document).ready(function() {
       }, this ) );
       //Lock objects
       $body.bind('keydown.meta_l', _.bind( function(e) {
-        return this.handleHotKeys('lockObject',e);
+        return this.handleHotKeys('lock',e);
       }, this ) );
       //Unlock objects
       $body.bind('keydown.meta_u', _.bind( function(e) {
-        return this.handleHotKeys('unlockObject',e);
+        return this.handleHotKeys('unlock',e);
       }, this ) );
       //
       $body.bind('keydown.meta_up', _.bind( function(e) {
@@ -1462,7 +1461,7 @@ $(document).ready(function() {
           return false;
         }
         scope.commandClicked(this);
-        e.stopPropagation();
+        //e.stopPropagation();
       } );
       $body.on('click',function() {
         $body.find('.command.open').removeClass('open');
@@ -1926,10 +1925,6 @@ $(document).ready(function() {
           this.contextMenu = false;
         }
       }, this ) );
-
-      $body.on('change', '.editor-color', _.bind( function(e) {
-        console.log(e);
-      }, this ) );
       
     },
 
@@ -1967,7 +1962,7 @@ $(document).ready(function() {
       //console.log('Loading Data',JSON.parse(data));
       this.canvas.loadFromJSON(data, _.bind( function() {
         var _objects = this.canvas.getObjects();
-        console.log(_objects);
+        //console.log(_objects);
         if( _objects.length ) {
            _objects.forEach(_.bind( function(object) {
             this.updateObjectForPlayer(object);
@@ -2198,6 +2193,7 @@ $(document).ready(function() {
     },
 
     setEditorSize: function() {
+      //console.log('Setting editor size');
       this.$canvasPadding.css({
         width: this.$canvasContainer.outerWidth(),
         height: this.$canvasContainer.outerHeight()
@@ -2767,6 +2763,7 @@ $(document).ready(function() {
     },
     //Sets overlay size to size of the canvasWrapper
     setOverlaySize: function() {
+      //console.log('Setting overlay size');
       this.$editorOverlay.hide();
       //If there is no scroll, set it to size 100%
       var width = this.$canvasWrapper.outerWidth() >= this.$canvasWrapper[0].scrollWidth ? '100%' : this.$canvasWrapper[0].scrollWidth,
@@ -2855,9 +2852,9 @@ $(document).ready(function() {
             canvas.renderAll();
             this.setOverlaySize();
             this.setEditorSize();
+            this.center();
           },
           Out: function(e) {
-            console.log(e);
             // TODO limit max cavas zoom out
             canvasScale = canvasScale / SCALE_FACTOR;
             //Set canvas size
@@ -2883,10 +2880,11 @@ $(document).ready(function() {
 
                 objects[i].setCoords();
             }
-            this.setOverlaySize();
-            this.setEditorSize();
             this.canvasScale = canvasScale;
             canvas.renderAll();
+            this.setEditorSize();
+            this.setOverlaySize();
+            this.center();
           }
         };
       },
