@@ -71,13 +71,13 @@ select {
   background-color: rgba(241, 241, 245, 0.9);
   border: 1px solid #aaaacc; }
   /* line 95, ../scss/main.scss */
-  .login img,
-  .error img,
-  .register img,
-  .reset-password img,
-  .change-password img,
-  .lobby img,
-  .terms img {
+  .login img#logo,
+  .error img#logo,
+  .register img#logo,
+  .reset-password img#logo,
+  .change-password img#logo,
+  .lobby img#logo,
+  .terms img#logo {
     margin-bottom: 20px; }
   /* line 98, ../scss/main.scss */
   .login .control-label,
