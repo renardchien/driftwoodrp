@@ -631,11 +631,11 @@ $(document).ready(function() {
         return this.handleHotKeys('cut',e);
       }, this ) );
       //Lock objects
-      $body.bind('keydown.ctrl_shift_l keydown.meta_shift_l', _.bind( function(e) {
+      $body.bind('keydown.ctrl_l keydown.meta_l', _.bind( function(e) {
         return this.handleHotKeys('lock',e);
       }, this ) );
       //Unlock objects
-      $body.bind('keydown.ctrl_shift_u keydown.meta_shift_u', _.bind( function(e) {
+      $body.bind('keydown.ctrl_u keydown.meta_u', _.bind( function(e) {
         return this.handleHotKeys('unlock',e);
       }, this ) );
       //
