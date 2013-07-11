@@ -9,7 +9,7 @@
  *    - Delete
  *  - Zoom
  *    - Need fit to screen zoom
- *    - Zooming in twice makes the canvas disappear? wtf? It's still there in the inspector
+ *    - Zooming in twice makes the canvas disappear? This appears to be a memory problem with a big canvas.
  *  - Color pickers 
  *    - Are missing transparent or "none" option
  *    - Need to close color picker on mouse up or have some button to accept color
@@ -482,6 +482,7 @@ $(document).ready(function() {
 
       this.socket.on('sessionLibraryUpdate', _.bind( function(data) {
         console.log('Object Library Updated');
+        this.objects.loadData(data);
        // this.settings.objects = data;
        // this.objects = new ObjectList({load:this.settings.objects});
       }, this));
@@ -1089,9 +1090,13 @@ $(document).ready(function() {
       this.addEventListeners();
       //Run test data
       if( this.options.load ) {
-        $(this.el).empty();
-        this.addToList(this.options.load);
+        this.loadData(this.options.load);
       }
+    },
+
+    loadData: function(data) {
+      $(this.el).empty();
+      this.addToList(data);
     },
 
     addEventListeners: function() {
@@ -1119,9 +1124,10 @@ $(document).ready(function() {
           contentType: false,
           type: 'POST',
           success: function(data) {
+            console.log(data);
             scope.processServerData(data);
           },
-         error: function( jqXHR, textStatus, errorThrown ) {
+          error: function( jqXHR, textStatus, errorThrown ) {
             console.log(jqXHR);
          }
         });
@@ -1154,6 +1160,7 @@ $(document).ready(function() {
       }
 
       _.each( objects, _.bind( function(object) {
+        object.canDelete = false;//object.isOwner ? true : false;
         $(this.el).append(this.template(object));
       }, this ) );
 

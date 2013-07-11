@@ -322,6 +322,7 @@ html(lang='en')
         <div class="preview"><img src="<%= thumbnail %>"/></div>
         <p class="name"><%= name %></p>
         <p class="muted"><%= type %></p>
+        <% if( canDelete ) { %>
         <div class="dropdown menu">
         <div class="dropdown-toggle" data-toggle="dropdown" href="#">
         <b class="icon-caret-down"></b>
@@ -331,6 +332,7 @@ html(lang='en')
         <li><a tabindex="-1" href="#">Delete</a></li>
         </ul>
         </div>
+        <% } %>
         </li>
       #uploadModal.modal.hide.fade(tabindex='-1', role='dialog', aria-labelledby='uploadLabel', aria-hidden='true')
         .modal-header
