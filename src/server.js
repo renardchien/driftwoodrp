@@ -35,8 +35,6 @@ var connect = require('connect');
 var cookie = require('cookie');
 var Session = connect.middleware.session.Session;
 var compass = require('node-compass');
-var sync = require('sync');
-
 
 log.info("Initializing");
 
@@ -126,7 +124,6 @@ io.configure(function() {
 sockets.configureSockets(io, socketStorage);
 
 var clearRedisSockets = function() {
-  sync(function() {
     socketStorage.keys("storagePlayer:*", function(err, keys) {
       if(keys) {
         socketStorage.del(keys, function(err) {});
@@ -142,14 +139,11 @@ var clearRedisSockets = function() {
     });
 
     log.info('Game Room sockets removed');
-  });
 };
 
 //If the environment is not production, this clears out the sockets stored in redis to remove old data
 if(config.getConfig().environment !== 'production' ) {
-  sync(function() {
     clearRedisSockets();  
-  });
 }
 
 server.listen(config.getConfig().port, function() {
