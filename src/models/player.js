@@ -56,7 +56,7 @@ var PlayerSchema = new mongoose.Schema({
 			type: String,
 			trim: true,
 			required: true,
-			match: /^[A-Za-z0-9_\-\.\+]+@[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]{2,4}$/
+			match: /^[A-Za-z0-9_\-\.\+]+@[A-Za-z0-9_\-\.]+[A-Za-z0-9_\-]\.[A-Za-z0-9_\-]{2,4}$/
            	},
   createdDate:  {
 			type: Date,
