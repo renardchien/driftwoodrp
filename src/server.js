@@ -157,7 +157,6 @@ var shutdown = function(sig) {
         ' - terminating Node server ...');
       mongoose.connection.close();
       log.info('disconnected from database');
-      log.info('clearing redis player sockets');
       process.exit(0);
     }
 };

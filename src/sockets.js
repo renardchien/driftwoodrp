@@ -35,6 +35,10 @@ var configureSockets = function(socketio, storageio) {
   socketStorage = storageio;
   io.sockets.on('connection', function(socket) {
 
+    if(!socket.handshake.session) {
+      return socket.disconnect('Session has expired');
+    }
+
     socket.on('join', function(data) {
 
       middleware.findGame(data.gameName, data.owner, function(err, game) {
