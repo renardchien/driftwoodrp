@@ -1398,10 +1398,10 @@ $(document).ready(function() {
       return text.replace(/((https?\:&#x2F;&#x2F;)|(www\.))(\S+)(\w{2,4})(:[0-9]+)?(&#x2F;|&#x2F;([\w#!:.?+=&%@!\-&#x2F;]))?/gi,
             function(url){
                 var full_url = url;
-                if (!full_url.match('^https?:\/\/')) {
+                /**if (!full_url.match('^https?:\/\/')) {
                     full_url = 'http://' + full_url;
-                }
-                return '<a href="' + full_url + '">' + url + '</a>';
+                }**/
+                return '<a href="' + full_url + '" target="_blank">' + url + '</a>';
             });
     },
 
