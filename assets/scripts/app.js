@@ -1315,8 +1315,38 @@ $(document).ready(function() {
      * Sends the message off to the server via a socket
      */
     sendMessage: function(input) {
+      var die = new RegExp("^\/\/[1-9][0-9]{0,1}d[1-9][0-9]{0,1}$");
       var $input = $(input),
           message = $input.val();
+
+      if(typeof message === 'string') {
+        if(die.test(message)) {
+          var diequery = message.substring(2);
+          var rolls = [];
+          var rollsplit = diequery.split("d");
+          var rollnum = rollsplit[0];
+          var dice = rollsplit[1];
+          
+          try {
+            rollnum = parseInt(rollnum);
+            dice = parseInt(dice);
+          }
+          catch(e) {
+            rollnum = 0;
+            dice = 0;
+          }
+
+          for(var i = 0; i < rollnum; i++){
+            var roll = Math.floor(Math.random() * dice) + 1;
+            rolls.push(roll);
+          }
+
+          if(rolls.length > 0){      
+            message = "Rolled (" + diequery + ") " + rolls;
+          }
+          
+        }
+      } 
       //Clear the input
       $input.val('');
       //Send chat to server
