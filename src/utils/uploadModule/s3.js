@@ -59,7 +59,7 @@ var uploadStream = function(fileStream, publicPath, fileExtension, callback) {
 
     var completeBuffer = Buffer.concat(buffers);
 
-    s3.client.putObject({
+    s3.putObject({
       Bucket: awsBucket,
       Key: publicPath,
       Body: completeBuffer,

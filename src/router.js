@@ -19,10 +19,11 @@ under the License.
 
 var config = require('./config');
 var express = require('express');
+var csrf = require('csurf'); 
 
 var router = function(app, controllers, mid) {
 	if(config.getConfig.environment !== 'test'){
-		app.use(express.csrf());
+		app.use(csrf());
 	}
  
   app.use(mid.requests);
@@ -53,7 +54,7 @@ var router = function(app, controllers, mid) {
 	app.post('/removeGM/:player/:gameName', mid.requiresAuth, mid.requiresOwnership, mid.attachGame, controllers.Sessions.removeGM);
 	app.post('/uploadToken/:player/:gameName', mid.requiresAuth, mid.attachGame, controllers.Sessions.uploadToken);
 	app.post('/removeToken/:player/:gameName', mid.requiresAuth, mid.attachGame, controllers.Sessions.removeToken);
-  app.get('*', mid.requiresNoAuth, controllers.Players.loginPage);
+  //app.get('*', mid.requiresNoAuth, controllers.Players.loginPage);
 };
 
 module.exports = router;

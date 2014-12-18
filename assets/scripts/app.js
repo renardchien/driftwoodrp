@@ -3380,44 +3380,44 @@ $(document).ready(function() {
       //TODO: maybe these get loaded in via socket on connect?
       objects: [
         {
-          url: '/images/driftwoodtutorial.png',
-          thumbnail: '/images/driftwoodtutorial.png',
+          url: '/assets/images/driftwoodtutorial.png',
+          thumbnail: '/assets/images/driftwoodtutorial.png',
           type: 'token',
           name: 'Tutorial'
         },
         {
-          url: '/images/tmp/goblin.png',
-          thumbnail: '/images/tmp/goblin.png',
+          url: '/assets/images/tmp/goblin.png',
+          thumbnail: '/assets/images/tmp/goblin.png',
           type: 'token',
           name: 'Goblin'
         },
         {
-          url: '/images/tmp/paladin.png',
-          thumbnail: '/images/tmp/paladin.png',
+          url: '/assets/images/tmp/paladin.png',
+          thumbnail: '/assets/images/tmp/paladin.png',
           type: 'token',
           name: 'Paladin'
         },
         {
-          url: '/images/tmp/fighter.png',
-          thumbnail: '/images/tmp/fighter.png',
+          url: '/assets/images/tmp/fighter.png',
+          thumbnail: '/assets/images/tmp/fighter.png',
           type: 'token',
           name: 'Warrior'
         },
         {
-          url: '/images/tmp/map.jpg',
-          thumbnail: '/images/tmp/map.jpg',
+          url: '/assets/images/tmp/map.jpg',
+          thumbnail: '/assets/images/tmp/map.jpg',
           type: 'map',
           name: 'Map of Taul'
         },
         {
-          url: '/images/tmp/mage.png',
-          thumbnail: '/images/tmp/mage.png',
+          url: '/assets/images/tmp/mage.png',
+          thumbnail: '/assets/images/tmp/mage.png',
           type: 'token',
           name: 'Mage'
         },
         {
-          url: '/images/tmp/treasureChest.png',
-          thumbnail: '/images/tmp/treasureChest.png',
+          url: '/assets/images/tmp/treasureChest.png',
+          thumbnail: '/assets/images/tmp/treasureChest.png',
           type: 'item',
           name: 'Treasure Chest'
         },

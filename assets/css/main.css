@@ -44,7 +44,8 @@ select {
   -moz-background-size: cover;
   -o-background-size: cover;
   background-size: cover;
-  overflow: auto; }
+  overflow: auto;
+  transition: background 0.5s ease; }
 
 /* line 73, ../scss/main.scss */
 .main, .editor, .panel {
@@ -69,6 +70,7 @@ select {
   margin: 0 auto;
   padding: 30px;
   background-color: rgba(241, 241, 245, 0.9);
+  border-radius: 10px;
   border: 1px solid #aaaacc; }
   /* line 95, ../scss/main.scss */
   .login img#logo,

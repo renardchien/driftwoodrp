@@ -19,8 +19,13 @@
 	"environment": "development",
         "liveUrl": "yourURL.com",
         "url": "http://127.0.0.1",
-	"port": 3000,
-        "databaseURI": "mongodb://localhost/Driftwood"
+	      "port": 3000,
+        "databaseURI": "mongodb://localhost/Driftwood",
+        "redisURL": { 
+			    "hostname": "localhost",
+			    "port": 6379,
+          "pass": "yourRedisAuth"
+        }
 }
 
 

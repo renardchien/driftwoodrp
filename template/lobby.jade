@@ -5,7 +5,7 @@ block body
     a(href='/logout') Logout
   div#changePass
     form(id='changePassForm', action='/changePassword', method='post')
-      input(type='hidden', name='_csrf', value='#{session._csrf}') 
+      input(type='hidden', name='_csrf', value='#{csrfToken}') 
       label(for='currentPass') Current Password
         input(id='changePassCurr', type='password', placeholder='', name='currentPass')
       label(for='newPass') New Password
@@ -15,7 +15,7 @@ block body
       input(id='changePassSubmit', type='submit', value='Change password', name='submit')
   div#createGame
     form(id='createGameForm', action='/createGame/#{player.username}', method='post')
-      input(type='hidden', name='_csrf', value='#{session._csrf}')      
+      input(type='hidden', name='_csrf', value='#{csrfToken}')      
       label(for='create') name
         input(id='createGameName',type='text',placeholder='',name='name')
         input(id='createGameSubmit',type='submit',value='Create Game',name='createGameSubmit')

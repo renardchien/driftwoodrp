@@ -154,7 +154,7 @@ var attachHandlers = function(config) {
       }
 
       if (req.xhr) {
-        return res.json(code, {
+        return res.status(code).json({
           err: {
             name: err.name,
             message: err.message
@@ -205,7 +205,7 @@ var attachHandlers = function(config) {
 
     res.created = function(message) {
       if (req.xhr) {
-        return res.json(201, {
+        return res.status(201).json({
           response: message
         });
       }
@@ -214,7 +214,7 @@ var attachHandlers = function(config) {
 
     res.updated = function(message) {
       if (req.xhr) {
-        return res.json(200, {
+        return res.status(200).json({
           response: message
         });
       }

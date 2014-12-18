@@ -46,6 +46,7 @@ var gridPage = function(req, res) {
     size = 80;
   }
   res.contentType('image/svg+xml');
+  
   res.render('grid', { color: color, size: size});
 };
 
@@ -59,7 +60,7 @@ var joinSessionPage = function(req, res) {
 		var ids = docs.map(function(doc) { return doc.sessionId; });
 
 		models.Session.sessionModel.find({_id: {$in: ids}}).sort('name').exec(function(err, games) {
-			res.render('lobby2', {title: 'Lobby', games: games});
+			res.render('lobby2', {title: 'Lobby', games: games, csrfToken: req.csrfToken()});
 		});
 	});
 };
@@ -121,7 +122,7 @@ var createSession = function(req, res){
 var loadSession = function(req, res) {
 	var game = res.locals.game;
 
-	res.render('game2', {url: url, title: game.name, game: game});
+	res.render('game2', {url: url, title: game.name, game: game, csrfToken: req.csrfToken()});
 };
 
 var addPlayer = function(req, res) {
@@ -276,11 +277,11 @@ var removeGM = function(req, res) {
 var uploadToken = function(req, res) {
 
         if(!(req.files && req.files.assetFile && req.body.type)){
-	  return res.badRequest('Only valid image formats are accepted');
+	        return res.badRequest('Only valid image formats are accepted');
         }
 
         var date = new Date();
- 	var publicPath = date.getMilliseconds();
+ 	      var publicPath = date.getMilliseconds();
         publicPath = publicPath + '' + xxhash.hash(new Buffer(req.session.player.id), 0xCEADBF78);
         publicPath = publicPath + '' + xxhash.hash(new Buffer(res.locals.game.id), 0xCEADBF78);
         publicPath = publicPath + '' + xxhash.hash(new Buffer(req.files.assetFile.name), 0xCEADBF78);

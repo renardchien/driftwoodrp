@@ -17,11 +17,17 @@ specific language governing permissions and limitations
 under the License. 
 **/
 
+var path = require('path');
 var http = require ('http');	     
 var express = require("express");
+var compression = require('compression');  
+var favicon = require('serve-favicon'); 
+var cookieParser = require('cookie-parser'); 
+var bodyParser = require('body-parser'); 
 var mongoose = require("mongoose");
-var RedisStore = require('connect-redis')(express); 
-var sessionStore = new RedisStore();
+var session = require('express-session');
+var Session = session.Session;
+var RedisStore = require('connect-redis')(session); 
 var Schema = mongoose.Schema;
 var bcrypt = require('bcrypt');
 var models = require('./models');
@@ -33,11 +39,10 @@ var middlewareHandlers = middleware.attachHandlers(config);
 var router = require('./router.js');
 var connect = require('connect');
 var cookie = require('cookie');
-var Session = connect.middleware.session.Session;
-var compass = require('node-compass');
+var multer = require('multer');
+//var compass = require('node-compass');
 
 log.info("Initializing");
-
 
 // Makes connection asynchronously.  Mongoose will queue up database
 // operations and release them when the connection is complete.
@@ -49,62 +54,107 @@ mongoose.connect(config.getConfig().databaseURI, function (err, res) {
   }
 });
 
-var app = express();
-app.use(express.limit('4mb'));
-app.use(express.static(__dirname + '/../assets'));
-app.use(express.compress());
-app.use(express.bodyParser());
-app.use(compass());
-app.set('view engine', 'jade');
-app.set('views', __dirname + '/../template');
-app.use(express.cookieParser());
-app.use(express.favicon(__dirname + '/../assets/img/favicon.ico'));
-app.use(express.session({
-	key: 'driftwood.sid',
-	secret: config.getConfig().secretKey,
-	store: sessionStore
-}));
+var sessionStore = new RedisStore({
+	host: config.getConfig().redisURL.hostname,
+  port: config.getConfig().redisURL.port,
+  pass: config.getConfig().redisURL.redisPASS 
+});
 
+var app = express();
+
+app.use('/assets', express.static(path.resolve(__dirname + '/../assets')));
+app.use(compression()); 
+app.use(bodyParser.urlencoded({ 
+  extended: true,
+  limit: '4mb'
+}));
+app.use(multer({ 
+  dest: path.resolve(__dirname + '/../uploads'),
+  limits: {
+    fieldNameSize: 100,
+    fileSize: 4000000
+  }
+  //inMemory: true
+}));
+//app.use(compass());
+app.set('view engine', 'jade'); 
+app.set('views', __dirname + '/../template');
+app.use(favicon(__dirname + '/../assets/img/favicon.ico')); 
+app.disable('x-powered-by'); 
+app.use(cookieParser()); 
+
+app.use(session({
+    key: "driftwood.sid", 
+    store: sessionStore,
+    secret: config.getConfig().secretKey,
+    resave: true,
+    saveUninitialized: true
+})); 
+
+/**
 compass({
   project: __dirname + '/../template',
   css: 'css',
   sass: 'sass'
-});
+}); **/
 
 app.locals.pretty = config.getConfig().environment !== 'production';
 
 router(app, controllers, middlewareHandlers);
 
-app.use(app.router);
+var server = app.listen(config.getConfig().port, function(err) { 
+    if (err) {
+      throw err;
+    }
+	module.exports.app = app;
+	log.info('Server started on port ' + config.getConfig().port);
+});
 
-var server = http.createServer(app);
 var io = require('socket.io').listen(server);
+/**
 var IoStore = require('socket.io/lib/stores/redis');
-var ioRedis = require('socket.io/node_modules/redis');
+var ioRedis = require('redis');
 var ioPub = ioRedis.createClient();
-var ioSub = ioRedis.createClient();
-var ioClient = ioRedis.createClient();
-var socketStorage = ioRedis.createClient();
+var ioSub = ioRedis.createClient(); 
+var ioClient = ioRedis.createClient(); **/
+var ioRedis = require('socket.io-redis')
+
+var ioRedisClient = require('socket.io-redis/node_modules/redis').createClient,
+    ropts = {/* your redis options */}, subOpts = { detect_buffers:true },
+    pub = ropts.socket ? ioRedisClient(ropts.socket) : ioRedisClient(ropts.port, ropts.host),
+    sub = ropts.socket ? ioRedisClient(ropts.socket, subOpts) : ioRedisClient(ropts.port, ropts.host, subOpts);
+if (ropts.pass) {
+    pub.auth(ropts.pass, function(err) { if (err) { throw err; } });
+    sub.auth(ropts.pass, function(err) { if (err) { throw err; } });
+}
+io.adapter(require('socket.io-redis')({
+    pubClient:pub, subClient:sub
+}));
+
+var socketStorage = ioRedisClient();
 var sockets = require('./sockets.js');
 
+/**
 io.set('store', new IoStore({
   redisPub: ioPub, 
   redisSub: ioSub,
   redisClient: ioClient
-}));
+})); **/
+/**
+io.adapter(ioredis({
+    host: 'localhost',
+    port: 6379
+})) **/
 
-io.set('log level', 1) //level 0 is error, level 1 is warn, level 2 is info and level 3 is debug 
+io.use(function(socket, callback) { 
 
-io.configure(function() {
-	io.set('authorization', function(data, callback) {
-		if(!data.headers.cookie) {
+		if(!socket.handshake.headers.cookie) {
 			return callback(new Error("No cookie on authorization"));
 		}
 
-		data.cookie = cookie.parse(data.headers.cookie);
-		data.sessionId = data.cookie['driftwood.sid'].substring(2, 26);
-		sessionStore.load(data.sessionId, function(err, session) {
-			
+		socket.cookie = cookie.parse(socket.handshake.headers.cookie);
+		socket.sessionId = socket.cookie['driftwood.sid'].substring(2, 34);
+		sessionStore.load(socket.sessionId, function(err, session) {
 			if(err || !session) {
 				return callback(new Error('Session not found'));
 			}
@@ -113,16 +163,18 @@ io.configure(function() {
 				return callback(new Error('User is not authenticated'));
 			}
 
-			data.session = new Session(data, session);
+			socket.session = new Session(socket, session);
 
 			callback(null, true);
 		});
-	});
 
 });
 
 sockets.configureSockets(io, socketStorage);
+//sockets.configureSockets(io, socketStorage);
 
+
+/**
 var clearRedisSockets = function() {
     socketStorage.keys("storagePlayer:*", function(err, keys) {
       if(keys) {
@@ -144,12 +196,7 @@ var clearRedisSockets = function() {
 //If the environment is not production, this clears out the sockets stored in redis to remove old data
 if(config.getConfig().environment !== 'production' ) {
     clearRedisSockets();  
-}
-
-server.listen(config.getConfig().port, function() {
-	module.exports.app = app;
-	log.info('Server started on port ' + config.getConfig().port);
-});
+}**/
 
 var shutdown = function(sig) {
     if (typeof sig === "string") {

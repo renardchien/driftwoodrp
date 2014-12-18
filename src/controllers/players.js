@@ -74,19 +74,19 @@ var logout = function(req, res){
 };
 
 var loginPage = function(req, res){
-	res.render('signin', {title: 'Driftwood Login'});
+	res.render('signin', {title: 'Driftwood Login', csrfToken: req.csrfToken()});
 };
 
 var registerPage = function(req, res){
-	res.render('register', {title: 'Driftwood Registration'});
+	res.render('register', {title: 'Driftwood Registration', csrfToken: req.csrfToken()});
 };
 
 var resetPasswordPage = function(req, res){
-	res.render('reset-password', {title: 'Driftwood Password Reset'});
+	res.render('reset-password', {title: 'Driftwood Password Reset', csrfToken: req.csrfToken()});
 };
 
 var changePasswordPage = function(req, res){
-  res.render('password-change', {title: 'Driftwood Change Password'});
+  res.render('password-change', {title: 'Driftwood Change Password', csrfToken: req.csrfToken()});
 };
 
 var acceptTerms = function(req, res) {
@@ -102,11 +102,11 @@ var acceptTerms = function(req, res) {
 };
 
 var termsConditions = function(req, res) {
-  res.render('terms2', {tos: config.getConfig().tos});
+  res.render('terms2', {tos: config.getConfig().tos, csrfToken: req.csrfToken()});
 };
 
 var termsPage = function(req, res, redirect) {
-  res.render('terms', {redirect: redirect, tos: config.getConfig().tos});
+  res.render('terms', {redirect: redirect, tos: config.getConfig().tos, csrfToken: req.csrfToken()});
 };
 
 var termsRedirect = function(req, res) {

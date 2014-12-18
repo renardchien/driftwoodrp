@@ -68,6 +68,7 @@ select {
   -o-background-size: cover;
   background-size: cover;
   overflow: auto;
+  transition: background 0.5s ease;
 }
 //Make sure everything we want gets the correct box sizing
 .main, .editor, .panel {
@@ -92,6 +93,7 @@ select {
   padding: 30px;
   background-color: rgba(241, 241, 245, 0.9);
   border: 1px solid #aaaacc;
+  border-radius: 10px;
   img#logo  {
     margin-bottom: 20px;
   }

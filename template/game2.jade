@@ -1,4 +1,3 @@
-!!! 5
 html(lang='en')
   head
     meta(charset='utf-8')
@@ -9,10 +8,10 @@ html(lang='en')
     meta(name='google-site-verification', content='TODO: Fill me in!')
     title Driftwood 0.0.1
     // Application styles
-    link(rel='stylesheet', href='/css/libs/bootstrap/bootstrap.css')
-    link(rel='stylesheet', href='/css/libs/font-awesome/font-awesome.css')
-    link(rel='stylesheet', href='/scripts/libs/colorpicker/css/colorpicker.css')
-    link(rel='stylesheet', href='/css/main.css')
+    link(rel='stylesheet', href='/assets/css/libs/bootstrap/bootstrap.css')
+    link(rel='stylesheet', href='/assets/css/libs/font-awesome/font-awesome.css')
+    link(rel='stylesheet', href='/assets/scripts/libs/colorpicker/css/colorpicker.css')
+    link(rel='stylesheet', href='/assets/css/main.css')
     // Site Web Fonts
   body
     // BEGIN: Main wrapper
@@ -93,7 +92,7 @@ html(lang='en')
                     option(value='token') Token
                     option(value='map') Map
                     option(value='item') Item
-                  input(type='hidden', name='_csrf', value='#{session._csrf}')  
+                  input(type='hidden', name='_csrf', value='#{csrfToken}')  
                   input(type='hidden', name='uploadUrl', value='/uploadToken/#{game.ownerUsername}/#{game.name}')
                   .file-upload.select-file.btn.btn-primary
                     | Upload
@@ -113,24 +112,24 @@ html(lang='en')
       footer.footer
       // END: footer
       #scripts
-        script(src='/scripts/libs/jquery/jquery.js')
-        script(src='/scripts/libs/jquery/jquery-ui-1.10.3.custom.js')
-        script(src='/scripts/libs/jquery/scrollTo.js')
-        script(src='/scripts/libs/jquery/hotkeys.js')
-        script(src='/scripts/libs/bootstrap/bootstrap.js')
-        script(src='/scripts/libs/underscore/underscore.js')
-        script(src='/scripts/libs/backbone/backbone.js')
-        script(src='/scripts/libs/fabric/all.js')
-        script(src='/scripts/libs/colorpicker/js/colorpicker.js')
-        script(src='/scripts/libs/colorpicker/js/eye.js')
-        script(src='/scripts/libs/colorpicker/js/utils.js')
+        script(src='/assets/scripts/libs/jquery/jquery.js')
+        script(src='/assets/scripts/libs/jquery/jquery-ui-1.10.3.custom.js')
+        script(src='/assets/scripts/libs/jquery/scrollTo.js')
+        script(src='/assets/scripts/libs/jquery/hotkeys.js')
+        script(src='/assets/scripts/libs/bootstrap/bootstrap.js')
+        script(src='/assets/scripts/libs/underscore/underscore.js')
+        script(src='/assets/scripts/libs/backbone/backbone.js')
+        script(src='/assets/scripts/libs/fabric/all.js')
+        script(src='/assets/scripts/libs/colorpicker/js/colorpicker.js')
+        script(src='/assets/scripts/libs/colorpicker/js/eye.js')
+        script(src='/assets/scripts/libs/colorpicker/js/utils.js')
         script(src='/socket.io/socket.io.js')
-        script
+        script.
           var liveUrl = "#{url}";
           var gamename = "#{game.name}";
           var owner = "#{game.ownerUsername}";
-        script(src='/scripts/app.js')
-      script#settingsPanelTemplate(type='text/template')
+        script(src='/assets/scripts/app.js')
+      script#settingsPanelTemplate(type='text/template').
         <% if( isGM ) { %>
         <h2>Editor</h2>
         <div class="control-group">

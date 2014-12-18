@@ -18,6 +18,7 @@ under the License.
 **/
 
 var nodemailer = require('nodemailer');
+var sesTransport = require('nodemailer-ses-transport');
 var config = require('../../config.js');
 var logger = config.getLogger();
 
@@ -30,10 +31,11 @@ if(!awsKey || !awsSecret || !sesEmail) {
   process.exit(5);
 }
 
-var transport = nodemailer.createTransport("SES", {
+var transport = nodemailer.createTransport(sesTransport({
   AWSAccessKeyID: config.getConfig().specialConfigs.awsKey,
-  AWSSecretKey: config.getConfig().specialConfigs.awsSecret
-});
+  AWSSecretKey: config.getConfig().specialConfigs.awsSecret,
+  rateLimit: 5
+}));
 
 var sendMail = function(to, subject, text) {
   var mailOptions = {

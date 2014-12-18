@@ -26,6 +26,11 @@ var secretKey = '970fa453de9e7e9598096e52296b3bc18c782a7491056a7bd9e027b219173aa
 var port = 3000;
 var url = "http://127.0.0.1";
 var databaseURI = 'mongodb://localhost/Driftwood';
+var redisURL = {
+  hostname: 'localhost',
+  port: 6379,
+  pass: undefined
+};
 var liveUrl = 'http//127.0.0.1:3000';
 var specialConfigs = {};
 
@@ -48,45 +53,46 @@ else{
 	var configData = JSON.parse(contents);
 	environment = configData.environment;
 	port = configData.port; 
-        url = configData.url;
+  url = configData.url;
 	databaseURI = configData.databaseURI;
+  redisURL = configData.redisURL;
 
-        if(!environment || !port || !url || !databaseURI || !configData.liveUrl) {
- 	  console.log("ERROR: MISSING CONFIGURATION DATA, SHUTTING DOWN!");
-          process.exit(5);
-        }
+  if(!environment || !port || !url || !databaseURI || !configData.liveUrl || !redisURL) {
+    console.log("ERROR: MISSING CONFIGURATION DATA, SHUTTING DOWN!");
+    process.exit(5);
+  }
 
-        if(environment === 'production' ) {
-          liveUrl = configData.liveUrl;
-        } else {
-	  liveUrl = url + ':' + port;
-        }
+  if(environment === 'production' ) {
+    liveUrl = configData.liveUrl;
+  } else {
+    liveUrl = url + ':' + port;
+  }
 }
 
 var files = fs.readdirSync(__dirname + '/configs');
 
 if(files) {
-        var jsonExt = new RegExp(/\.(json)$/i);
+  var jsonExt = new RegExp(/\.(json)$/i);
 
-  	for(var i = 0; i < files.length; i++) {
-	    if(jsonExt.test(files[i])) {
-		  contents = fs.readFileSync(__dirname + '/configs/' + files[i]);
-		  if(!contents) {
-		    console.log("Config file " + files[i] + " could not be read");
-		  } 
-		  else {
-		    var configData = JSON.parse(contents);
-	 
-	 	    for(var k in configData) {
-			specialConfigs[k] = configData[k];
-		    }
- 
-                    console.log('Loaded config ' + files[i]);
-		  }
+	for(var i = 0; i < files.length; i++) {
+    if(jsonExt.test(files[i])) {
+	    contents = fs.readFileSync(__dirname + '/configs/' + files[i]);
+	    if(!contents) {
+	      console.log("Config file " + files[i] + " could not be read");
 	    } 
-            else {
- 	       	console.log('Ignoring non-json config file ' + files[i]);
-            }
+      else {
+        var configData = JSON.parse(contents);
+
+        for(var k in configData) {
+          specialConfigs[k] = configData[k];
+        }
+
+        console.log('Loaded config ' + files[i]);
+      }
+    } 
+    else {
+   	  console.log('Ignoring non-json config file ' + files[i]);
+    }
  	}
 }
 
@@ -124,12 +130,13 @@ var getLogger = function(){
 var getConfig = function(){
 	return {
 		environment: environment,
-                secretKey: secretKey,
+    secretKey: secretKey,
 		port: port,
-                url: url,
+    url: url,
 		liveUrl: liveUrl,
 		databaseURI: databaseURI,
-                specialConfigs: specialConfigs,
+    redisURL: redisURL,
+    specialConfigs: specialConfigs,
     tutorial: tutorial,
     tos: tos
 	};

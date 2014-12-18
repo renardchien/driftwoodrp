@@ -1,4 +1,3 @@
-!!! 5
 html(lang='en')
   head
     meta(charset='utf-8')
@@ -9,10 +8,10 @@ html(lang='en')
     meta(name='google-site-verification', content='TODO: Fill me in!')
     title Driftwood 0.0.1
     // Application styles
-    link(rel='stylesheet', href='/css/libs/bootstrap/bootstrap.css')
-    link(rel='stylesheet', href='/css/libs/font-awesome/font-awesome.css')
-    link(rel='stylesheet', href='/scripts/libs/colorpicker/css/colorpicker.css')
-    link(rel='stylesheet', href='/css/main.css')
+    link(rel='stylesheet', href='/assets/css/libs/bootstrap/bootstrap.css')
+    link(rel='stylesheet', href='/assets/css/libs/font-awesome/font-awesome.css')
+    link(rel='stylesheet', href='/assets/scripts/libs/colorpicker/css/colorpicker.css')
+    link(rel='stylesheet', href='/assets/css/main.css')
     // Site Web Fonts
   body
     // BEGIN: Main wrapper
@@ -23,7 +22,7 @@ html(lang='en')
       // BEGIN: Main container
       section.main(role='main')
         #termsForm.terms
-          img(id="logo", src='/images/driftwoodlogo.png')
+          img(id="logo", src='/assets/images/driftwoodlogo.png')
           .control-group
             .controls
               textarea(readonly) #{tos}
