@@ -344,9 +344,18 @@ var uploadToken = function(req, res) {
                   });
                }
               
+                var path = config.getConfig().specialConfigs.awsUrl + this.publicPath;
+                var thumbPath = path + config.getConfig().specialConfigs.imageSize.thumb.type;
+
+                if(config.getConfig().specialConfigs.imgLocalHosting) {
+                  path = "/assets/uploads/" + this.name;
+                  thumbPath = path;
+                }
+
+
                res.json({
-                          'url': config.getConfig().specialConfigs.awsUrl + publicPath,
-                          'thumbnail': config.getConfig().specialConfigs.awsUrl + publicPath + config.getConfig().specialConfigs.imageSize.thumb.type,
+                          'url': path,
+                          'thumbnail': thumbPath,
                           'type': req.body.type,
                           'name': req.files.assetFile.name
                        });   
