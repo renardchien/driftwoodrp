@@ -672,6 +672,10 @@ $(document).ready(function() {
       $body.bind('keydown.m', _.bind( function(e) {
         return this.handleHotKeys('selectCanvas',e);
       }, this ) );
+      //Draw text
+      /**$body.bind('keydown.t', _.bind( function(e) {
+        return this.handleHotKeys('drawText',e);
+      }, this ) );**/
       $body.bind('keydown.f', _.bind( function(e) {
         return this.handleHotKeys('draw',e,'free');
       }, this ) );
@@ -705,6 +709,7 @@ $(document).ready(function() {
       }
 
       //These commands are command pallete commands (need to trigger click)
+      //if( ['switchLayer','selectCanvas','draw','drawText','zoomIn','zoomOut'].indexOf(command) !== -1 ) {
       if( ['switchLayer','selectCanvas','draw','zoomIn','zoomOut'].indexOf(command) !== -1 ) {
         console.log(command,data);
         var selector = '.commands [data-cmd="'+command+'"]';
@@ -1462,7 +1467,6 @@ $(document).ready(function() {
             command = $this.closest('[data-cmd]').data('cmd'),
             value = $this.closest('[data-cmd]').data('cmd-value'),
             $parentIcon = $this.closest('.command').find('.menu-btn b');
-
         //Switches the main button icon/command/command value
         $parentIcon.attr('class',icon);
         $parentIcon.closest('[data-cmd]').attr('data-cmd',command);
@@ -1540,6 +1544,10 @@ $(document).ready(function() {
         case 'draw' :
           driftwood.engine.canvas.trigger('draw',value);
           break;
+        /**
+        case 'drawText' :
+          driftwood.engine.canvas.trigger('drawText',value);
+          break; **/
         case 'switchLayer' :
           driftwood.engine.canvas.trigger('switchLayer',value);
           break;
@@ -1896,6 +1904,7 @@ $(document).ready(function() {
       this.on('moveCanvas', _.bind(this.activateCanvasMove,this));
       this.on('selectCanvas',_.bind(this.activateCanvasSelect,this));
       this.on('draw',_.bind(this.draw,this));
+      //this.on('drawText',_.bind(this.drawText,this));
       this.on('switchLayer',_.bind(this.switchLayer,this));
       this.on('zoomIn',this.zoom.activateZoomIn,this);
       this.on('zoomOut',this.zoom.activateZoomOut,this);
@@ -2687,6 +2696,12 @@ $(document).ready(function() {
       this.zoom.deactivateZoom();
     },
 
+   /**
+   drawText: function(e) {
+      this.canvas.isTypingMode = true;
+      this.drawing.text.startDrawing();
+    }, **/
+
     //Draw something
     draw: function(what) {
       switch(what) {
@@ -2938,8 +2953,95 @@ $(document).ready(function() {
         this.canvas = context.canvas;
         this.circle = this.circleUtil(this.canvas,context);
         this.rectangle = this.rectangleUtil(this.canvas,context);
+        //this.text = this.textUtil(this.canvas,context);
         return this;
       },
+
+
+     
+      /**
+       * Draw Text
+       *
+       * These functions help draw Text. Like always, one to activate/deactivate/
+       * start/stop/draw
+       */   
+      /**   
+      textUtil: function(canvas,context) {
+        return {
+          canvas: canvas,
+    
+          scope: context,
+
+          startDrawing: function(canvas) {
+            this.canvas.selection = false;
+            _.bindAll(this,'startTextDraw','stopTextDraw','drawText');   
+            this.canvas.on('mouse:up', this.startTextDraw);
+            this.canvasWrapper = $body.find('.canvas-wrapper')[0];
+            this.canvasContainer = $body.find('.canvas-container')[0];            
+          },
+          stopDrawing: function() {
+            this.canvas.off('mouse:up', this.startTextDraw);     
+          },
+          startTextDraw: function(event) {
+            this.offsetLeft = this.scope.offsetLeft();
+            this.offsetTop = this.scope.offsetTop();
+            this.startX = this.offsetLeft + event.e.clientX;
+            this.startY = this.offsetTop + event.e.clientY;
+
+            //Don't start if this is already an object
+            if( ! event.target ){
+              //Create our "text"
+              var object = new fabric.Text('wer', {
+                left: this.startX,
+                top: this.startY,
+                originX: 'left',
+                originY: 'top',
+                rx: 20,
+                ry: 20,
+                selectable: false,
+                stroke: driftwood.engine.settings.freeDrawColor,
+                strokeWidth: driftwood.engine.settings.freeDrawWidth,
+                fill: driftwood.engine.settings.freeDrawFill
+              });
+
+              //Add it to the canvas
+              this.canvas.add(object);
+              this.text = object;    
+            }            
+            this.canvas.off('mouse:up', this.startTextDraw); 
+          },
+          stopTextDraw: function(event) {
+            if( this.text ){
+              this.text.selectable = true;
+              this.text.setCoords();
+              this.text = null;    
+            }        
+          },
+          drawText: function(event) {
+            if( this.text ){
+              // Resize object as mouse moves
+              var width = (this.offsetLeft + event.e.clientX - this.startX),
+                  height = (this.offsetTop + event.e.clientY - this.startY),
+                  originX = width > 0 ? 'left' : 'right',
+                  originY = height > 0 ? 'top' : 'bottom';
+
+              this.text.set({
+                rx: Math.abs(width)/2,
+                ry: height/2,
+                originX: originX,
+                originY: originY,
+                width: Math.abs(width), //Always positive
+                height: Math.abs(height) //Always positive
+              }).adjustPosition(originX); //Set our origin point
+              //Render everything
+              this.canvas.renderAll();
+              this.scope.trigger('object:modified', this.text);
+            }            
+          }
+        };
+      }, //END Text Util
+      **/
+
       /**
        * Draw Circle
        *

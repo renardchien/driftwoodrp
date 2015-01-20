@@ -17,25 +17,36 @@ specific language governing permissions and limitations
 under the License. 
 **/
 
-var config = require("../../config.js");    
+var config = require("../../config.js").getConfig();    
 var s3 = require ("./s3.js");
 
 var uploadAsset = function(file, publicPath, callback) {
-  //There should be an if statement here to check if dev or prod for local or s3
-
-  s3.uploadAsset(file, publicPath, callback);
+  
+  if(!config.specialConfigs.imgLocalHosting) {
+    return s3.uploadAsset(file, publicPath, callback);
+  }
+ 
+  return callback(null);
+  
 };
 
 var removeAsset = function(file, callback) {
-  //There should be an if statement here to check if dev or prod for local or s3
+  
+  if(!config.specialConfigs.imgLocalHosting) {
+    return s3.removeAsset(file, callback);
+  }  
 
-  s3.removeAsset(file, callback);
+  return callback(null);
+  
 };
 
 var uploadStream = function(stream, publicPath, extension, callback) {
-  //There should be an if statement here to check if dev or prod for local or s3
 
-  s3.uploadStream(stream, publicPath, extension, callback);
+  if(!config.specialConfigs.imgLocalHosting) {
+    return s3.uploadStream(stream, publicPath, extension, callback);
+  }  
+
+  return callback(null);  
 };
 
 module.exports.uploadAsset = uploadAsset;

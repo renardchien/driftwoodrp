@@ -307,17 +307,17 @@ var uploadToken = function(req, res) {
                undo: function(result, asyncCallback) {
                  utils.uploadModule.removeAsset(publicPath, asyncCallback);
                }
-	    },/////
+	           },/////
              thumb: {
                do: function(asyncCallback) { 
                  var thumb = new utils.imageModule.Image(req.files.assetFile.path);
-		 thumb.resize(config.getConfig().specialConfigs.imageSize.thumb, function(err){
-		   if(err) {
-		     return asyncCallback(err);
-		   }
+		             thumb.resize(config.getConfig().specialConfigs.imageSize.thumb, function(err){
+		               if(err) {
+		                 return asyncCallback(err);
+		               }
 
-		   thumb.uploadStream(publicPath + config.getConfig().specialConfigs.imageSize.thumb.type, asyncCallback); 
-		 });
+		               thumb.uploadStream(publicPath + config.getConfig().specialConfigs.imageSize.thumb.type, asyncCallback); 
+		             });
                },
                undo: function(result, asyncCallback) {
                  utils.uploadModule.removeAsset(publicPath + config.getConfig().specialConfigs.imageSize.thumb.type, asyncCallback); 
@@ -329,21 +329,27 @@ var uploadToken = function(req, res) {
                   if(err) {
                    log.error('Failed to remove session library token ' + publicPath);
                   }
-	        });
+	              });
 
                 return res.err(err);  
                }
 
                sockets.updateSessionLibrary(res.locals.game.id, res.locals.game.name + "/" + res.locals.game.ownerUsername);
 
+               if(!config.getConfig().specialConfigs.imgLocalHosting) {
+                  fs.unlink(req.files.assetFile.path, function(err) {
+                      if (err) {
+                        log.error('Failed to remove temp file from hardware ' + req.files.assetFile.path);
+                      }
+                  });
+               }
               
                res.json({
                           'url': config.getConfig().specialConfigs.awsUrl + publicPath,
                           'thumbnail': config.getConfig().specialConfigs.awsUrl + publicPath + config.getConfig().specialConfigs.imageSize.thumb.type,
                           'type': req.body.type,
                           'name': req.files.assetFile.name
-                       });     
-    
+                       });   
            });
         });
 };

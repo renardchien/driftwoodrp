@@ -197,15 +197,24 @@ SessionPlayerSchema.statics.findPlayerGamePermissionByUsername = function(player
 };
 
 SessionLibrarySchema.virtual('clientObject').get(function() {
+
+  var path = config.getConfig().specialConfigs.awsUrl + this.publicPath;
+  var thumbPath = path + config.getConfig().specialConfigs.imageSize.thumb.type;
+
+  if(config.getConfig().specialConfigs.imgLocalHosting) {
+    path = "/assets/uploads/" + this.name;
+    thumbPath = path;
+  }
+
 	return {
     'publicPath': this.publicPath,
-		'url': config.getConfig().specialConfigs.awsUrl + this.publicPath,
-		'thumbnail': config.getConfig().specialConfigs.awsUrl + this.publicPath + config.getConfig().specialConfigs.imageSize.thumb.type,
+		'url': path,
+		'thumbnail': thumbPath,
 		'type': this.type,
 		'name': this.name,
     'ownerDisplayName': this.playerId.displayName,
     'owner': this.playerId.username
-        }
+  };
 });
 
 SessionLibrarySchema.statics.findByPublicPath = function(publicPath, callback) {

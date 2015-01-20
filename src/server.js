@@ -69,12 +69,11 @@ app.use(bodyParser.urlencoded({
   limit: '4mb'
 }));
 app.use(multer({ 
-  dest: path.resolve(__dirname + '/../uploads'),
+  dest: path.resolve(__dirname + '/../assets/uploads'),
   limits: {
     fieldNameSize: 100,
     fileSize: 4000000
   }
-  //inMemory: true
 }));
 //app.use(compass());
 app.set('view engine', 'jade'); 

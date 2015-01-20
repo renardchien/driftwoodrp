@@ -17,10 +17,17 @@ specific language governing permissions and limitations
 under the License. 
 **/
 
+var config = require("../../config.js").getConfig();
+var log = require("../../config.js").getLogger();
 var ses = require('./ses.js');
 
 var sendMail = function(to, subject, text) {
-  ses.sendMail(to, subject, text);
+
+  if(config.specialConfigs.enableEmailSupport) {
+    ses.sendMail(to, subject, text);
+  }
+  
+  return;
 };
 
 module.exports.sendMail = sendMail;
