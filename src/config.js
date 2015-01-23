@@ -32,6 +32,9 @@ var redisURL = {
   pass: undefined
 };
 var liveUrl = 'http//127.0.0.1:3000';
+var logToFile = true;
+//default log location to log folder. On production linux systems, this is usually moved to /tmp/
+var logLocation = "/../logs/";
 var specialConfigs = {};
 
 var contents = fs.readFileSync(__dirname + '/secrets.json', 'utf8');
@@ -56,9 +59,11 @@ else{
   url = configData.url;
 	databaseURI = configData.databaseURI;
   redisURL = configData.redisURL;
+  logToFile = configData.logToFile;
+  logLocation = configData.logLocation;
 
-  if(!environment || !port || !url || !databaseURI || !configData.liveUrl || !redisURL) {
-    console.log("ERROR: MISSING CONFIGURATION DATA, SHUTTING DOWN!");
+  if(!environment || !port || !url || !databaseURI || !configData.liveUrl || !redisURL || !logLocation) {
+    console.log("FATAL ERROR: MISSING CONFIGURATION DATA, SHUTTING DOWN!");
     process.exit(5);
   }
 
@@ -110,14 +115,20 @@ if (!tos) {
 
 var getLogger = function(){
 	if(!logger){
-		var now = new Date();
-		var logConfig = "/tmp/driftwood" + now.getDate() + "" + (now.getMonth()+1) + "" + now.getYear() + ".log" ;
-
 		var winston = require('winston');
+
 		var transports = [new winston.transports.Console()];
-		transports.push(new winston.transports.File({
-			filename: logConfig
-		}));
+
+    //if logging to file, add the file transport
+    if(logToFile) {
+
+		  var now = new Date(); 
+		  var logConfig = logLocation + "driftwood" + now.getDate() + "" + (now.getMonth()+1) + "" + now.getYear() + ".log";
+
+		  transports.push(new winston.transports.File({
+			  filename: logConfig
+		  }));
+    }
 
 		logger = new (winston.Logger)({ 
 			transports: transports 
@@ -136,6 +147,7 @@ var getConfig = function(){
 		liveUrl: liveUrl,
 		databaseURI: databaseURI,
     redisURL: redisURL,
+    logToFile: logToFile,
     specialConfigs: specialConfigs,
     tutorial: tutorial,
     tos: tos

@@ -40,6 +40,7 @@ var router = require('./router.js');
 var connect = require('connect');
 var cookie = require('cookie');
 var multer = require('multer');
+var xxhash = require('xxhash');
 //var compass = require('node-compass');
 
 log.info("Initializing");
@@ -73,6 +74,13 @@ app.use(multer({
   limits: {
     fieldNameSize: 100,
     fileSize: 4000000
+  },
+  rename: function(fieldname, filename) {
+    var date = new Date();
+ 	  var publicPath = date.getMilliseconds() + "";
+    publicPath += xxhash.hash(new Buffer(fieldname), 0xCEADBF78);
+    publicPath += xxhash.hash(new Buffer(fieldname), 0xCEADBF78);
+    return publicPath;
   }
 }));
 //app.use(compass());

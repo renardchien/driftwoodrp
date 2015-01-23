@@ -46,5 +46,5 @@ results
 npm-debug.log
 
 # Project Specific
-/uploads/*
-!/uploads/.gitkeep
+/assets/uploads/*
+!/assets/uploads/.gitkeep

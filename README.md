@@ -17,5 +17,26 @@ specific language governing permissions and limitations
 under the License. 
 
 ## DriftwoodRP
-DriftwoodRP is a set of tools to aid players looking to play tabletop role playing games in an online collaborative space. These tools are intended to allow players to play traditionally offline tabletop role playing games online, while maintaining the immersive and personal experiences of being in person as closely as possible. The tools are written in HTML 5, Javascript, XML and CSS. All tools are still prototypes.
+DriftwoodRP is a set of tools to aid players of tabletop role playing games in an digital collaborative space. These tools are intended to allow players to play traditionally offline tabletop role playing games online, while maintaining the immersive and personal experiences of being in person as closely as possible. DriftwoodRP supports map grids, image/token/map uploading, image scaling, image rotation, free drawing, chat, dice rolling, user permissions, GM permissions and more. The tools are written in HTML 5, Javascript, JSON and CSS. All tools are still prototypes. 
+
+The tools can be used in face-to-face games as a pencil-and-paper engine. Players have used DriftwoodRP as a way to track, store and load game sessions.
+
+These tools can be used in video chat games as a near real-time online pencil-and-paper engine. Players have used DriftwoodRP as a way to play tabletop role playing games online and have a shared experience. Without a physical table or game board, it can be very difficult to play some tabletop games. DriftwoodRP allows players to make a map, upload images, upload player tokens, track player movement and play games in near real-time.
+
+Outside of role-playing games, DriftwoodRP can be used as a generic pencil-and-paper engine. It can be used to play Miniature games, strategy board games (Chess, Go, Mancala) or most games that just need a board and tokens.
+
+DriftwoodRP has been used for quick prototyping of games as well.
+
+## Install
+Coming Soon
+
+## Setup
+Coming Soon
+
+## Running
+Coming Soon
+
+## Configs
+
+
 

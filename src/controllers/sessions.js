@@ -25,7 +25,6 @@ var fs = require('fs');
 var mongoose = require ("mongoose"); 
 var Schema = mongoose.Schema;
 var config = require('../config.js');
-var xxhash = require('xxhash');
 var log = config.getLogger();
 var utils = require('../utils');
 var sockets = require('../sockets.js');
@@ -280,16 +279,12 @@ var uploadToken = function(req, res) {
 	        return res.badRequest('Only valid image formats are accepted');
         }
 
-        var date = new Date();
- 	      var publicPath = date.getMilliseconds();
-        publicPath = publicPath + '' + xxhash.hash(new Buffer(req.session.player.id), 0xCEADBF78);
-        publicPath = publicPath + '' + xxhash.hash(new Buffer(res.locals.game.id), 0xCEADBF78);
-        publicPath = publicPath + '' + xxhash.hash(new Buffer(req.files.assetFile.name), 0xCEADBF78);
+        var publicPath = req.files.assetFile.name;
 
         var newToken = new models.Session.sessionLibraryModel({
           sessionId: res.locals.game.id,
           playerId: req.session.player.id,
-          name: req.files.assetFile.name,
+          name: req.files.assetFile.originalname,
           type: req.body.type,
           publicPath: publicPath
         });

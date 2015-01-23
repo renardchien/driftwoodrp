@@ -202,7 +202,7 @@ SessionLibrarySchema.virtual('clientObject').get(function() {
   var thumbPath = path + config.getConfig().specialConfigs.imageSize.thumb.type;
 
   if(config.getConfig().specialConfigs.imgLocalHosting) {
-    path = "/assets/uploads/" + this.name;
+    path = "/assets/uploads/" + this.publicPath;
     thumbPath = path;
   }
 
