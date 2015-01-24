@@ -48,3 +48,5 @@ npm-debug.log
 # Project Specific
 /assets/uploads/*
 !/assets/uploads/.gitkeep
+/logs/*
+!/logs/.gitkeep
