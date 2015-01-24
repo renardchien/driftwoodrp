@@ -84,9 +84,9 @@ Any file ending in .json added to the */src/configs* folder is automatically loa
 
 ##### Default Configuration
 ```{
-	"environment": "development",
-  "liveUrl": "yourURL.com",
-  "url": "http://127.0.0.1",
+"environment": "development",
+"liveUrl": "yourURL.com",
+"url": "http://127.0.0.1",
   "port": 3000,
   "databaseURI": "mongodb://localhost/Driftwood",
   "redisURL": { 
