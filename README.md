@@ -83,7 +83,7 @@ Any file ending in .json added to the */src/configs* folder is automatically loa
 * `logLocation`: This is the path to your log file. The default folder is the logs folder provided in the application. For development it is recommended you use the logs folder provided or /tmp/ (on Mac/Linux) For production enviroments, it is recommended to put the logs in a more expected place such as /tmp/ (on Mac/Linux) or /var/log/ (on Mac/Linux). *If you are running on Windows, you can use the logs folder provided or provide a Windows path (C:/path/to/your/file)*.  
 
 ##### Default Configuration
-`{
+```{
 	"environment": "development",
   "liveUrl": "yourURL.com",
   "url": "http://127.0.0.1",
@@ -96,10 +96,10 @@ Any file ending in .json added to the */src/configs* folder is automatically loa
   },
   "logToFile": true,
   "logLocation": "logs/"
-}`
+}```
 
 ##### Example Config without Redis password and disabled logging to file
-`{
+```{
 	"environment": "development",
   "liveUrl": "yourURL.com",
   "url": "http://127.0.0.1",
@@ -111,10 +111,10 @@ Any file ending in .json added to the */src/configs* folder is automatically loa
   },
   "logToFile": false,
   "logLocation": "logs/"
-}`
+}```
 
 ##### Example Config of Production Environment (on Linux)
-`{
+```{
 	"environment": "production",
   "liveUrl": "yourAwesomeSite.co.uk.lol",
   "url": "http://127.0.0.1",
@@ -127,36 +127,70 @@ Any file ending in .json added to the */src/configs* folder is automatically loa
   },
   "logToFile": true,
   "logLocation": "/tmp/"
-}`
+}```
 
 ### /src/secrets.json
 
 * `secret`: This is the secret key used for sessions. This key is used to generate each session key used by client browsers to identify who the user is.
 
 ##### Default Configuration
-`{
+```{
   "secret": "yourSecretKeyForSessions"
-}`
+}```
 
 ##### Example Config with real secret key
-`{
+```{
   "secret": "TheBeatsGoOn"`
-}`
+}```
 
 ##### Example Config with long secret key (SHA-256 hash of "TheBeatsGoOn")
-{`
+```{
   "secret": "3bc4486bf7cc44a3e9d206b8b48e57d1f968bef40df8b4463f863f28228ab768"
-}`
+}```
 
 ### /src/configs/emailConfig.json
 
-* `enableEmailSupport`: *true* or *false*. _This enables or disables emails through Amazon Web Services (AWS)_. If you set this to *true*, it is currently necessary to have the */src/configs/awsConfig.json* file configured with valid data. Setting this flag to *true* will also the application to send new users a welcome email, email password reset information and notify the user of changes to their account. Setting this flag to *false* disables all emails to users.
+* `enableEmailSupport`: *true* or *false*. __This enables or disables emails through Amazon Web Services (AWS)__. If you set this to *true*, it is currently necessary to have the */src/configs/awsConfig.json* file configured with valid data. Setting this flag to *true* will also the application to send new users a welcome email, email password reset information and notify the user of changes to their account. Setting this flag to *false* disables all emails to users.
 
 ##### Default Configuration
-`{
+```{
  "enableEmailSupport":false
-}`
+}```
 
 ### /src/configs/imageConfig.json
+
+* `imageSize`: This is a JSON object of the image hosting properties. The `thumb` object is a JSON object specifying the height and width (in pixels) of thumb nail images on the server. When images are uploaded, a thumb nail will be created of the specified size.  __Thumbnails may be removed in the future__.
+
+* `imgLocalHosting`: *true* or *false*. __This specifies whether the images are being uploaded and hosted from the local machine or Amazon Web Services (AWS)__. If this field is set to *true* then user images will be uploaded to *assets/uploads* in the root directory of this application. If this field is set to *false*, then all user images are uploaded to AWS instead. If you set this to *false*, then it is necessary to have the */src/configs/awsConfig.json* file configured with valid data.
+
+##### Default Configuration
+```{
+	"imageSize" : 
+	{
+	  "thumb": 
+	 	{
+      "height": "50",
+			"width": "50"
+		}
+	},
+  "imgLocalHosting": true
+		
+}```
+
+##### Example Config with AWS Hosting and 40px Thumbnails
+```{
+	"imageSize" : 
+	{
+	  "thumb": 
+	 	{
+      "height": "40",
+			"width": "40"
+		}
+	},
+  "imgLocalHosting": false
+		
+}```
+
+### /src/configs/awsConfig.json
 Coming Soon
 
