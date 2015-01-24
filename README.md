@@ -85,9 +85,9 @@ Any file ending in .json added to the */src/configs* folder is automatically loa
 ##### Default Configuration
 ```json
 {
-"environment": "development",
-"liveUrl": "yourURL.com",
-"url": "http://127.0.0.1",
+  "environment": "development",
+  "liveUrl": "yourURL.com",
+  "url": "http://127.0.0.1",
   "port": 3000,
   "databaseURI": "mongodb://localhost/Driftwood",
   "redisURL": { 
@@ -103,7 +103,7 @@ Any file ending in .json added to the */src/configs* folder is automatically loa
 ##### Example Config without Redis password and disabled logging to file
 ```json
 {
-	"environment": "development",
+  "environment": "development",
   "liveUrl": "yourURL.com",
   "url": "http://127.0.0.1",
   "port": 3000,
@@ -120,7 +120,7 @@ Any file ending in .json added to the */src/configs* folder is automatically loa
 ##### Example Config of Production Environment (on Linux)
 ```json
 {
-	"environment": "production",
+  "environment": "production",
   "liveUrl": "yourAwesomeSite.co.uk.lol",
   "url": "http://127.0.0.1",
   "port": 3000,
@@ -149,23 +149,27 @@ Any file ending in .json added to the */src/configs* folder is automatically loa
 ##### Example Config with real secret key
 ```json
 {
-  "secret": "TheBeatsGoOn"`
+  "secret": "TheBeatsGoOn"
 }
 ```
 
 ##### Example Config with long secret key (SHA-256 hash of "TheBeatsGoOn")
-```{
+```json
+{
   "secret": "3bc4486bf7cc44a3e9d206b8b48e57d1f968bef40df8b4463f863f28228ab768"
-}```
+}
+```
 
 ### /src/configs/emailConfig.json
 
 * `enableEmailSupport`: *true* or *false*. __This enables or disables emails through Amazon Web Services (AWS)__. If you set this to *true*, it is currently necessary to have the */src/configs/awsConfig.json* file configured with valid data. Setting this flag to *true* will also the application to send new users a welcome email, email password reset information and notify the user of changes to their account. Setting this flag to *false* disables all emails to users.
 
 ##### Default Configuration
-```{
+```json
+{
  "enableEmailSupport":false
-}```
+}
+```
 
 ### /src/configs/imageConfig.json
 
