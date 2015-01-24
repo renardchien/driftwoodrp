@@ -27,11 +27,26 @@ Outside of role-playing games, DriftwoodRP can be used as a generic pencil-and-p
 
 DriftwoodRP has been used for quick prototyping of games as well.
 
+## Dependencies
+This project requires the following to be installed. 
+
+* ImageMagick
+* MongoDB
+* Redis
+
 ## Install
-Coming Soon
+`npm install`
 
 ## Setup
-Coming Soon
+In order to actually run the system, you should create and configure the following files. Refer to the configs section for configuration options and example.
+
+*Sample files have been included for each of these*
+
+* /src/config.json
+* /src/secrets.json
+* /src/configs/awsConfig.json (file is necessary, but AWS is not)
+* /src/configs/emailConfig.json
+* /src/configs/imageConfig.json
 
 ## Running
 Coming Soon
