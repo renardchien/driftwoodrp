@@ -118,12 +118,6 @@ var server = app.listen(config.getConfig().port, function(err) {
 });
 
 var io = require('socket.io').listen(server);
-/**
-var IoStore = require('socket.io/lib/stores/redis');
-var ioRedis = require('redis');
-var ioPub = ioRedis.createClient();
-var ioSub = ioRedis.createClient(); 
-var ioClient = ioRedis.createClient(); **/
 var ioRedis = require('socket.io-redis')
 
 var ioRedisClient = require('socket.io-redis/node_modules/redis').createClient,
@@ -140,18 +134,6 @@ io.adapter(require('socket.io-redis')({
 
 var socketStorage = ioRedisClient();
 var sockets = require('./sockets.js');
-
-/**
-io.set('store', new IoStore({
-  redisPub: ioPub, 
-  redisSub: ioSub,
-  redisClient: ioClient
-})); **/
-/**
-io.adapter(ioredis({
-    host: 'localhost',
-    port: 6379
-})) **/
 
 io.use(function(socket, callback) { 
 
@@ -178,32 +160,6 @@ io.use(function(socket, callback) {
 });
 
 sockets.configureSockets(io, socketStorage);
-//sockets.configureSockets(io, socketStorage);
-
-
-/**
-var clearRedisSockets = function() {
-    socketStorage.keys("storagePlayer:*", function(err, keys) {
-      if(keys) {
-        socketStorage.del(keys, function(err) {});
-      }
-    });
-    
-    log.info('Player sockets removed');
-
-    socketStorage.keys("storageGameRoom:*", function(err, key) {
-      if(key) {
-        socketStorage.del(key, function(err) {});
-      }
-    });
-
-    log.info('Game Room sockets removed');
-};
-
-//If the environment is not production, this clears out the sockets stored in redis to remove old data
-if(config.getConfig().environment !== 'production' ) {
-    clearRedisSockets();  
-}**/
 
 var shutdown = function(sig) {
     if (typeof sig === "string") {
@@ -220,12 +176,6 @@ process.on('exit', function() {
    shutdown();
 });
 
-//['SIGHUP', 'SIGINT', 'SIGQUIT', 'SIGILL', 'SIGTRAP', 'SIGABRT', 'SIGBUS',
-//  'SIGFPE', 'SIGUSR1', 'SIGSEGV', 'SIGUSR2', 'SIGPIPE', 'SIGTERM'].forEach(function(element, index, array) {
-//  process.on(element, function() {
-//    shutdown(element);
-//  });
-//});
 
 ['SIGHUP', 'SIGINT', 'SIGQUIT', 'SIGILL', 'SIGTRAP', 'SIGABRT', 'SIGBUS',
   'SIGFPE', 'SIGUSR1', 'SIGSEGV', 'SIGUSR2', 'SIGTERM'].forEach(function(element, index, array) {
