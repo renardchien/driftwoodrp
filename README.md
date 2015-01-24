@@ -243,3 +243,25 @@ Any file ending in .json added to the */src/configs* folder is automatically loa
   "awsBucket": "myDriftwood"
 }
 ```
+
+### Resetting the Database and Images
+If you are developing, sometimes you will need to clear out the database and image uploads as you make changes to the application.
+
+##### Deleting the Images
+If `imgLocalHosting` is enabled, then you will need to remove the images from the */assets/uploads/* folder. __Make sure you keep the .gitkeep file in the */assets/uploads/* folder. Only remove the images__. If you do remove the .gitkeep file, just remake a file in the folder called .gitkeep. It does not need any information it. The file is empty and is just used to track the folder without uploading all user images to git. 
+
+If `imgLocalHosting` is disabled, then you do not have to remove anything. You may choose to delete old images from your AWS S3 account to save on space.
+
+##### Resetting the Database.
+To reset the database open a mongo client to your database. Use the *driftwood* database. Then remove the entries from the *players*, *sessionchats*, *sessionlibraries*, *sessionplayers* and *sessions* collections.
+
+```javascript
+use Driftwood;
+db.players.remove();
+db.sessionchats.remove();
+db.sessionlibraries.remove();
+db.sessionplayers.remove();
+db.sessions.remove();
+exit;
+``` 
+
