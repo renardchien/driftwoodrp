@@ -16,7 +16,7 @@
 "//": "specific language governing permissions and limitations",
 "//": "under the License. ",
 
-	"environment": "development",
+  "environment": "development",
   "liveUrl": "yourURL.com",
   "url": "http://127.0.0.1",
   "port": 3000,

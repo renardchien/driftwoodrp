@@ -16,14 +16,14 @@
 "//": "specific language governing permissions and limitations",
 "//": "under the License. ",
 
-	"imageSize" : 
-	{
-	  "thumb": 
-	 	{
+  "imageSize" : 
+  {
+    "thumb": 
+    {
       "height": "50",
-			"width": "50"
-		}
-	},
-  "imgLocalHosting": true
-		
+      "width": "50"
+    }
+  },
+
+  "imgLocalHosting": true		
 }

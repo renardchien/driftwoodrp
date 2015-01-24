@@ -16,7 +16,7 @@
 "//": "specific language governing permissions and limitations",
 "//": "under the License. ",
 
-  "awsUrl": "https://s3.amazonaws.com/driftwoodrp/",
+  "awsUrl": "https://s3.amazonaws.com/SERVICENAME/",
   "sesEmail": "support@yourwebsite.com",
   "awsKey": "awsAccessKey",
   "awsSecret": "awsSecretKey",

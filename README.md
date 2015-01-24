@@ -190,26 +190,56 @@ Any file ending in .json added to the */src/configs* folder is automatically loa
 		}
 	},
   "imgLocalHosting": true
-		
 }
 ```
 
 ##### Example Config with AWS Hosting and 40px Thumbnails
 ```json
 {
-	"imageSize" : 
-	{
-	  "thumb": 
-	 	{
+  "imageSize" : 
+  {
+    "thumb": 
+    {
       "height": "40",
-			"width": "40"
-		}
-	},
-  "imgLocalHosting": false
-		
+      "width": "40"
+    }
+  },
+  "imgLocalHosting": false	
 }
 ```
 
 ### /src/configs/awsConfig.json
-Coming Soon
 
+* `awsUrl`: This is the URL to your AWS S3 service. This is the domain in which you retrieve assets from S3. If `imgLocalHosting` is disabled, then this is where the server will upload assets to and where client browsers will try to retrieve images from. __If `imgLocalHosting` is enabled AND `enableEmailSupport` is disabled, then this field can point anywhere__.
+
+* `sesEmail`: This is the email address to send email address from on AWS SES. This is the email verified with Amazon to send emails to users for account creation, password resets and account updates. __If `enableEmailSupport` is disabled, then this field can be any address since emails will not be sent`__.
+
+* `awsKey`: This is the access key provided to you by AWS. This key allows the application to talk to your AWS services. __If `imgLocalHosting` is enabled AND `enableEmailSupport` is disabled, then this can be any value__.
+
+* `awsSecret`: This is the secret access key provided to you by AWS. This key allows the application to authenticate with AWS services. __If `imgLocalHosting` is enabled AND `enableEmailSupport` is disabled, then this can be any value__.
+
+* `awsBucket`: This is the name of your AWS S3 bucket. If `imgLocalHosting` is disabled, then this is the storage bucket that assets will be uploaded to. __If `imgLocalHosting` is enabled, then this can be any value__.
+
+##### Default Configuration
+
+```json
+{
+  "awsUrl": "https://s3.amazonaws.com/SERVICENAME/",
+  "sesEmail": "support@yourwebsite.com",
+  "awsKey": "awsAccessKey",
+  "awsSecret": "awsSecretKey",
+  "awsBucket": "awsBucketName"
+}
+```
+
+##### Custom Configuration
+
+```json
+{
+  "awsUrl": "https://s3.amazonaws.com/myDriftwood/",
+  "sesEmail": "support@yourAwesomeSite.co.uk.lol",
+  "awsKey": "ABCDEFGHIJKLMNOPQRST",
+  "awsSecret": "abc123def+abc123def456ghi789jkl0+zyx987wvu",
+  "awsBucket": "myDriftwood"
+}
+```
