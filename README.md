@@ -83,20 +83,22 @@ Any file ending in .json added to the */src/configs* folder is automatically loa
 * `logLocation`: This is the path to your log file. The default folder is the logs folder provided in the application. For development it is recommended you use the logs folder provided or /tmp/ (on Mac/Linux) For production enviroments, it is recommended to put the logs in a more expected place such as /tmp/ (on Mac/Linux) or /var/log/ (on Mac/Linux). *If you are running on Windows, you can use the logs folder provided or provide a Windows path (C:/path/to/your/file)*.  
 
 ##### Default Configuration
-`{`
-` "environment": "development",`
-` "liveUrl": "yourURL.com",`
-` "url": "http://127.0.0.1",`
-` "port": 3000,`
-` "databaseURI": "mongodb://localhost/Driftwood",`
-` "redisURL": {`
-`   "hostname": "localhost",`
-`   "port": 6379,`
-`   "pass": "yourRedisAuth"`
-` },`
-` "logToFile": true,`
-` "logLocation": "logs/"`
-`}`
+```json
+{
+"environment": "development",
+"liveUrl": "yourURL.com",
+"url": "http://127.0.0.1",
+  "port": 3000,
+  "databaseURI": "mongodb://localhost/Driftwood",
+  "redisURL": { 
+    "hostname": "localhost",
+    "port": 6379,
+    "pass": "yourRedisAuth"
+  },
+  "logToFile": true,
+  "logLocation": "logs/"
+}
+```
 
 ##### Example Config without Redis password and disabled logging to file
 ```{
@@ -165,9 +167,8 @@ Any file ending in .json added to the */src/configs* folder is automatically loa
 
 ##### Default Configuration
 
-`test`
-
-```{
+```json
+{
 	"imageSize" : 
 	{
 	  "thumb": 
@@ -178,7 +179,8 @@ Any file ending in .json added to the */src/configs* folder is automatically loa
 	},
   "imgLocalHosting": true
 		
-}```
+}
+```
 
 ##### Example Config with AWS Hosting and 40px Thumbnails
 ```{
