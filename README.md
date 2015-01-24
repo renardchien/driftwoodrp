@@ -181,14 +181,14 @@ Any file ending in .json added to the */src/configs* folder is automatically loa
 
 ```json
 {
-	"imageSize" : 
-	{
-	  "thumb": 
-	 	{
+  "imageSize" : 
+  {
+    "thumb": 
+    {
       "height": "50",
       "width": "50"
     }
-	},
+  },
   "imgLocalHosting": true
 }
 ```
