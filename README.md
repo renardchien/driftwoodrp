@@ -82,7 +82,7 @@ Any file ending in .json added to the */src/configs* folder is automatically loa
 
 * `logLocation`: This is the path to your log file. The default folder is the logs folder provided in the application. For development it is recommended you use the logs folder provided or /tmp/ (on Mac/Linux) For production enviroments, it is recommended to put the logs in a more expected place such as /tmp/ (on Mac/Linux) or /var/log/ (on Mac/Linux). *If you are running on Windows, you can use the logs folder provided or provide a Windows path (C:/path/to/your/file)*.  
 
-#### Default Configuration
+##### Default Configuration
 `{
 	"environment": "development",
   "liveUrl": "yourURL.com",
@@ -98,7 +98,7 @@ Any file ending in .json added to the */src/configs* folder is automatically loa
   "logLocation": "logs/"
 }`
 
-#### Example Config without Redis password and disabled logging to file
+##### Example Config without Redis password and disabled logging to file
 `{
 	"environment": "development",
   "liveUrl": "yourURL.com",
@@ -113,7 +113,7 @@ Any file ending in .json added to the */src/configs* folder is automatically loa
   "logLocation": "logs/"
 }`
 
-#### Example Config of Production Environment (on Linux)
+##### Example Config of Production Environment (on Linux)
 `{
 	"environment": "production",
   "liveUrl": "yourAwesomeSite.co.uk.lol",
@@ -133,15 +133,30 @@ Any file ending in .json added to the */src/configs* folder is automatically loa
 
 * `secret`: This is the secret key used for sessions. This key is used to generate each session key used by client browsers to identify who the user is.
 
-#### Default Configuration
-`"secret": "yourSecretKeyForSessions"`
+##### Default Configuration
+`{
+  "secret": "yourSecretKeyForSessions"
+}`
 
-#### Example Config with real secret key
-`"secret": "TheBeatsGoOn"`
+##### Example Config with real secret key
+`{
+  "secret": "TheBeatsGoOn"`
+}`
 
-#### Example Config with long secret key (SHA-512 hash of "TheBeatsGoOn")
-`"secret": "a18cc8ff12048d219a56b89c48d0638128bd589c53c11b16ca59720d1f3cb075ae6324b77424dbd92814faca2dde2117a02af861a6e16223bb60b4d97de7068e"`
+##### Example Config with long secret key (SHA-256 hash of "TheBeatsGoOn")
+{`
+  "secret": "3bc4486bf7cc44a3e9d206b8b48e57d1f968bef40df8b4463f863f28228ab768"
+}`
 
 ### /src/configs/emailConfig.json
+
+* `enableEmailSupport`: *true* or *false*. _This enables or disables emails through Amazon Web Services (AWS)_. If you set this to *true*, it is currently necessary to have the */src/configs/awsConfig.json* file configured with valid data. Setting this flag to *true* will also the application to send new users a welcome email, email password reset information and notify the user of changes to their account. Setting this flag to *false* disables all emails to users.
+
+##### Default Configuration
+`{
+ "enableEmailSupport":false
+}`
+
+### /src/configs/imageConfig.json
 Coming Soon
 
