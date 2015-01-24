@@ -101,7 +101,8 @@ Any file ending in .json added to the */src/configs* folder is automatically loa
 ```
 
 ##### Example Config without Redis password and disabled logging to file
-```{
+```json
+{
 	"environment": "development",
   "liveUrl": "yourURL.com",
   "url": "http://127.0.0.1",
@@ -113,10 +114,12 @@ Any file ending in .json added to the */src/configs* folder is automatically loa
   },
   "logToFile": false,
   "logLocation": "logs/"
-}```
+}
+```
 
 ##### Example Config of Production Environment (on Linux)
-```{
+```json
+{
 	"environment": "production",
   "liveUrl": "yourAwesomeSite.co.uk.lol",
   "url": "http://127.0.0.1",
@@ -129,21 +132,26 @@ Any file ending in .json added to the */src/configs* folder is automatically loa
   },
   "logToFile": true,
   "logLocation": "/tmp/"
-}```
+}
+```
 
 ### /src/secrets.json
 
 * `secret`: This is the secret key used for sessions. This key is used to generate each session key used by client browsers to identify who the user is.
 
 ##### Default Configuration
-```{
+```json
+{
   "secret": "yourSecretKeyForSessions"
-}```
+}
+```
 
 ##### Example Config with real secret key
-```{
+```json
+{
   "secret": "TheBeatsGoOn"`
-}```
+}
+```
 
 ##### Example Config with long secret key (SHA-256 hash of "TheBeatsGoOn")
 ```{
@@ -183,7 +191,8 @@ Any file ending in .json added to the */src/configs* folder is automatically loa
 ```
 
 ##### Example Config with AWS Hosting and 40px Thumbnails
-```{
+```json
+{
 	"imageSize" : 
 	{
 	  "thumb": 
@@ -194,7 +203,8 @@ Any file ending in .json added to the */src/configs* folder is automatically loa
 	},
   "imgLocalHosting": false
 		
-}```
+}
+```
 
 ### /src/configs/awsConfig.json
 Coming Soon
