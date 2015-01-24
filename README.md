@@ -186,8 +186,8 @@ Any file ending in .json added to the */src/configs* folder is automatically loa
 	  "thumb": 
 	 	{
       "height": "50",
-			"width": "50"
-		}
+      "width": "50"
+    }
 	},
   "imgLocalHosting": true
 }
